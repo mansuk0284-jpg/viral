@@ -1,0 +1,619 @@
+/* =====================================================================
+   다이렉트결혼준비(네이버 카페) — 후기(가전) 분석 화면 v2
+   · 기간 네비게이터(전체·연도·26월별) + 4단계 드릴다운(전사→부울경→지역→매장)
+   · 한 화면(스크롤 없이) 구성. 긴 설명은 ⓘ 툴팁으로.
+   · 실데이터만: 월별 국가 추이(2024.11~2026.06) + 매장 2026 누적. 없는 구간은 정직 표기.
+   · 전역 헬퍼($, fmtN, pct) 재사용 — app.js 로드 후 실행
+   ===================================================================== */
+(function () {
+  // 월별 [라벨, 전체, 삼성단독, LG단독] — census 전구간(2021~2026.05, 87,419건) 우선, 없으면 폴백
+  const CD = (typeof window !== "undefined" && window.CAFE_DATA) || null;
+  const MONTHS = CD && CD.months && CD.months.length ? CD.months : [
+    ["2024-11", 15, 6, 0], ["2024-12", 1988, 692, 539],
+    ["2025-12", 2114, 668, 494], ["2026-05", 2073, 1099, 553],
+  ];
+  // 부울경 백화점 매장별 (2026 본문확정) [이름, 권역, 삼성, LG]
+  const STORES = [
+    ["신세계 센텀시티", "부산", 87, 66], ["롯데 부산본점", "부산", 60, 24],
+    ["롯데 광복점", "부산", 41, 6], ["롯데 동래점", "부산", 30, 4],
+    ["롯데 센텀시티", "부산", 3, 2],
+    ["롯데 울산점", "울산", 16, 8], ["현대 울산점", "울산", 17, 7], ["현대 울산 동구", "울산", 0, 0],
+    ["롯데 창원점", "경남", 20, 9], ["갤러리아 진주", "경남", 12, 2],
+    ["신세계 김해", "경남", 0, 4], ["신세계 마산점", "경남", 1, 1],
+  ];
+  const U = "https://cafe.naver.com/f-e/cafes/25228091/articles/";
+  const SAMPLES = {
+    "신세계 센텀시티": { pos: [
+      ["[가전졸업] 신세계 센텀 삼성스토어 안지원 매니저님 최고예요! (계약후기)", "s", U + "9061230"],
+      ["임직원몰보다 저렴하게 신세계 센텀 삼성스토어에서 가전 졸업! 정대일 매니저님 추천", "s", U + "9060203"],
+      ["신세계 센텀 삼성스토어 가전 졸업 — 발품 4군데 팔았지만 결국 여기!", "s", U + "9043039"],
+    ], neg: [] },
+    "롯데 부산본점": { pos: [
+      ["부산 롯데백화점 본점 삼성가전 후기 (정영호 매니저님)", "s", U + "9050025"],
+      ["롯데백화점 부산본점 삼성스토어에서 비스포크 콤보+정수기 계약 완료!", "s", U + "9021945"],
+      ["[롯데 부산본점 · 서희영 명장님] 혼수 가전 졸업 — 발품 5곳 판 후기", "l", U + "8967612"],
+    ], neg: [] },
+    "롯데 광복점": { pos: [
+      ["롯데광복 삼성스토어에서 신혼집 가전 졸업했습니다", "s", U + "9059867"],
+      ["혼수가전 구매 후기｜롯데광복 삼성스토어 김세훈 매니저님 추천합니다", "s", U + "9059013"],
+    ], neg: [] },
+    "롯데 동래점": { pos: [
+      ["삼성스토어 롯데 동래점 가전 계약 후기 (한정현 부점장님)", "s", U + "9015291"],
+      ["부산 혼수가전 동래 롯데백화점 삼성에서 졸업했습니다 — 완전 추천!", "s", U + "8814022"],
+    ], neg: [] },
+    "롯데 창원점": { pos: [
+      ["창원 롯데백화점 삼성스토어 혼수가전 졸업 (매니저님 친절)", "s", U + "8990012"],
+    ], neg: [
+      ["창원 롯데 LG 베스트샵에서 오브제 패키지로 결정 — 디자인 차이", "l", U + "8970113"],
+    ] },
+  };
+  const TOTAL = CD
+    ? { posts: CD.total, s: CD.samsung, l: CD.lg, retailers: CD.retailers || {} }
+    : { posts: 50015, s: 16159, l: 14652, retailers: {} };
+
+  const SS = "#1f5fd0", LG = "#d23b54";
+
+  // ── 기간 네비게이터 ── census 전구간에서 동적 생성: 전체 + 연도(2021~) + 당해연도 월
+  const YEARS = Array.from(new Set(MONTHS.map((m) => m[0].slice(0, 4)))).sort();
+  const CUR_Y = YEARS[YEARS.length - 1];
+  const PERIODS = [{ k: "all", lab: "전체" }]
+    .concat(YEARS.map((y) => ({ k: y, lab: y })))
+    .concat(MONTHS.filter((m) => m[0].slice(0, 4) === CUR_Y)
+      .map((m) => ({ k: m[0], lab: (+m[0].slice(5)) + "월" })));
+  const REGIONS = ["부산", "울산", "경남"];
+
+  // 상태: 기간 + 드릴 레벨 — 기본은 데이터의 마지막(당월)
+  const LAST_M = MONTHS.length ? MONTHS[MONTHS.length - 1][0] : "2026-05";
+  const st = { period: LAST_M, level: "nation", region: null, store: null };
+
+  function monthsFor(k) {
+    if (k === "all") return MONTHS;
+    if (/^\d{4}$/.test(k)) return MONTHS.filter((r) => r[0].slice(0, 4) === k);
+    if (/^\d{4}-\d\d$/.test(k)) return MONTHS.filter((r) => r[0] === k);
+    return [];
+  }
+  const isPend = () => false;   // census 전구간 확보 — 수집중 구간 없음
+  const perLab = (k) => (PERIODS.find((p) => p.k === k) || {}).lab || k;
+
+  function regionRoll() {
+    const R = {};
+    STORES.forEach(([name, reg, s, l]) => {
+      (R[reg] = R[reg] || { s: 0, l: 0, stores: [] });
+      R[reg].s += s; R[reg].l += l; R[reg].stores.push({ name, s, l });
+    });
+    return R;
+  }
+
+  // 선택 기간 → 시도별 추정 집계(제목기반, 전국 17개 시도). 월 선택 시 해당 연도 기준.
+  function geoRegionKey(p) {
+    if (/^\d{4}$/.test(p)) return p;
+    if (/^\d{4}-\d\d$/.test(p)) return p.slice(0, 4);
+    return "all";
+  }
+  function geoRegions() {
+    const RG = (CD && CD.regions) || {};
+    // 신구조: {지역:{s,l}} 평면. (구조: 기간별·배열 [s,l]도 호환)
+    const src = (RG.all || RG[geoRegionKey ? geoRegionKey(st.period) : "all"] || RG);
+    const out = {};
+    Object.keys(src).forEach((k) => {
+      const v = src[k];
+      if (Array.isArray(v)) out[k] = { s: v[0], l: v[1] };
+      else if (v && typeof v === "object" && "s" in v) out[k] = { s: v.s, l: v.l };
+    });
+    return out;
+  }
+
+  // ── 정성 인사이트(근거 기반, 추정은 태그) ──
+  const WHY_US = [
+    ["매니저 1:1 상담·맞춤 견적", "졸업후기에 '○○매니저님 최고/추천' 언급이 압도적으로 많음 — 사람(상담품질)이 핵심 구매이유"],
+    ["온누리상품권 20% 페이백", "2026-05 삼성 쏠림(67%)의 주요 동인으로 추정 — 맘카페 실후기 다수"],
+    ["비스포크 AI 신제품·색상 패키지", "냉장고·콤보 등 디자인+신기능 선호"],
+    ["체감가·혜택(임직원몰보다 저렴 사례)", "발품 비교 후 최종 삼성 선택 후기"],
+  ];
+  const WHY_COMP = [
+    ["LG 오브제 디자인 선호", "색감·인테리어 매칭을 이유로 LG 선택(추정)"],
+    ["디오스/트롬 성능 신뢰", "건조기·스타일러 등 특정 품목 강세(추정)"],
+    ["LG 베스트샵 명장 상담", "오프라인 상담 만족 후기(추정)"],
+  ];
+  const ITEMS = ["냉장고", "세탁기", "건조기", "TV", "에어컨", "스타일러"];
+  const ITEMS_WHY = "혼수 필수 4종(냉장고·세탁기·건조기·TV) 중심. 비스포크/오브제 색상·패키지 견적 비교가 후기 단골 주제. (품목별 정량 건수는 본문 코딩 확대 시 제공 — 현재 정성 추정)";
+
+  // ── 작은 시각화 ──
+  function miniTrend(rows) {
+    const W = 460, H = 150, pL = 34, pR = 44, pT = 12, pB = 22, n = rows.length;
+    if (n < 2) return "";
+    const A = rows.map((r) => r[2]), B = rows.map((r) => r[3]);
+    const maxY = Math.max(...A, ...B, 1) * 1.15;
+    const X = (i) => pL + (i * (W - pL - pR)) / (n - 1);
+    const Y = (v) => pT + (1 - v / maxY) * (H - pT - pB);
+    const pts = (a) => a.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+    const line = (a, c) => `<polyline points="${pts(a)}" fill="none" stroke="${c}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const ld = (a, c) => `<circle cx="${X(n - 1).toFixed(1)}" cy="${Y(a[n - 1]).toFixed(1)}" r="4.5" fill="${c}" stroke="#fff" stroke-width="2"/>`;
+    let xl = "";
+    const step = Math.max(1, Math.ceil(n / 6));
+    rows.forEach((r, i) => { if (i % step === 0 || i === n - 1) xl += `<text x="${X(i).toFixed(1)}" y="${H - 6}" text-anchor="middle" class="ca-axt">${r[0].slice(2)}</text>`; });
+    const endL = `<text x="${(X(n - 1) + 5).toFixed(1)}" y="${(Y(A[n - 1]) + 4).toFixed(1)}" class="ca-end s">${fmtN(A[n - 1])}</text>` +
+      `<text x="${(X(n - 1) + 5).toFixed(1)}" y="${(Y(B[n - 1]) + 4).toFixed(1)}" class="ca-end l">${fmtN(B[n - 1])}</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" class="ca-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="삼성 vs LG 추이">${line(B, LG)}${line(A, SS)}${ld(B, LG)}${ld(A, SS)}${endL}${xl}</svg>`;
+  }
+  function vsBars(s, l) {
+    const max = Math.max(s, l, 1);
+    return `<div class="ca-vs">` +
+      `<div class="ca-vsrow"><span class="ca-vsk s">삼성</span><span class="ca-vsbar s" style="width:${(s / max) * 100}%"><em>${fmtN(s)}</em></span></div>` +
+      `<div class="ca-vsrow"><span class="ca-vsk l">LG</span><span class="ca-vsbar l" style="width:${(l / max) * 100}%"><em>${fmtN(l)}</em></span></div>` +
+      `</div>`;
+  }
+
+  // ── 전국 광역시/도 지도(SVG) — geo-status-map 스킬 산출물 사용 ──
+  //   web/assets/korea-sido.svg(실제 시도 경계) + korea-sido-labels.json(라벨 좌표)을
+  //   비동기 로드 → 지역 데이터로 색·라벨 바인딩. (1회 로드 후 캐시)
+  let GEO_SVG = null, GEO_LAB = null;
+  function loadGeo(cb) {
+    if (GEO_SVG && GEO_LAB) return cb();
+    // 1순위: <script>로 심은 window.KOREA_SIDO (fetch·CORS·캐시 문제 없음)
+    if (window.KOREA_SIDO && window.KOREA_SIDO.svg) {
+      GEO_SVG = window.KOREA_SIDO.svg; GEO_LAB = window.KOREA_SIDO.labels; return cb();
+    }
+    // 폴백: 파일 fetch (http 서버에서만)
+    const v = "?v=2026r11";
+    Promise.all([
+      fetch("assets/korea-sido.svg" + v).then((r) => { if (!r.ok) throw 0; return r.text(); }),
+      fetch("assets/korea-sido-labels.json" + v).then((r) => { if (!r.ok) throw 0; return r.json(); }),
+    ]).then(([svg, lab]) => { GEO_SVG = svg; GEO_LAB = lab; cb(); }).catch(() => cb(true));
+  }
+  function geoMap() {
+    return `<div id="caGeoHost" class="ca-geohost">지도 불러오는 중…</div>`;
+  }
+  function paintGeo(host) {
+    const wrap = host.querySelector("#caGeoHost");
+    if (!wrap) return;
+    loadGeo(function (err) {
+      if (err || !GEO_SVG) { wrap.innerHTML = `<p class="ca-note">지도 파일을 불러오지 못했습니다 (assets/korea-sido.svg). geo-status-map 스킬로 생성하세요.</p>`; return; }
+      wrap.innerHTML = GEO_SVG;
+      const svg = wrap.querySelector("svg");
+      if (!svg) return;
+      const R = geoRegions();          // 전국 17개 시도(제목기반 추정)
+      const RS = regionRoll();         // 부울경 매장 본문매칭 — 이 지역만 매장 드릴 가능
+      // 경계 색칠 + 클릭 가능 여부
+      svg.querySelectorAll("path[data-region]").forEach((p) => {
+        const name = p.getAttribute("data-region"), d = R[name];
+        p.insertAdjacentHTML("afterbegin", `<title>${name}</title>`);  // 호버 시 시도명
+        const hasStores = !!(CD && CD.stores && CD.stores[name]) || !!RS[name];
+        if (d && (d.s + d.l) > 0) {
+          const lead = d.s > d.l ? "s" : d.l > d.s ? "l" : "even";
+          p.setAttribute("class", "on " + lead + (hasStores ? " drill" : ""));
+          // 선거지도식: 우세 격차(승자 점유율)에 따라 채움 진하기 차등
+          const win = Math.max(pct(d.s, d.l), pct(d.l, d.s));
+          const blues = ["#9fc0f0", "#5d92e8", "#1f5fd0"], reds = ["#eda6b6", "#e2607a", "#c81e3c"];
+          const scale = lead === "l" ? reds : blues;
+          p.style.fill = lead === "even" ? "#9aa7bd" : scale[win >= 65 ? 2 : win >= 55 ? 1 : 0];
+          if (hasStores) {
+            p.setAttribute("tabindex", "0"); p.setAttribute("role", "button");
+            p.setAttribute("aria-label", `${name} 총 ${d.s + d.l}건 삼성 ${pct(d.s, d.l)}% — 클릭하면 매장별`);
+          }
+        } else { p.setAttribute("class", "off"); }
+      });
+      // 시도명만 옅게 상시 표기(데이터 지역은 진하게). 현황 박스는 두지 않고 호버 툴팁으로.
+      // 인접 라벨 겹침 보정(경기는 아래로, 서울은 위로, 인천은 좌로)
+      const NUDGE = { 경기: { dx: 4, dy: 11 }, 서울: { dx: 1, dy: -3 }, 인천: { dx: -6, dy: -1 } };
+      let names = "";
+      Object.keys(GEO_LAB).forEach((name) => {
+        const p = GEO_LAB[name], n = NUDGE[name] || { dx: 0, dy: 0 };
+        names += `<text class="pv-name${R[name] ? " on" : ""}" x="${p.x + n.dx}" y="${p.y + 2 + n.dy}">${name}</text>`;
+      });
+      svg.insertAdjacentHTML("beforeend", names);
+
+      // 호버 툴팁 — 시도명 + 도넛(삼성vsLG) + 건수 + %
+      const tip = document.createElement("div");
+      tip.className = "ca-geo-tip"; tip.hidden = true;
+      wrap.appendChild(tip);
+      svg.querySelectorAll("path.on").forEach((p) => {
+        const name = p.getAttribute("data-region"), d = R[name]; if (!d) return;
+        const sh = pct(d.s, d.l), tot = d.s + d.l;
+        p.addEventListener("mouseenter", () => {
+          tip.innerHTML =
+            `<span class="gt-donut" style="--sh:${sh}"><b>${sh}<i>%</i></b></span>` +
+            `<span class="gt-txt"><b class="gt-rg">${name}</b>` +
+            `<span class="gt-n">총 <b>${fmtN(tot)}</b>건</span>` +
+            `<span class="gt-bd"><i class="s">삼성 ${fmtN(d.s)} (${sh}%)</i><i class="l">LG ${fmtN(d.l)} (${100 - sh}%)</i></span></span>`;
+          tip.hidden = false;
+        });
+        p.addEventListener("mousemove", (e) => {
+          const r = wrap.getBoundingClientRect();
+          let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14;
+          x = Math.min(x, r.width - tip.offsetWidth - 6);
+          y = Math.min(y, r.height - tip.offsetHeight - 6);
+          tip.style.left = Math.max(6, x) + "px";
+          tip.style.top = Math.max(6, y) + "px";
+        });
+        p.addEventListener("mouseleave", () => { tip.hidden = true; });
+      });
+    });
+  }
+
+  // ── 데이터 맥락 산출 ──
+  function context() {
+    // 반환: {title, sub, s, l, trend(html), targets:[{label,go}], geoNote, pend, part}
+    const p = st.period;
+    if (st.level === "nation") {
+      if (isPend(p)) return { title: "전사 현황", sub: perLab(p), pend: true };
+      const rows = monthsFor(p);
+      const s = rows.reduce((a, r) => a + r[2], 0), l = rows.reduce((a, r) => a + r[3], 0);
+      const total = rows.reduce((a, r) => a + r[1], 0);
+      const trend = rows.length >= 2 ? miniTrend(rows) : vsBars(s, l);
+      return { title: "전국 현황", sub: perLab(p), s, l, total, trend,
+        part: p === "2024", geo: true };
+    }
+    const R = regionRoll();
+    const geoNote = /^2026/.test(p) || p === "all" ? "" : "지역·매장 분해는 2026 누적 기준만 제공(과거 기간은 백필 통합 후)";
+    if (st.level === "bu") {
+      const s = STORES.reduce((a, x) => a + x[2], 0), l = STORES.reduce((a, x) => a + x[3], 0);
+      return { title: "부울경", sub: "2026 누적", s, l, trend: vsBars(s, l),
+        geoNote, regions: REGIONS.map((rg) => ({ rg, s: R[rg].s, l: R[rg].l })) };
+    }
+    if (st.level === "region") {
+      const rs = R[st.region];   // 부울경 본문매칭(정확)
+      if (rs) {
+        return { title: st.region, sub: "매장 본문매칭 · 2026 누적", s: rs.s, l: rs.l, trend: vsBars(rs.s, rs.l),
+          geoNote, stores: rs.stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l)) };
+      }
+      const gr = geoRegions()[st.region] || { s: 0, l: 0 };
+      // 본문매칭 완료 지역(예: 경기)은 정밀 디렉터리 사용
+      const bs = CD && CD.bodyStores && CD.bodyStores[st.region];
+      if (bs) {
+        return { title: st.region, sub: "매장 본문매칭 · 전체기간", s: gr.s, l: gr.l, trend: vsBars(gr.s, gr.l),
+          geoNote: "", stores: bs.map((x) => ({ name: x.n, s: x.s, l: x.l })) };
+      }
+      const cd = ((CD && CD.stores && CD.stores[st.region]) || []).map((x) => ({ name: x.n, s: x.s, l: x.l }));
+      return { title: st.region, sub: "제목기반 점별 추정 · 전체기간", s: gr.s, l: gr.l, trend: vsBars(gr.s, gr.l),
+        geoNote: "이 지역은 제목기반 추정(매장명 추출) — 본문매칭 전", stores: cd };
+    }
+    // store — 부울경은 본문매칭 STORES, 그 외는 제목기반 CD.stores
+    const row = STORES.find((x) => x[0] === st.store);
+    if (row) {
+      return { title: st.store, sub: `${row[1]} · 매장 본문매칭 2026 누적`, s: row[2], l: row[3],
+        trend: vsBars(row[2], row[3]), geoNote, samples: SAMPLES[st.store] };
+    }
+    const bsr = (CD && CD.bodyStores && CD.bodyStores[st.region]) || null;
+    const src = bsr || ((CD && CD.stores && CD.stores[st.region]) || []);
+    const cdRow = src.find((x) => x.n === st.store) || { s: 0, l: 0 };
+    return { title: st.store, sub: `${st.region} · ${bsr ? "매장 본문매칭" : "제목기반 추정"}`, s: cdRow.s, l: cdRow.l,
+      trend: vsBars(cdRow.s, cdRow.l), geoNote: bsr ? "" : "제목기반 점별 추정 — 본문 샘플은 부울경만 제공", samples: null };
+  }
+
+  // ── 렌더 ──
+  function nav() {
+    return `<div class="ca-nav" id="caNav">` +
+      PERIODS.map((p) => `<button type="button" data-per="${p.k}" class="${st.period === p.k ? "on" : ""}${p.pend ? " pend" : ""}"` +
+        `${p.pend ? ' title="2021~2023 후기는 현재 백필 수집 중 — 통합되면 활성화됩니다"' : ""}>${p.lab}${p.pend ? " ·수집중" : ""}</button>`).join("") +
+      `</div>`;
+  }
+  function crumb() {
+    if (st.level === "nation") return "";   // 전사 단일 항목은 숨김(중복)
+    const parts = [["전사", "nation"]];
+    if (st.level !== "nation") parts.push(["부울경", "bu"]);
+    if (st.level === "region" || st.level === "store") parts.push([st.region, "region"]);
+    if (st.level === "store") parts.push([st.store, "store"]);
+    return `<div class="ca-crumb">` + parts.map((p, i) =>
+      (i ? `<i>›</i>` : "") + `<button type="button" data-lv="${p[1]}"${i === parts.length - 1 ? " class=here" : ""}>${p[0]}</button>`
+    ).join("") + `</div>`;
+  }
+  function whyBlock(c) {
+    const lead = c.s > c.l ? `삼성 우위 <b>+${fmtN(c.s - c.l)}</b>` : c.l > c.s ? `<span class="warn">LG 우위 +${fmtN(c.l - c.s)}</span>` : "삼성·LG 백중";
+    const li = (arr) => arr.map((x) => `<li title="${x[1]}">${x[0]}<i>ⓘ</i></li>`).join("");
+    const reason = c.s >= c.l
+      ? "백화점 삼성스토어 졸업후기·매니저 상담 만족이 LG 대비 많음"
+      : "이 구간은 LG 후기가 더 많음 — 디자인(오브제)·특정 품목 강세. 역전 타깃";
+    return `<div class="ca-why">` +
+      `<div class="ca-wcard"><h5>우위</h5><p class="big">${lead}</p><p class="sm">${reason}</p></div>` +
+      `<div class="ca-wcard"><h5>삼성 선택 이유 <i class="ca-tag">추정</i></h5><ul class="ca-rs">${li(WHY_US)}</ul></div>` +
+      `<div class="ca-wcard"><h5>LG 선택 이유 <i class="ca-tag">추정</i></h5><ul class="ca-rs">${li(WHY_COMP)}</ul></div>` +
+      `<div class="ca-wcard"><h5>자주 나온 품목 <i class="ca-tag">추정</i></h5>` +
+      `<div class="ca-items">${ITEMS.map((n) => `<span>${n}</span>`).join("")}</div>` +
+      `<p class="sm" title="${ITEMS_WHY}">왜 이 품목? ⓘ</p></div>` +
+      `</div>`;
+  }
+  function drillBlock(c) {
+    if (c.drill) return `<button type="button" class="ca-drill" data-lv="${c.drill.to}">${c.drill.label} <span>→</span></button>`;
+    if (c.regions) return `<div class="ca-drillgrid">` + c.regions.map((r) => {
+      const lead = r.s === r.l ? "even" : r.s > r.l ? "s" : "l";
+      return `<button type="button" class="ca-dr ${lead}" data-region="${r.rg}"><b>${r.rg}</b>` +
+        `<span>삼성 ${r.s} : LG ${r.l}</span><i>→</i></button>`;
+    }).join("") + `</div>`;
+    if (c.stores) return `<div class="ca-drillgrid st">` + c.stores.map((s) => {
+      const lead = s.s === s.l ? "even" : s.s > s.l ? "s" : "l";
+      return `<button type="button" class="ca-dr ${lead}" data-store="${s.name}"><b>${s.name}</b>` +
+        `<span>삼성 ${s.s} : LG ${s.l}</span><i>→</i></button>`;
+    }).join("") + `</div>`;
+    if (c.samples) {
+      const s = c.samples;
+      const card = (r) => `<a href="${r[2]}" target="_blank" rel="noopener"><span class="ca-sm-tag ${r[1]}">${{ s: "삼성", l: "LG", b: "삼성·LG" }[r[1]] || "기타"}</span>${r[0]}</a>`;
+      return `<div class="ca-spl"><div class="ca-splcol"><h6 class="pos">우호 후기 ${s.pos.length}</h6>${s.pos.map(card).join("") || '<p class="ca-splx">표본 적음</p>'}</div>` +
+        `<div class="ca-splcol"><h6 class="neg">비난·주의 ${s.neg.length}</h6>${s.neg.map(card).join("") || '<p class="ca-splx">검출 안 됨 — 졸업후기 특성상 긍정 편향 유의</p>'}</div></div>`;
+    }
+    return "";
+  }
+
+  function nkpi(k, v, sub, cls) {
+    return `<div class="ca-nkpi ${cls}"><span class="nk-k">${k}</span>` +
+      `<span class="nk-v">${v}<i>건</i></span><span class="nk-s">${sub}</span></div>`;
+  }
+
+  const LV = ["nation", "bu", "region", "store"];
+  function pager() {
+    const i = LV.indexOf(st.level);
+    return `<div class="ca-pager">` +
+      `<button type="button" data-pg="first" title="처음(지도)으로" aria-label="처음">⤒</button>` +
+      `<button type="button" data-pg="prev"${i <= 0 ? " disabled" : ""} title="이전(상위 단계)" aria-label="이전">‹</button>` +
+      `<button type="button" data-pg="next"${i >= LV.length - 1 ? " disabled" : ""} title="앞(하위 단계)" aria-label="앞">›</button>` +
+      `</div>`;
+  }
+
+  // 전체현황 3분할 바 (삼성/LG/기타 유통)
+  function distBar(s, l, etc) {
+    const tot = s + l + etc || 1;
+    const sl = s + l || 1;
+    const ss = Math.round(s / sl * 100), ls = 100 - ss;
+    const seg = (v, cls) => v > 0 ? `<div class="db-seg ${cls}" style="width:${(v / tot * 100).toFixed(1)}%"></div>` : "";
+    return `<div class="ca-vs">` +
+      `<div class="vs-side s"><b>${ss}<i>%</i></b><span>삼성 ${fmtN(s)}건</span></div>` +
+      `<div class="vs-mid">` +
+      `<div class="ca-distbar">` + seg(s, "s") + seg(l, "l") + seg(etc, "x") + `</div>` +
+      `<div class="vs-etc">기타·미상 ${fmtN(etc)}건 포함</div>` +
+      `</div>` +
+      `<div class="vs-side l"><b>${ls}<i>%</i></b><span>LG ${fmtN(l)}건</span></div>` +
+      `</div>`;
+  }
+  // 전국 후기 샘플을 우호/비판/LG선택으로 버킷팅 (실 URL)
+  function nationSamples() {
+    const fav = [], crit = [], lg = [];
+    Object.keys(SAMPLES).forEach((stn) => {
+      const o = SAMPLES[stn] || {};
+      (o.pos || []).forEach((r) => (r[1] === "l" ? lg : fav).push(r));
+      (o.neg || []).forEach((r) => (r[1] === "l" ? lg : crit).push(r));
+    });
+    return { fav: fav.slice(0, 3), crit: crit.slice(0, 3), lg: lg.slice(0, 3) };
+  }
+  // 선택 기간의 대표 후기(조회수 아님) — census notable에서. 월=해당월, 연도/전체=묶어서 상위
+  function notableFor(k) {
+    const N = (CD && CD.notable) || {};
+    if (/^\d{4}-\d\d$/.test(k)) return (N[k] || []).slice(0, 4);
+    const keys = k === "all" ? MONTHS.map((m) => m[0]).slice(-8)
+      : MONTHS.map((m) => m[0]).filter((x) => x.slice(0, 4) === k);
+    const out = [], seen = new Set();
+    keys.forEach((km) => (N[km] || []).forEach((r) => { if (!seen.has(r.t)) { seen.add(r.t); out.push(r); } }));
+    return out.slice(0, 4);
+  }
+  // 전국 현황 박스 하단 — 우위/열세 지역 요약(제목기반 추정, 표본 충분 시도만)
+  function regionSummary() {
+    const R = geoRegions();
+    const arr = Object.keys(R).map((rg) => {
+      const d = R[rg], tot = d.s + d.l;
+      return { rg, tot, sh: pct(d.s, d.l) };
+    }).filter((x) => x.tot >= 30);   // 표본 빈약 지역 제외
+    if (arr.length < 2) return "";
+    const win = arr.slice().sort((a, b) => b.sh - a.sh).slice(0, 3);
+    const lose = arr.slice().sort((a, b) => a.sh - b.sh).slice(0, 3);
+    const chips = (list) => list.map((x) => `<span class="rs-chip">${x.rg} <i>${x.sh}%</i></span>`).join("");
+    return `<div class="nsc-rsum">` +
+      `<div class="rs-row s"><b>삼성 우위</b>${chips(win)}</div>` +
+      `<div class="rs-row l"><b>열세(LG↑)</b>${chips(lose)}</div>` +
+      `<p class="rs-cap">시도 삼성비중 상·하위 · 제목기반 추정</p></div>`;
+  }
+
+  // 애플식 분석 카드 — 앞면(라벨·제목·미니수치·＋) + 상세(영역 전체 덮음)
+  function fcard(key, label, title, mini, miniLab, detail, keys) {
+    const chips = (keys || []).length
+      ? `<div class="fc-keys">` + keys.map((k) => `<span class="fc-key">${k}</span>`).join("") + `</div>`
+      : "";
+    return `<div class="ca-fcard" data-card="${key}">` +
+      `<div class="fc-front">` +
+      `<span class="fc-label">${label}</span>` +
+      `<h4 class="fc-title">${title}</h4>` +
+      chips +
+      `<div class="fc-mini"><b>${mini}</b><span>${miniLab}</span></div>` +
+      `</div>` +
+      `<button type="button" class="fc-open" aria-label="${title} 자세히 보기">+</button>` +
+      `<div class="fc-detail">` +
+      `<div class="fc-dhead"><h4>${title}</h4><button type="button" class="fc-close" aria-label="닫기">×</button></div>` +
+      `<div class="fc-dbody">${detail}</div>` +
+      `</div></div>`;
+  }
+  function splCol(title, cls, arr) {
+    const scard = (r) => `<a href="${r[2]}" target="_blank" rel="noopener">` +
+      `<span class="ca-sm-tag ${r[1]}">${({ s: "삼성", l: "LG", b: "삼성·LG" })[r[1]] || "기타"}</span>` +
+      `<span class="ca-sm-t">${r[0]}</span></a>`;
+    return `<div class="ca-splcol"><h6 class="${cls}">${title} <em>${arr.length}</em></h6>` +
+      (arr.length ? arr.map(scard).join("") : `<p class="ca-splx">검출 안 됨 · 졸업후기 긍정편향</p>`) + `</div>`;
+  }
+
+  function render() {
+    const c = context();
+    const share = c.pend ? "—" : pct(c.s || 0, c.l || 0);
+    let mid;
+    if (c.pend) {
+      mid = `<div class="ca-pend"><span class="ca-pend-n">수집 중</span>` +
+        `<p><b>${perLab(st.period)}</b> 후기는 현재 백필로 수집 중입니다.<br>네이버 목록 API 한계를 우회해 과거 구간을 채우는 중 — 완료되면 이 기간도 분석됩니다.</p></div>`;
+    } else if (c.geo) {
+      const etc = Math.max(0, c.total - c.s - c.l);
+      const rt = (CD && CD.retailers) || {};
+      const rN = (k) => fmtN(rt[k] || 0) + "건";
+      const smp = nationSamples();
+      const notable = notableFor(st.period);
+      const notCards = notable.length
+        ? notable.map((r) => `<a href="${r.u}" target="_blank" rel="noopener">` +
+            `<span class="ca-sm-tag ${r.b}">${({ s: "삼성", l: "LG", b: "삼성·LG" })[r.b] || "기타"}</span>` +
+            `<span class="ca-sm-t">${r.t}</span></a>`).join("")
+        : `<p class="ca-splx">이 기간 표본 없음</p>`;
+      // 이달 삼성 우위 심도 분석 (근거 ev / 가설 hy)
+      const REASONS_M = [
+        ["전국 프로모션 효과", "삼성 <b>온누리상품권 20% 페이백</b>·가정의달 행사 시기에 백화점 삼성스토어 계약이 몰림 — 맘카페·블로그 실후기 다수", "ev"],
+        ["신제품 만족", "<b>비스포크 AI 콤보·냉장고</b> 등 디자인+신기능 만족이 ‘가전 졸업’ 후기의 핵심 — 품목 만족이 브랜드 선택으로", "ev"],
+        ["상담 경험 우위", "발품 비교 후 <b>매장 매니저 1:1 견적</b>에 만족해 삼성 확정(‘매니저님 최고’ 표현 빈출)", "ev"],
+        ["LG 요인", "뚜렷한 기피 이슈는 후기상 <b>미확인</b> — LG는 오브제 디자인 선호층에서 선택되는 양상", "hy"],
+      ];
+      const reasonLi = REASONS_M.map((r) =>
+        `<li class="rs-${r[2]}"><b>${r[0]}</b><span>${r[1]}</span></li>`).join("");
+      const slTot = c.s + c.l || 1, ss = Math.round(c.s / slTot * 100), ls = 100 - ss;
+      const segV = (v, cls) => v > 0 ? `<div class="db-seg ${cls}" style="width:${(v / (c.total || 1) * 100).toFixed(1)}%"></div>` : "";
+      // 좌측 — 심플한 전국 요약(큰 숫자 + 삼성vsLG 한 줄 + 우위/열세 칩)
+      const sumCol = `<div class="ca-nsumcol">` +
+        `<div class="nsc-h"><h3>전국 요약</h3><span>${perLab(st.period)}</span></div>` +
+        `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` +
+        `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b></span><span class="nv l">LG <b>${ls}%</b></span></div>` +
+        `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
+        regionSummary() +
+        `</div>`;
+      mid = `<div class="ca-nation">` +
+        sumCol +
+        // 가운데: 전국 지도
+        `<div class="ca-nleft">` + geoMap() +
+        `<div class="ca-geo-legend"><span class="gl s">삼성 우위</span><span class="gl l">LG 우위</span><span class="gl off">미집계</span></div>` +
+        `</div>` +
+        // 우: 분석 카드 2×2 (＋클릭 → 상세가 영역 전체를 덮음)
+        `<div class="ca-nright">` +
+        fcard("reasons", "우위 진단", "삼성이 이기는 진짜 이유", share + "%", "삼성 비중",
+          `<ul class="ca-reasons">${reasonLi}</ul>` +
+          `<div class="fc-sec"><h5>데이터 포인트</h5><ul class="fc-pts">` +
+          `<li>전구간 <b>삼성 49.6% : LG 50.4%</b> 박빙 — 단 <b>2026년 삼성 회복세</b></li>` +
+          `<li>연도 변곡: 2021 <b>65%</b> → 2024 <b class="warn">42%</b>(LG 우위) → 2026 <b>50%+</b></li>` +
+          `<li>유통 구성: 백화점 ${rN("백화점")} · 삼성스토어 ${rN("삼성스토어")} · LG베스트샵 ${rN("LG베스트샵")} · 하이마트 ${rN("하이마트")}</li>` +
+          `</ul></div>` +
+          `<div class="fc-sec tip"><h5>현업 활용</h5><p>프로모션·신제품 출시기에 상담을 집중하고, <b>매니저 1:1 견적·‘가전 졸업’ 경험</b>을 적극 부각 — 후기 1순위 구매 사유입니다.</p></div>`,
+          ["온누리 페이백", "비스포크 신제품"]) +
+        fcard("notable", "현장 활용", "상담에 바로 쓰는 후기", notable.length, "건",
+          `<div class="ca-inslist">${notCards}</div>` +
+          `<div class="fc-sec tip"><h5>현업 활용</h5><p>이 후기 문구를 상담 시 <b>사회적 증거</b>로 인용 — 같은 매장·같은 품목 후기를 보여주면 계약 전환에 효과적입니다.</p></div>` +
+          `<p class="fc-note">유통 언급 글 우선 선별 · <b>조회수 순 아님</b>(대표성 기준).</p>`,
+          ["가전 졸업", "매장 매니저"]) +
+        fcard("samsung", "강·약점", "고객이 짚은 칭찬 & 아쉬움", smp.fav.length, "우호 건",
+          `<div class="ca-spl-stack">` + splCol("우호", "pos", smp.fav) + splCol("주의", "neg", smp.crit) + `</div>` +
+          `<div class="fc-sec"><h5>칭찬 포인트 TOP3</h5><ul class="fc-pts">` +
+          `<li><b>매니저 응대·맞춤 견적</b> — ‘○○매니저님 최고’ 표현 최다</li>` +
+          `<li><b>온누리 20% 페이백·체감가</b> — 임직원몰보다 저렴 사례</li>` +
+          `<li><b>비스포크 디자인·신기능</b> — 색상 패키지 만족</li></ul></div>` +
+          `<div class="fc-sec tip"><h5>주의</h5><p>‘가전 졸업’ 자랑 후기라 <b>긍정 편향</b> — AS·배송 불만은 표본이 적으니 별도 모니터링 필요.</p></div>`,
+          ["매니저 응대", "비스포크"]) +
+        fcard("lg", "경쟁 방어", "LG로 간 고객, 왜?", smp.lg.length, "건",
+          `<div class="ca-spl-stack">` + splCol("LG 선택", "lg", smp.lg) + `</div>` +
+          `<div class="fc-sec"><h5>LG가 이긴 지점</h5><ul class="fc-pts">` +
+          `<li><b>오브제 디자인</b> 선호 — 인테리어 매칭</li>` +
+          `<li><b>디오스·트롬·스타일러</b> 성능 신뢰</li>` +
+          `<li>강남·수원 <b>LG 베스트샵 플래그십</b> → 수도권 강세(강남본점 LG 2,978 vs 삼성 49)</li></ul></div>` +
+          `<div class="fc-sec tip"><h5>방어 포인트</h5><p>비스포크 디자인 라인업·패키지 견적 경쟁력으로 디자인 선호층 대응. 수도권 플래그십 상권은 <b>체험·상담 차별화</b>가 관건.</p></div>`,
+          ["오브제 디자인", "수도권 강세"]) +
+        `</div>` +
+        `</div>`;
+    } else {
+      mid = `<div class="ca-stage">` +
+        `<div class="ca-stat">` +
+        `<div class="ca-stat-h"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
+        `<div class="ca-share"><b>${share}%</b><i>삼성 비중</i></div>` +
+        `<div class="ca-trend">${c.trend || ""}</div>` +
+        (c.part ? `<p class="ca-note">⚠ 2024년은 수집 시작(11·12월)분만 — 부분 표본</p>` : "") +
+        (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
+        `</div>` +
+        `<div class="ca-right">${whyBlock(c)}</div>` +
+        `</div>` +
+        `<div class="ca-drillwrap">` +
+        (c.drill ? `<p class="ca-drilltit">더 보기</p>` :
+          c.regions ? `<p class="ca-drilltit">지역 클릭</p>` :
+          c.stores ? `<p class="ca-drilltit">매장 클릭</p>` :
+          `<p class="ca-drilltit">손님 후기</p>`) +
+        drillBlock(c) + `</div>`;
+    }
+    return `<div class="ca2">` +
+      `<div class="ca-head ca-head-row">` +
+      `<div class="ca-periodnav" tabindex="0">` +
+      `<span class="ca-ic" title="다이렉트결혼준비 — 마우스를 올리면 기간 선택"><svg viewBox="0 0 24 24"><path d="M7 6.5h3.4l3.1 4.7V6.5H17v11h-3.4l-3.1-4.7v4.7H7v-11Z" fill="#fff"/></svg></span>` +
+      `<span class="cpn-cur">${perLab(st.period)}<i>기간 ▸</i></span>` +
+      nav() +
+      `</div>` +
+      `</div>` +
+      crumb() + mid +
+      `<div class="ca-botrow ca-botrow-r">` +
+      pager() +
+      `</div>` +
+      `</div>`;
+  }
+
+  function rerender(host) { host.innerHTML = render(); if (st.level === "nation") paintGeo(host); }
+
+  function bind(host) {
+    host.addEventListener("click", (e) => {
+      // 분석 카드 열기/닫기 (상세가 영역 전체를 덮음)
+      if (e.target.closest(".fc-open")) {
+        const card = e.target.closest(".ca-fcard");
+        host.querySelectorAll(".ca-fcard.is-open").forEach((c) => { if (c !== card) c.classList.remove("is-open"); });
+        if (card) card.classList.add("is-open");
+        return;
+      }
+      if (e.target.closest(".fc-close")) {
+        const card = e.target.closest(".ca-fcard");
+        if (card) card.classList.remove("is-open");
+        return;
+      }
+      const per = e.target.closest("button[data-per]");
+      if (per) {
+        if (per.classList.contains("pend")) { st.period = per.getAttribute("data-per"); }
+        else st.period = per.getAttribute("data-per");
+        rerender(host); return;
+      }
+      const lv = e.target.closest("button[data-lv]");
+      if (lv) {
+        const to = lv.getAttribute("data-lv");
+        st.level = to;
+        if (to === "nation") { st.region = null; st.store = null; }
+        if (to === "bu") { st.store = null; }
+        if (to === "region") { st.store = null; }
+        rerender(host); return;
+      }
+      const dr = e.target.closest(".ca-drill");
+      if (dr) { st.level = dr.getAttribute("data-lv"); rerender(host); return; }
+      // 지도 path는 .drill(부울경)만 드릴, 드릴버튼(.ca-dr 등)은 항상 드릴
+      const rg = e.target.closest("[data-region]");
+      if (rg && (rg.tagName.toLowerCase() !== "path" || rg.classList.contains("drill"))) {
+        st.region = rg.getAttribute("data-region"); st.level = "region"; rerender(host); return;
+      }
+      const stb = e.target.closest("[data-store]");
+      if (stb) { st.store = stb.getAttribute("data-store"); st.level = "store"; rerender(host); return; }
+      const pg = e.target.closest("button[data-pg]");
+      if (pg && !pg.disabled) {
+        const dir = pg.getAttribute("data-pg");
+        const i = LV.indexOf(st.level);
+        if (dir === "first") { window.showIntro && window.showIntro(); return; }
+        if (dir === "prev") {
+          if (i <= 0) { window.showIntro && window.showIntro(); return; }
+          st.level = LV[i - 1];
+          if (st.level === "nation") { st.region = null; st.store = null; }
+          if (st.level === "bu" || st.level === "region") st.store = null;
+        } else if (dir === "next" && i < LV.length - 1) {
+          const R = regionRoll();
+          if (st.level === "nation") st.level = "bu";
+          else if (st.level === "bu") {
+            st.region = REGIONS.slice().sort((a, b) => (R[b].s + R[b].l) - (R[a].s + R[a].l))[0];
+            st.level = "region";
+          } else if (st.level === "region") {
+            st.store = R[st.region].stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l))[0].name;
+            st.level = "store";
+          }
+        }
+        rerender(host); return;
+      }
+    });
+  }
+
+  function openCafeAnalysis() {
+    const host = document.getElementById("channelPanel");
+    if (!host) return;
+    st.period = LAST_M; st.level = "nation"; st.region = null; st.store = null;
+    host.innerHTML = render();
+    if (st.level === "nation") paintGeo(host);
+    const sec = document.getElementById("channel");
+    if (sec) sec.hidden = false;
+    document.body.classList.add("mode-results", "view-channel", "view-cafe");
+    window.scrollTo({ top: 0, behavior: "auto" });
+    bind(host);
+  }
+  window.openCafeAnalysis = openCafeAnalysis;
+})();

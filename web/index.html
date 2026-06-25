@@ -1,0 +1,483 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>혼수가전 인사이트 · 구매후기 트렌드·개선 모니터링</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- 한글 전체 글리프 포함 폰트 (subset 미사용) + Noto KR 백업 이중 로드 -->
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
+  <link rel="stylesheet" href="styles.css?v=2026r84" />
+  <link rel="stylesheet" href="cafe-analysis.css?v=2026r50" />
+</head>
+<body>
+  <!-- 결과 화면 전용 플로팅 복귀 버튼 (헤더 제거 후 대체) -->
+  <button type="button" class="back-float" id="backBtn">← 처음으로</button>
+
+  <main>
+    <!-- ===== Overview / Hero ===== -->
+    <section id="overview" class="hero hero-editorial">
+      <span class="hero-watermark" aria-hidden="true">VIRAL</span>
+      <span class="hero-index" aria-hidden="true">01 — 개요</span>
+
+      <div class="hero-grid">
+        <div class="hero-lead">
+          <!-- 테슬라식: 큰 배경영상 위에 제목 오버레이 -->
+          <figure class="hero-film hero-film-cover">
+            <div class="hero-film-media">
+              <video class="revid-video" src="assets/review-customer.mp4" muted loop autoplay playsinline preload="metadata" data-revid-video></video>
+              <div class="hero-film-veil" aria-hidden="true"></div>
+            </div>
+            <figcaption class="hero-film-overlay">
+              <p class="eyebrow eyebrow-on"><span class="eyebrow-bar"></span>구매후기로 읽는 혼수가전</p>
+              <h1 class="hero-title">
+                <span class="ht-line ht-line-1">Viral to</span>
+                <span class="ht-line ht-line-2">Insight</span>
+                <span class="ht-line ht-line-3">혼수가전 <em>’26</em></span>
+              </h1>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="hero-art">
+          <!-- 온라인 누적 센싱 후기 — 이미지(온라인 후기세상) 위에 "이만큼 센싱 중" -->
+          <div class="hero-sense">
+            <span class="hs-label">온라인 누적 센싱 후기</span>
+            <span class="hs-figure"><b class="hs-num" data-count-to="14804">0</b><span class="hs-unit">건</span>
+              <span class="hk-delta hk-up" title="어제 대비 오늘 새로 센싱된 후기 수">
+                <span class="hkd-cap">전일비</span><span class="hkd-val">+0</span><span class="hkd-unit">건</span>
+              </span>
+            </span>
+          </div>
+          <div class="hero-stage">
+          <div class="hero-portal" id="heroPortal">
+            <img src="assets/portal-hero.jpg?v=3" alt="삼성·LG 혼수 구매후기가 빨려드는 바이럴 포털" draggable="false" />
+            <button type="button" class="portal-hole" id="portalHole" aria-label="블랙홀을 눌러 채널 타일 불러오기">
+              <span class="portal-swirl" aria-hidden="true"></span>
+              <span class="portal-suck" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="source-mosaic" id="sourceMosaic" aria-label="채널별 바이럴 센싱 — 타일 크기는 센싱 건수에 비례">
+            <!-- 다이렉트결혼준비 (네이버 카페) — 메인 소스: 내부 분석 결과로 이동 -->
+            <figure class="src src-lead src-cafe" data-go="results" data-count="14804" data-unit="건" title="다이렉트결혼준비 카페 분석 결과 보기 · 센싱 14,804건">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M7 6.5h3.4l3.1 4.7V6.5H17v11h-3.4l-3.1-4.7v4.7H7v-11Z" fill="#fff"/></svg>
+              </span>
+              <figcaption><b>다이렉트결혼준비</b><small>네이버 카페 · 메인</small></figcaption>
+              <span class="src-count"><i data-count-to="14804">0</i><em>건</em></span>
+            </figure>
+            <!-- 네이버 블로그 -->
+            <figure class="src src-blog" data-channel="naver-blog" data-go="https://search.naver.com/search.naver?where=blog&query=혼수가전 후기" data-count="19" data-unit="건" title="네이버 블로그 채널 내부 분석 보기 · 센싱 19건">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8l4 4v12H6V4Z" fill="#fff"/><path d="M14 4v4h4" fill="#1ec800"/><rect x="8.5" y="11" width="7" height="1.6" rx="0.8" fill="#1ec800"/><rect x="8.5" y="14" width="7" height="1.6" rx="0.8" fill="#1ec800"/></svg>
+              </span>
+              <figcaption><b>네이버 블로그</b><small>구매 후기글</small></figcaption>
+              <span class="src-count"><i data-count-to="19">0</i><em>건</em></span>
+            </figure>
+            <!-- 맘카페 (카카오 다음) -->
+            <figure class="src src-mom" data-channel="busan-mom-cafe" data-go="https://www.google.com/search?q=맘카페 혼수가전 후기" data-count="4" data-unit="건" title="부울경 맘카페 채널 내부 분석 보기 · 센싱 4건">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 5C7.6 5 4 7.9 4 11.4c0 2.2 1.5 4.2 3.7 5.3-.2.6-.6 2-.7 2.3 0 .2.1.4.4.2.3-.2 2.3-1.6 3.1-2.2.5.1 1 .1 1.5.1 4.4 0 8-2.9 8-6.4S16.4 5 12 5Z" fill="#3C1E1E"/></svg>
+              </span>
+              <figcaption><b>맘카페</b><small>지역 커뮤니티</small></figcaption>
+              <span class="src-count"><i data-count-to="4">0</i><em>건</em></span>
+            </figure>
+            <!-- 유튜브 -->
+            <figure class="src src-youtube" data-channel="youtube" data-go="https://www.youtube.com/results?search_query=혼수가전 후기" data-count="1" data-unit="건" title="유튜브 채널 내부 분석 보기 · 센싱 1건">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3.5" fill="#fff"/><path d="M10.5 9.2 15 12l-4.5 2.8V9.2Z" fill="#FF0000"/></svg>
+              </span>
+              <figcaption><b>유튜브</b><small>혼수 브이로그</small></figcaption>
+              <span class="src-count"><i data-count-to="1">0</i><em>건</em></span>
+            </figure>
+            <!-- 오늘의집 -->
+            <figure class="src src-ohou" data-channel="ohou" data-go="https://www.google.com/search?q=오늘의집 혼수가전 후기" data-count="0" data-unit="건" title="오늘의집 채널 내부 분석 보기 · 센싱 0건(공개 API 없음)">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 4 10v9.5h5.5V14h5v5.5H20V10l-8-6.5Z" fill="#fff"/></svg>
+              </span>
+              <figcaption><b>오늘의집</b><small>인테리어 앱</small></figcaption>
+              <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
+            </figure>
+            <!-- 인스타그램 -->
+            <figure class="src src-insta" data-channel="instagram" data-go="https://www.instagram.com/explore/tags/혼수가전/" data-count="0" data-unit="건" title="인스타그램 채널 내부 분석 보기 · 센싱 0건(로그인월)">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="5" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.6" stroke="#fff" stroke-width="2"/><circle cx="16.6" cy="7.4" r="1.1" fill="#fff"/></svg>
+              </span>
+              <figcaption><b>인스타그램</b><small>해시태그 후기</small></figcaption>
+              <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
+            </figure>
+            <!-- 결혼준비(결다모) -->
+            <figure class="src src-gyeoljun" data-channel="gyeoljun" data-go="https://search.naver.com/search.naver?where=article&query=결혼준비 결다모 혼수 가전 후기" data-count="0" data-unit="건" title="결혼준비(결다모) 채널 내부 분석 보기 · 수집 대기">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M7 6.5h3.4l3.1 4.7V6.5H17v11h-3.4l-3.1-4.7v4.7H7v-11Z" fill="#fff"/></svg>
+              </span>
+              <figcaption><b>결혼준비(결다모)</b><small>대형 웨딩카페</small></figcaption>
+              <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
+            </figure>
+            <!-- 경남 결혼준비 카페 -->
+            <figure class="src src-gnwed" data-channel="gn-wedding" data-go="https://search.naver.com/search.naver?where=article&query=경남 결혼준비 카페 혼수 가전 후기" data-count="0" data-unit="건" title="경남 결혼준비 카페 채널 내부 분석 보기 · 수집 대기">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M7 6.5h3.4l3.1 4.7V6.5H17v11h-3.4l-3.1-4.7v4.7H7v-11Z" fill="#fff"/></svg>
+              </span>
+              <figcaption><b>경남 결혼준비</b><small>지역 웨딩카페</small></figcaption>
+              <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
+            </figure>
+            <!-- 웨딩북 -->
+            <figure class="src src-wbook" data-channel="weddingbook" data-go="https://www.google.com/search?q=웨딩북 혼수 가전 후기" data-count="0" data-unit="건" title="웨딩북 채널 내부 분석 보기 · 수집 대기">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 20.5 4.6 13a4.6 4.6 0 0 1 6.5-6.5l.9.9.9-.9A4.6 4.6 0 0 1 19.4 13L12 20.5Z" fill="#fff"/></svg>
+              </span>
+              <figcaption><b>웨딩북</b><small>웨딩 준비 앱</small></figcaption>
+              <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
+            </figure>
+            <!-- 맘스홀릭베이비 -->
+            <figure class="src src-momsh" data-channel="momsholic" data-go="https://search.naver.com/search.naver?where=article&query=맘스홀릭 혼수 가전 후기" data-count="0" data-unit="건" title="맘스홀릭베이비 채널 내부 분석 보기 · 수집 대기">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M7 6.5h3.4l3.1 4.7V6.5H17v11h-3.4l-3.1-4.7v4.7H7v-11Z" fill="#fff"/></svg>
+              </span>
+              <figcaption><b>맘스홀릭베이비</b><small>네이버 최대 맘카페</small></figcaption>
+              <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
+            </figure>
+            <!-- 당근 동네생활 -->
+            <figure class="src src-danggn" data-channel="danggn" data-go="https://www.daangn.com/search/혼수 가전 후기" data-count="0" data-unit="건" title="당근 동네생활 채널 내부 분석 보기 · 수집 대기">
+              <span class="src-ping" aria-hidden="true"></span>
+              <span class="src-ic">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M14.5 6.5c1.2-1.2 3.5-1.5 3.5-1.5s-.3 2.3-1.5 3.5c.6 2-.2 4.6-2.4 6.8-2.6 2.6-7.8 5.7-9.4 4.1-1.6-1.6 1.5-6.8 4.1-9.4 2.2-2.2 4.8-3 6.8-2.4Z" fill="#fff"/></svg>
+              </span>
+              <figcaption><b>당근 동네생활</b><small>지역 커뮤니티</small></figcaption>
+              <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
+            </figure>
+          </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 옛 결과 섹션(#national/#region/#review)은 다이렉트 분석 화면(cafe-analysis)으로 대체되어 제거됨 -->
+
+    <!-- ===== 채널별 내부 화면 (타일 클릭 시) ===== -->
+    <section id="channel" class="section" hidden>
+      <div class="container">
+        <div id="channelPanel"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p><strong>혼수가전 인사이트</strong> · 혼수가전 바이럴 모니터링 대시보드</p>
+      <p class="foot-note">
+        데이터 출처: 다이렉트결혼준비 카페 자동 수집(단일 채널, 표본 추정치) · 집계 단위: 글 1건 = 매장 1곳 ·
+        바이럴 건수는 언급량 지표이며 매출액이 아닙니다.
+      </p>
+    </div>
+  </footer>
+
+  <script src="app.js?v=2026r41"></script>
+  <script src="assets/korea-sido.js?v=2026r36"></script>
+  <script src="assets/cafe-data.js?v=2026r41"></script>
+  <script src="cafe-analysis.js?v=2026r50"></script>
+  <!-- 소스 타일: 크기=센싱 건수 비례 + 살아있는 클러스터 연출 + 클릭 이동 -->
+  <script>
+    (function () {
+      var MIN = 104, MAX = 224;            // 타일 한 변(px) — 클릭 편의 위한 하한/상한
+      var tiles = [].slice.call(document.querySelectorAll('.source-mosaic .src[data-go]'));
+      if (!tiles.length) return;
+
+      // 0) 실데이터 연동
+      //  · 다이렉트결혼준비 타일 = 카페 채널 센싱 건수(CAFE_DATA.total)
+      //  · 히어로 "온라인 누적 센싱 후기" = 모든 채널 타일 건수의 합
+      var CD = window.CAFE_DATA;
+      var fmt = function (n) { return (+n).toLocaleString('ko-KR'); };
+      if (CD && CD.total) {
+        var lead = document.querySelector('.source-mosaic .src-lead[data-go="results"]');
+        if (lead) {
+          lead.setAttribute('data-count', CD.total);
+          var li = lead.querySelector('.src-count [data-count-to]');
+          if (li) li.setAttribute('data-count-to', CD.total);
+          lead.setAttribute('title', '다이렉트결혼준비 카페 분석 결과 보기 · 센싱 ' + fmt(CD.total) + '건');
+        }
+      }
+      // 누적 센싱 = 채널 타일 전체 합
+      var sumAll = tiles.reduce(function (a, el) { return a + (+el.getAttribute('data-count') || 0); }, 0);
+      var hs = document.querySelector('.hs-num[data-count-to]');
+      if (hs) hs.setAttribute('data-count-to', sumAll);
+
+      // 1) 센싱 건수 → 로그 스케일로 크기 산출 (큰 격차를 부드럽게 압축)
+      var raws = tiles.map(function (el) {
+        return Math.log((+el.getAttribute('data-count') || 0) + 1);
+      });
+      var maxRaw = Math.max.apply(null, raws) || 1;
+
+      var maxCount = Math.max.apply(null, tiles.map(function (el) { return +el.getAttribute('data-count') || 0; }));
+
+      // 타일로 빨려들어가 → 포털(아이리스)이 열리며 분석화면으로 진입하는 연출
+      var warping = false;
+      function warpInto(el, done) {
+        if (warping) return; warping = true;
+        var mosaic = el.closest('.source-mosaic');
+        var r = el.getBoundingClientRect();
+        var veil = document.createElement('div');
+        veil.className = 'warp-veil';
+        veil.style.setProperty('--cx', (r.left + r.width / 2) + 'px');
+        veil.style.setProperty('--cy', (r.top + r.height / 2) + 'px');
+        document.body.appendChild(veil);
+        if (mosaic) mosaic.classList.add('warping');
+        el.classList.add('warp-in');
+        void veil.offsetWidth;                 // 리플로우 후 아이리스 오픈
+        veil.classList.add('go');
+        var done2 = false;
+        var finish = function () {
+          if (done2) return; done2 = true;
+          if (typeof done === 'function') done();   // 분석화면 전환(스크롤 최상단)
+          // 전환 뒤 정리 — 잔상 페이드아웃
+          setTimeout(function () {
+            el.classList.remove('warp-in');
+            if (mosaic) mosaic.classList.remove('warping');
+            veil.classList.add('fade');
+            setTimeout(function () { veil.remove(); warping = false; }, 360);
+          }, 60);
+        };
+        setTimeout(finish, 560);
+      }
+      window.warpInto = warpInto;
+
+      tiles.forEach(function (el, i) {
+        var count = +el.getAttribute('data-count') || 0;
+        var ratio = raws[i] / maxRaw;                 // 0~1
+        var size = Math.round(MIN + ratio * (MAX - MIN));
+        el.style.setProperty('--size', size + 'px');
+        el.style.setProperty('--ratio', ratio.toFixed(3));   // 숫자 크기·강조에 사용
+        el._size = size;                                      // 방사형 배치에 사용
+        el._baseSize = size;                                  // 폴백(flex) 복원용
+        el._ratio = ratio;                                    // 방사형에서 둘레 타일 크기 산정
+        el._jit = (Math.random() * 0.34 - 0.17);              // 각도 흔들림(살아있는 느낌)
+        el._rjit = (Math.random() * 22 - 11);                 // 반경 흔들림
+
+        // 센싱 강도 티어 — 큰 숫자일수록 더 강하게 강조
+        if (count > 0 && count === maxCount) el.classList.add('src-hot');     // 최다 센싱(선두)
+        else if (ratio >= 0.28) el.classList.add('src-strong');              // 상위권
+
+        // 비정형·살아있는 느낌: 미세 회전/부유주기/지연 흩뿌림
+        var rot = (Math.random() * 5 - 2.5).toFixed(2);          // -2.5~2.5deg
+        var floatDur = (5.4 + Math.random() * 2.4).toFixed(2);   // 5.4~7.8s
+        var delay = (Math.random() * 1.6).toFixed(2);            // 0~1.6s
+        el.style.setProperty('--rot', rot + 'deg');
+        el.style.setProperty('--float', floatDur + 's');
+        el.style.setProperty('--delay', delay + 's');
+
+        // 핑 속도: 센싱 활발할수록 빠르게(현장감·속도감). 0건은 조용히.
+        if (count <= 0) {
+          el.classList.add('src-quiet');
+        } else {
+          var pulse = (4.4 - ratio * 2.2).toFixed(2);            // 활발=2.2s ~ 한산=4.4s
+          el.style.setProperty('--pulse', pulse + 's');
+        }
+        if (size < 130) el.classList.add('src-sm');             // 작은 타일은 보조라벨 숨김
+
+        // 전일비(추가된 센싱 건수) — 건수 옆에 +N 표기. data-delta 없으면 0
+        var dn = +el.getAttribute('data-delta') || 0;
+        var badge = el.querySelector('.src-count');
+        if (badge) {
+          var d = document.createElement('span');
+          d.className = 'src-delta' + (dn > 0 ? ' up' : dn < 0 ? ' down' : ' flat');
+          d.textContent = (dn > 0 ? '+' : dn < 0 ? '−' : '+') + Math.abs(dn);
+          badge.appendChild(d);
+        }
+
+        // 접근성/이동
+        el.setAttribute('role', 'link');
+        el.setAttribute('tabindex', '0');
+        var go = function () {
+          var t = el.getAttribute('data-go');
+          var ch = el.getAttribute('data-channel');
+          if (t === 'results') {
+            var open = function () {
+              if (typeof window.openCafeAnalysis === 'function') window.openCafeAnalysis();
+              else if (typeof window.showResults === 'function') window.showResults();
+            };
+            warpInto(el, open);
+          } else if (ch && typeof window.openChannel === 'function') {
+            window.openChannel(ch);                 // 대시보드 내부 채널 화면으로
+          } else if (t) {
+            window.open(t, '_blank', 'noopener');   // 폴백: 외부 검색 새 탭
+          }
+        };
+        el.addEventListener('click', go);
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
+        });
+      });
+
+      // 1.5) 방사형 클러스터 — 최다 센싱 타일을 중앙에, 작은 타일들은 둘레에 모이게
+      var mosaic = document.getElementById('sourceMosaic');
+      function setSize(t, s) {
+        t._size = s;
+        t.style.setProperty('--size', Math.round(s) + 'px');
+      }
+      function placeAt(t, x, y) {
+        var s = t._size || 120;
+        t.style.left = (x - s / 2) + 'px';
+        t.style.top = (y - s / 2) + 'px';
+        t.style.zIndex = Math.round(s);          // 큰 타일이 겹침 위로(중앙이 최상단)
+        t._tx = x; t._ty = y;                    // 목표 중심(블랙홀 → 제자리 비행에 사용)
+      }
+      function layoutCluster() {
+        if (!mosaic) return;
+        var box = mosaic.clientWidth || 520;
+        if (box < 240) {                         // 매우 좁은 화면: 기존 흐름(flex) 배치로 폴백
+          mosaic.classList.remove('is-radial');
+          mosaic.style.height = '';
+          tiles.forEach(function (t) { t.style.left = t.style.top = t.style.zIndex = ''; setSize(t, t._baseSize); t._tx = null; });
+          mosaic._hub = null;
+          if (!portalOpened) applyClosed();
+          return;
+        }
+        // 타일 크기를 컨테이너 폭에 비례시켜 항상 들어맞게(중앙=최대, 둘레=작게)
+        mosaic.classList.add('is-radial');
+        mosaic.style.height = box + 'px';
+        var C = box / 2;
+        var center = tiles.filter(function (t) { return t.classList.contains('src-hot'); })[0] || tiles[0];
+        setSize(center, box * 0.37);                         // 확대(텍스트 가림 없는 최대치)
+        placeAt(center, C, C);
+        var others = tiles.filter(function (t) { return t !== center; });
+        var n = others.length;
+        // 둘레를 안(R_in)·바깥(R_out) 두 겹으로 번갈아 — 이웃 타일을 반경 방향으로 어긋나게 해
+        // 각 타일 중앙(텍스트 영역)이 옆 타일에 가려지지 않도록 한다.
+        var R_in = box * 0.31, R_out = box * 0.40;
+        others.forEach(function (t, i) {
+          setSize(t, box * (0.15 + (t._ratio || 0) * 0.085));   // 둘레 타일 확대
+          var ang = (i / n) * Math.PI * 2 - Math.PI / 2 + (t._jit || 0) * 0.5;
+          var rad = (i % 2 === 0 ? R_in : R_out) + (t._rjit || 0) * (box / 1100);
+          placeAt(t, C + Math.cos(ang) * rad, C + Math.sin(ang) * rad);
+        });
+        mosaic._hub = C;
+        if (!portalOpened) applyClosed();
+      }
+
+      // ===== 블랙홀 포털: 닫힘(타일이 블랙홀 안) → 클릭 → 타일이 제자리로 비행 =====
+      var portalOpened = false;
+      function tileDelta(t) {
+        var hub = mosaic._hub;
+        if (hub == null || t._tx == null) return [0, 0];   // flex 폴백: 제자리에서 스케일 인
+        return [hub - t._tx, hub - t._ty];
+      }
+      function applyClosed() {
+        // 닫힘 = .closed 클래스(CSS가 블랙홀 중심으로 모음). 위치 편차는 --dx/--dy 변수로 전달.
+        tiles.forEach(function (t) {
+          var d = tileDelta(t);
+          t.style.setProperty('--dx', d[0] + 'px');
+          t.style.setProperty('--dy', d[1] + 'px');
+          t.classList.add('closed');
+        });
+      }
+      function revealPortal() {
+        if (portalOpened) return; portalOpened = true;
+        document.body.classList.add('portal-open');   // 이미지 페이드·축소
+        var hub = mosaic._hub;
+        // 각도 순서로 줄지어 등장(중앙 타일 먼저) — 끊김 없이 한 줄로 이어지는 생동감
+        var order = tiles.slice().sort(function (a, b) {
+          function key(t) {
+            if (t._tx == null || hub == null) return -8;
+            var d = Math.hypot(t._tx - hub, t._ty - hub);
+            if (d < 3) return -9;                       // 허브(중앙) 먼저
+            return Math.atan2(t._ty - hub, t._tx - hub);
+          }
+          return key(a) - key(b);
+        });
+        order.forEach(function (t, i) {
+          setTimeout(function () {
+            t.classList.remove('closed');
+            t.classList.add('flew');
+            var clear = function () { t.classList.remove('flew'); };
+            t.addEventListener('animationend', clear, { once: true });
+            setTimeout(clear, 720);                     // 헤드리스 폴백(animationend 미발생 대비)
+          }, 90 + i * 55);                              // 촘촘한 스태거
+        });
+        setTimeout(function () {
+          var p = document.getElementById('heroPortal'); if (p) p.style.display = 'none';
+        }, 90 + tiles.length * 55 + 720);
+      }
+      var hole = document.getElementById('portalHole');
+      if (hole) hole.addEventListener('click', revealPortal);
+
+      layoutCluster();
+      applyClosed();                                  // 초기: 타일을 블랙홀 안으로 숨김
+      window.addEventListener('resize', layoutCluster);
+      window.addEventListener('load', layoutCluster);
+
+      // 2) 건수 배지 카운트업 — 히어로 최상단 고정 노출이므로 즉시 스태거 실행
+      var nums = [].slice.call(document.querySelectorAll('.source-mosaic [data-count-to]'));
+      function pop(el) {
+        var badge = el.closest('.src-count');
+        if (!badge) return;
+        badge.classList.remove('pop');
+        void badge.offsetWidth;           // 리플로우로 애니메이션 재시작
+        badge.classList.add('pop');
+        badge.addEventListener('animationend', function off() {
+          badge.classList.remove('pop');  // 팝 종료 후 제거 → 선두 타일 맥동 복귀
+          badge.removeEventListener('animationend', off);
+        });
+      }
+      function countUp(el, dur) {
+        var target = +el.getAttribute('data-count-to') || 0;
+        if (target <= 0) { el.textContent = '0'; return; }
+        // 큰 숫자는 더 오래·드라마틱하게 카운트(틱이 더 많이 굴러감)
+        dur = dur * (0.8 + Math.min(target / Math.max(maxCount, 1), 1) * 0.9);
+        var t0 = null;
+        function step(ts) {
+          if (!t0) t0 = ts;
+          var p = Math.min((ts - t0) / dur, 1);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(target * eased).toLocaleString('ko-KR');
+          if (p < 1) requestAnimationFrame(step);
+          else { el.textContent = target.toLocaleString('ko-KR'); pop(el); }
+        }
+        requestAnimationFrame(step);
+      }
+      function setFinal(el) {
+        var target = +el.getAttribute('data-count-to') || 0;
+        el.textContent = target.toLocaleString('ko-KR');
+      }
+      // 상단 "온라인 누적 센싱 후기" 큰 숫자도 함께 카운트업(임팩트)
+      var hsNum = document.querySelector('.hs-num[data-count-to]');
+      var allNums = hsNum ? nums.concat([hsNum]) : nums;
+      function runCountUp() {
+        nums.forEach(function (n, i) {
+          setTimeout(function () { countUp(n, 1100); }, 360 + i * 120);
+        });
+        if (hsNum) setTimeout(function () { countUp(hsNum, 1600); }, 240);
+      }
+      if (document.hidden) {
+        // 백그라운드 탭: rAF 정지 → 최종값 표기, 보일 때 1회 애니메이션
+        allNums.forEach(setFinal);
+        document.addEventListener('visibilitychange', function once() {
+          if (document.hidden) return;
+          document.removeEventListener('visibilitychange', once);
+          allNums.forEach(function (n) { n.textContent = '0'; });
+          runCountUp();
+        });
+      } else {
+        runCountUp();
+      }
+    })();
+  </script>
+</body>
+</html>
+

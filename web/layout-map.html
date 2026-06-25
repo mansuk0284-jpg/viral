@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>레이아웃 지도 · 영역별 명칭표 — Viral Monitor</title>
+  <style>
+    :root{
+      --bg:#f4f7fc; --surface:#fff; --text:#172a42; --muted:#6b7890;
+      --accent:#2f6df6; --line:rgba(23,42,66,.12);
+      --s:#1f5fd0; --l:#d23b54; --green:#03c75a;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0; font-family:"Noto Sans KR",system-ui,sans-serif;
+      background:var(--bg); color:var(--text); padding:18px;
+      font-size:14px; line-height:1.5;
+    }
+    h1{font-size:18px; font-weight:900; letter-spacing:-.02em; margin:0 0 2px;}
+    .sub{font-size:12px; color:var(--muted); margin:0 0 16px;}
+    .wrap{display:flex; flex-direction:column; gap:18px; max-width:560px;}
+    .panel{
+      background:var(--surface); border:1px solid var(--line); border-radius:16px;
+      padding:14px 15px; box-shadow:0 8px 24px rgba(23,42,66,.06);
+    }
+    .ptit{font-size:12px; font-weight:900; letter-spacing:.04em; color:var(--accent);
+      margin:0 0 11px; display:flex; align-items:center; gap:7px;}
+    .ptit .pin{background:var(--accent); color:#fff; border-radius:6px; font-size:11px;
+      padding:1px 7px; font-weight:900;}
+
+    /* 다이어그램 박스 */
+    .map{display:flex; flex-direction:column; gap:9px;}
+    .scr{border:1.5px solid var(--line); border-radius:13px; padding:11px; background:#fbfcfe;}
+    .scr-h{font-size:11px; font-weight:900; color:var(--muted); margin:0 0 9px; letter-spacing:.02em;}
+    .row{display:flex; gap:9px;}
+    .col{flex:1; display:flex; flex-direction:column; gap:9px; min-width:0;}
+    .zone{
+      position:relative; border-radius:10px; padding:9px 10px 9px 34px; min-height:42px;
+      background:#fff; border:1px solid var(--line); display:flex; flex-direction:column; justify-content:center;
+    }
+    .zone .tag{
+      position:absolute; left:7px; top:50%; transform:translateY(-50%);
+      width:21px; height:21px; border-radius:6px; background:var(--accent); color:#fff;
+      font-size:10.5px; font-weight:900; display:grid; place-items:center;
+    }
+    .zone b{font-size:12.5px; font-weight:800;}
+    .zone span{font-size:10.5px; color:var(--muted); font-family:ui-monospace,monospace;}
+    .zone.accent{border-color:rgba(47,109,246,.4); background:rgba(47,109,246,.05);}
+    .zone.cluster{border-color:rgba(3,199,90,.4); background:rgba(3,199,90,.06);}
+    .zone .tag.g{background:var(--green);}
+    .zone .tag.k{background:#7c3aed;}
+
+    /* 클러스터 미니 */
+    .clu{position:relative; height:108px; margin-top:4px;}
+    .clu .c{position:absolute; border-radius:50%; display:grid; place-items:center;
+      font-size:9px; font-weight:800; color:#fff; text-align:center; line-height:1.05;}
+    .clu .c.lead{width:60px; height:60px; left:calc(50% - 30px); top:24px; background:var(--green); font-size:9.5px;}
+    .clu .c.sm{width:30px; height:30px; background:#9db4d6;}
+
+    /* 명칭표 */
+    table{width:100%; border-collapse:collapse; font-size:12px;}
+    th,td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top;}
+    th{font-size:10.5px; color:var(--muted); font-weight:800; letter-spacing:.03em;}
+    td.k{font-family:ui-monospace,monospace; font-size:11px; color:var(--s); white-space:nowrap;}
+    td .pin{display:inline-grid; place-items:center; width:18px; height:18px; border-radius:5px;
+      background:var(--accent); color:#fff; font-size:10px; font-weight:900; margin-right:2px;}
+    .pin.g{background:var(--green);} .pin.k{background:#7c3aed;}
+    .note{font-size:11px; color:var(--muted); margin:10px 2px 0; line-height:1.6;}
+    .flow{font-size:11.5px; color:var(--text); margin:0; line-height:1.7;}
+    .flow code{background:rgba(23,42,66,.06); border-radius:4px; padding:1px 5px; font-size:11px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div>
+      <h1>레이아웃 지도 · 영역별 명칭표</h1>
+      <p class="sub">이 표의 <b>영역 이름</b>(예: “A5 클러스터”, “B2 기간 네비”)으로 지시하면 정확히 알아듣습니다.</p>
+    </div>
+
+    <!-- ===== 지도 ===== -->
+    <div class="panel">
+      <p class="ptit"><span class="pin">MAP</span> 화면 구조 다이어그램</p>
+      <div class="map">
+
+        <!-- A. 인트로 -->
+        <div class="scr">
+          <p class="scr-h">A. 인트로(메인) 화면 — <code>#overview .hero</code></p>
+          <div class="row">
+            <div class="col" style="flex:1.05;">
+              <div class="zone accent"><span class="tag">A1</span><b>상단 라벨</b><span>.eyebrow</span></div>
+              <div class="zone accent"><span class="tag">A2</span><b>메인 제목</b><span>.hero-title</span></div>
+              <div class="zone"><span class="tag">A3</span><b>고객 후기 영상</b><span>.hero-film / &lt;video&gt;</span></div>
+              <div class="zone"><span class="tag">A4</span><b>누적후기 KPI · 전일비</b><span>.hero-kpi</span></div>
+            </div>
+            <div class="col" style="flex:.95;">
+              <div class="zone cluster" style="min-height:172px;">
+                <span class="tag g">A5</span><b>채널 클러스터(방사형 지도)</b>
+                <span>#sourceMosaic</span>
+                <div class="clu">
+                  <div class="c lead">A5-C<br>다이렉트</div>
+                  <div class="c sm" style="left:6%;top:8px;">블로그</div>
+                  <div class="c sm" style="right:4%;top:4px;">맘카페</div>
+                  <div class="c sm" style="left:0;top:62px;">유튜브</div>
+                  <div class="c sm" style="right:0;top:60px;">오늘의집</div>
+                  <div class="c sm" style="left:30%;bottom:0;">인스타</div>
+                  <div class="c sm" style="right:26%;bottom:-2px;">+추천5</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B. 카페 분석 -->
+        <div class="scr">
+          <p class="scr-h">B. 다이렉트결혼준비 분석 화면 — 클러스터 중앙(A5-C) 클릭 시 · <code>#channel .ca2</code></p>
+          <div class="col">
+            <div class="zone"><span class="tag">B1</span><b>분석 헤더</b><span>.ca-head</span></div>
+            <div class="zone accent"><span class="tag">B2</span><b>기간 네비게이터</b><span>.ca-nav · 전체/21~26/월별</span></div>
+            <div class="zone accent"><span class="tag">B3</span><b>드릴 경로(브레드크럼)</b><span>.ca-crumb · 전사▸부울경▸지역▸매장</span></div>
+            <div class="zone"><span class="tag">B4</span><b>본문(현황·추이·이유·품목)</b><span>.ca2-body</span></div>
+            <div class="zone"><span class="tag">B5</span><b>하단 페이저</b><span>.ca-pager · 처음/이전/앞</span></div>
+          </div>
+        </div>
+
+        <!-- C. 채널 내부 -->
+        <div class="scr">
+          <p class="scr-h">C. 채널 내부 화면 — 둘레 타일(블로그·유튜브 등) 클릭 시 · <code>#channel</code></p>
+          <div class="zone"><span class="tag k">C1</span><b>채널 분석/수집대기 화면</b><span>renderChannel() · app.js</span></div>
+        </div>
+
+      </div>
+      <p class="flow">진입 흐름: <code>A5-C 다이렉트</code> →(빨려드는 전환)→ <code>B 분석화면</code> &nbsp;·&nbsp; <code>A5 둘레 타일</code> → <code>C 채널화면</code></p>
+    </div>
+
+    <!-- ===== 명칭표 ===== -->
+    <div class="panel">
+      <p class="ptit"><span class="pin">TAG</span> 영역별 명칭표</p>
+      <table>
+        <thead><tr><th>영역</th><th>이름</th><th>코드 핸들</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pin">A1</span></td><td>상단 라벨</td><td class="k">.eyebrow</td></tr>
+          <tr><td><span class="pin">A2</span></td><td>메인 제목</td><td class="k">.hero-title</td></tr>
+          <tr><td><span class="pin">A3</span></td><td>고객 후기 영상</td><td class="k">.hero-film</td></tr>
+          <tr><td><span class="pin">A4</span></td><td>누적후기 KPI · 전일비</td><td class="k">.hero-kpi</td></tr>
+          <tr><td><span class="pin g">A5</span></td><td>채널 클러스터(방사형)</td><td class="k">#sourceMosaic</td></tr>
+          <tr><td><span class="pin g">A5-C</span></td><td>중앙 타일 = 다이렉트결혼준비</td><td class="k">.src-hot</td></tr>
+          <tr><td><span class="pin g">A5-R</span></td><td>둘레 타일(채널 10종)</td><td class="k">.src</td></tr>
+          <tr><td><span class="pin">B1</span></td><td>분석 헤더</td><td class="k">.ca-head</td></tr>
+          <tr><td><span class="pin">B2</span></td><td>기간 네비게이터</td><td class="k">.ca-nav</td></tr>
+          <tr><td><span class="pin">B3</span></td><td>드릴 경로(브레드크럼)</td><td class="k">.ca-crumb</td></tr>
+          <tr><td><span class="pin">B4</span></td><td>분석 본문</td><td class="k">.ca2-body</td></tr>
+          <tr><td><span class="pin">B5</span></td><td>하단 페이저(처음/이전/앞)</td><td class="k">.ca-pager</td></tr>
+          <tr><td><span class="pin k">C1</span></td><td>채널 내부 화면</td><td class="k">renderChannel</td></tr>
+        </tbody>
+      </table>
+      <p class="note">⚠ 이 화면은 <b>작업 지시용 참고 지도</b>입니다(실데이터·집계 없음). 실제 대시보드는 <code>index.html</code>. 구조가 바뀌면 이 지도도 함께 갱신합니다.</p>
+    </div>
+  </div>
+</body>
+</html>

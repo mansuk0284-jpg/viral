@@ -1,0 +1,21 @@
+# 로그인 세션·민감정보 (절대 업로드 금지)
+.browser-profile/
+*.session
+session-*.json
+
+# 대용량·내부 산출물 (분석 원본 — 배포 불필요)
+artifacts/
+*.census.json
+cafe-census.json
+__pycache__/
+*.pyc
+
+# 사용하지 않는 대용량 원본 이미지(웹은 .jpg 사용)
+web/assets/portal-hero.png
+
+# OS·에디터
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+node_modules/
