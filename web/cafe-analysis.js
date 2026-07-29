@@ -506,6 +506,58 @@
       `</div></div>`;
   }
 
+  /* ── 매장 페이지: 매니저(프로·명장) 실명 후기 경쟁력 ── */
+  function mgrBlock(storeName, c) {
+    const MS = (CD && CD.mgrStore) || {};
+    const G = (CD && CD.mgr) || null;
+    // 매장 키 정규화(‘신세계 센텀시티’ ↔ 데이터의 ‘신세계 센텀’ 같은 표기 차 흡수)
+    let key = null;
+    if (MS[storeName]) key = storeName;
+    else {
+      const k = Object.keys(MS).find((x) => storeName.indexOf(x) === 0 || x.indexOf(storeName) === 0);
+      if (k) key = k;
+    }
+    const d = key ? MS[key] : null;
+    // 전국 벤치마크: 매니저 실명 후기에서 삼성이 차지하는 비중
+    const natMgr = G ? pct(G.s_on, G.l_on) : null;
+    const natNon = G ? pct(G.s_off, G.l_off) : null;
+
+    if (!d) {
+      return `<div class="ca-ncard mgr-card"><h4 class="ca-ch">매니저 실명 후기 <i class="ca-tag">경쟁력 지표</i></h4>` +
+        `<p class="mgr-empty">이 매장은 매니저 언급 후기 표본이 3건 미만입니다.` +
+        (natMgr !== null ? ` 전국 기준 <b>매니저가 언급된 후기</b>에서 삼성 비중은 <b class="warn">${natMgr}%</b>로, 미언급 후기(<b>${natNon}%</b>)보다 <b class="warn">${natNon - natMgr}p 낮습니다</b> — <b>실명 후기 확보가 최대 약점</b>입니다.` : "") +
+        `</p></div>`;
+    }
+    const mTot = d.s + d.l, mShare = pct(d.s, d.l);
+    const lead = d.s > d.l ? "s" : d.l > d.s ? "l" : "even";
+    const vsNat = natMgr !== null ? mShare - natMgr : null;
+    const names = d.names || [];
+    const nameChips = names.length
+      ? names.map((x) => `<span class="mgr-name"><b>${x.n}</b><i>${x.c}건</i></span>`).join("")
+      : `<span class="mgr-none">실명이 특정되지 않음</span>`;
+    // 개선 제안 — 이 매장 수치에 맞춘 구체 지침
+    const tip = lead === "l"
+      ? `이 매장은 <b class="warn">LG 매니저 실명 후기가 ${fmtN(d.l - d.s)}건 더 많습니다</b>. LG는 <b>‘명장’ 호칭</b>으로 담당자를 브랜딩해 후기에 이름이 남습니다. ` +
+        `계약 시 <b>담당 매니저 성함을 안내</b>하고, 후기 요청 문구에 <b>“○○매니저”를 넣어달라</b>고 구체적으로 요청하면 실명 후기가 늘어납니다.`
+      : `이 매장은 삼성 실명 후기가 우위입니다(<b>${mShare}%</b>). <b>${names[0] ? names[0].n : "상위 매니저"}</b>의 응대 방식(상담 기록·견적 설명·사후 연락)을 매장 표준으로 삼고, ` +
+        `신규 매니저도 <b>후기에 이름이 남도록</b> 상담 마무리에 후기 요청을 습관화하세요.`;
+
+    return `<div class="ca-ncard mgr-card">` +
+      `<h4 class="ca-ch">매니저 실명 후기 <i class="ca-tag">경쟁력 지표</i></h4>` +
+      `<div class="mgr-vs">` +
+      `<div class="mv s"><b>${fmtN(d.s)}</b><span>삼성 매니저 언급</span></div>` +
+      `<div class="mv-mid ${lead}"><b>${mShare}%</b><span>실명 후기 점유</span></div>` +
+      `<div class="mv l"><b>${fmtN(d.l)}</b><span>LG 매니저 언급</span></div>` +
+      `</div>` +
+      `<div class="mgr-bar"><i class="s" style="width:${mTot ? (d.s / mTot * 100).toFixed(1) : 50}%"></i>` +
+      `<i class="l" style="width:${mTot ? (d.l / mTot * 100).toFixed(1) : 50}%"></i></div>` +
+      (vsNat !== null ? `<p class="mgr-nat">전국 실명 후기 삼성 비중 <b>${natMgr}%</b> 대비 ` +
+        `<b class="${vsNat >= 0 ? "up" : "warn"}">${vsNat >= 0 ? "+" : ""}${vsNat}p</b></p>` : "") +
+      `<div class="mgr-names"><span class="mgr-lb">후기에 자주 등장한 우리 담당자</span><div class="mgr-chips">${nameChips}</div></div>` +
+      `<p class="mgr-tip"><em>좋은 후기 만들기</em>${tip}</p>` +
+      `</div>`;
+  }
+
   /* ── 매장 페이지 — 경쟁력 진단 + 실제 후기 + 액션 ── */
   function storeView(c) {
     const share = pct(c.s, c.l), tot = c.s + c.l;
@@ -545,6 +597,7 @@
       (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
       `</div>` +
       `<div class="sv-right">` +
+      mgrBlock(st.store, c) +
       `<div class="ca-ncard"><h4 class="ca-ch">현장 액션</h4><p class="sv-action">${action}</p></div>` +
       (sib.length > 1 ? `<div class="ca-ncard"><h4 class="ca-ch">${st.region} 내 비교 <i class="ca-tag">삼성 비중順</i></h4>` +
         `<div class="sv-peers">` + sib.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l)).map((x) => {

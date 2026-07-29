@@ -60,6 +60,13 @@ CHAINS = {
 # 지점명 후보(백화점 뒤에 붙는 지역 토큰) — SIDO 키워드 재사용
 BRANCH_TOKENS = sorted({w for ws in SIDO.values() for w in ws}, key=len, reverse=True)
 
+# ── 매니저(프로·명장·점장) 언급 분석 ────────────────────────────────
+MGR_TITLE = re.compile(r"(매니저|프로님|프로|부점장|점장|명장)")
+# "홍길동 매니저" 형태의 실명 추출(2~4자 한글 이름 + 호칭)
+MGR_NAME = re.compile(r"([가-힣]{2,4})\s*(매니저|프로님|프로|부점장|점장|명장)")
+NOT_NAME = {"삼성", "엘지", "베스트", "하이", "가전", "우리", "저희", "담당", "실장", "직원",
+            "여기", "이번", "그때", "당시", "정말", "완전", "너무", "친절", "최고", "감사"}
+
 RETAILERS = {
     "삼성스토어": ["삼성스토어", "디지털프라자", "디지탈프라자", "삼성전자판매"],
     "LG베스트샵": ["베스트샵", "베스트샾", "하이프라자", "LG전자베스트"],
@@ -109,6 +116,9 @@ def main():
     stores = defaultdict(lambda: defaultdict(lambda: {"s": 0, "l": 0}))   # 시도 → 매장 → 건수
     retail = Counter()
     tot = s_tot = l_tot = 0
+    # 매니저 언급: 전체 / 매장별 / 실명
+    mgr_all = {"s_on": 0, "l_on": 0, "s_off": 0, "l_off": 0}
+    mgr_store = defaultdict(lambda: {"s": 0, "l": 0, "names": Counter()})
 
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
@@ -134,12 +144,26 @@ def main():
             if rx.search(txt):
                 retail[k] += 1
 
+        # 매니저 언급 유무 × 브랜드 (실명 후기 경쟁력 지표)
+        hasMgr = bool(MGR_TITLE.search(txt))
+        if single_s:
+            mgr_all["s_on" if hasMgr else "s_off"] += 1
+        elif single_l:
+            mgr_all["l_on" if hasMgr else "l_off"] += 1
+
         rg = region_of(txt)
         if rg and (single_s or single_l):
             regions[rg]["s" if single_s else "l"] += 1
             st = dept_store_of(txt)           # 매장은 백화점만
             if st:
                 stores[rg][st]["s" if single_s else "l"] += 1
+                if hasMgr:
+                    m = mgr_store[st]
+                    m["s" if single_s else "l"] += 1
+                    if single_s:            # 우리 매장 매니저 실명만 수집
+                        for nm, ttl in MGR_NAME.findall(txt):
+                            if nm not in NOT_NAME and len(nm) >= 2:
+                                m["names"][nm + " " + ttl] += 1
 
     months_arr = [[m, v[0], v[1], v[2]] for m, v in sorted(months.items()) if m >= "2021-01"]
     stores_out = {}
@@ -148,11 +172,20 @@ def main():
         if lst:
             stores_out[rg] = sorted(lst, key=lambda x: -(x["s"] + x["l"]))
 
+    mgr_out = {}
+    for stn, v in mgr_store.items():
+        if v["s"] + v["l"] < 3:
+            continue
+        mgr_out[stn] = {"s": v["s"], "l": v["l"],
+                        "names": [{"n": n, "c": c} for n, c in v["names"].most_common(4)]}
+
     data = {
         "total": tot,
         "samsung": s_tot,
         "lg": l_tot,
         "retailers": dict(retail),
+        "mgr": mgr_all,          # 매니저 언급 유무 × 브랜드(전국)
+        "mgrStore": mgr_out,     # 매장별 매니저 언급 + 실명 TOP
         "months": months_arr,
         "regions": {k: v for k, v in sorted(regions.items(), key=lambda kv: -(kv[1]["s"] + kv[1]["l"]))},
         "stores": stores_out,
