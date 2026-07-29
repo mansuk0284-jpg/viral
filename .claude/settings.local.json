@@ -178,7 +178,29 @@
       "Bash(git --version)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(xargs du -ch)"
+      "Bash(xargs du -ch)",
+      "Bash(git -c user.name=\"viral-monitor\" -c user.email=\"noreply@local\" commit -q -m \"init: 혼수가전 바이럴 대시보드 \\(GitHub Pages 배포 구성\\)\")",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(curl -s -o /dev/null -w \"메인 https://mansuk0284-jpg.github.io/viral/  → %{http_code}\\\\n\" https://mansuk0284-jpg.github.io/viral/)",
+      "Bash(curl -s -o /dev/null -w \"index https://mansuk0284-jpg.github.io/viral/index.html → %{http_code}\\\\n\" https://mansuk0284-jpg.github.io/viral/index.html)",
+      "Bash(curl -s \"https://api.github.com/repos/mansuk0284-jpg/viral/actions/runs?per_page=5\")",
+      "Bash(curl -s -o /dev/null -w \"pages API → %{http_code} \\(404면 Pages 미설정\\)\\\\n\" \"https://api.github.com/repos/mansuk0284-jpg/viral/pages\")",
+      "Bash(curl -s \"https://api.github.com/repos/mansuk0284-jpg/viral/actions/runs?per_page=1\")",
+      "Bash(git -c user.name=\"viral-monitor\" -c user.email=\"noreply@local\" commit -q --allow-empty -m \"chore: trigger pages redeploy\")",
+      "Bash(python -c \"import os;print\\('YOUTUBE_API_KEY:', 'set' if os.environ.get\\('YOUTUBE_API_KEY'\\) else 'MISSING'\\); print\\('NAVER_CLIENT_ID:', 'set' if os.environ.get\\('NAVER_CLIENT_ID'\\) else 'MISSING'\\); print\\('NAVER_CLIENT_SECRET:', 'set' if os.environ.get\\('NAVER_CLIENT_SECRET'\\) else 'MISSING'\\)\")",
+      "Bash(python youtube_collect.py --help)",
+      "Bash(timeout 90 python youtube_collect.py --max-videos 5 --max-comments 3)",
+      "Bash(python channel_session.py --help)",
+      "Bash(python channel_session.py open --help)",
+      "Bash(timeout 150 python channel_session.py open --channel youtube --query \"혼수가전 후기 삼성 LG\" --dump --headless)",
+      "Bash(timeout 120 python channel_analyze.py --source-id youtube --login-channel youtube)",
+      "Bash(timeout 150 python channel_session.py open --channel naver --query \"혼수가전 후기 삼성 LG\" --dump --headless)",
+      "Bash(timeout 120 python channel_analyze.py --source-id naver-blog --login-channel naver)",
+      "Bash(awk '{printf \"%8.1fKB  %s\\\\n\", $5/1024, $9}')",
+      "Bash(cp web/assets/cafe-data.js /tmp/cafe-data.bak.js)",
+      "Bash(timeout 300 python scripts/build_web_data.py)",
+      "Bash(git rm *)"
     ]
   }
 }
