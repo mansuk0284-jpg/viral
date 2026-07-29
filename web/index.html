@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r88" />
+  <link rel="stylesheet" href="styles.css?v=2026r96" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r56" />
 </head>
 <body>
@@ -407,9 +407,18 @@
           var fr = film.getBoundingClientRect();
           var avail = (stage && stage.parentElement) ? stage.parentElement.clientWidth : box;
           box = Math.round(Math.min(fr.width, avail));
-          boxH = Math.round(fr.height);
-          if (stage) { stage.style.maxWidth = box + 'px'; stage.style.width = box + 'px'; }
+          // 우측 전체(센싱 블록 + 무대)가 좌측 영상 높이 안에 들어오도록 무대 높이를 역산
+          // 우측 컬럼 전체 높이를 좌측 영상과 동일하게 고정하고,
+          // 무대는 CSS flex로 '남는 높이'를 스스로 채우게 한다(센싱 높이 변동에 영향받지 않음).
+          var art = stage ? stage.parentElement : null;
+          if (art) art.style.height = Math.round(fr.height) + 'px';
+          if (stage) {
+            stage.style.maxWidth = box + 'px';
+            stage.style.width = box + 'px';
+            stage.style.height = '';          // flex가 결정
+          }
           mosaic.style.width = box + 'px';
+          boxH = Math.max(280, Math.round(stage ? stage.clientHeight : fr.height));
         } else {
           boxH = Math.round(box * 0.92);
         }
@@ -458,6 +467,7 @@
       function revealPortal() {
         if (portalOpened) return; portalOpened = true;
         document.body.classList.add('portal-open');   // 이미지 페이드·축소
+        layoutCluster();                              // 센싱 블록이 빠진 만큼 무대를 넓혀 재배치
         var hub = mosaic._hub;
         // 각도 순서로 줄지어 등장(중앙 타일 먼저) — 끊김 없이 한 줄로 이어지는 생동감
         var order = tiles.slice().sort(function (a, b) {
@@ -489,6 +499,10 @@
       applyClosed();                                  // 초기: 타일을 블랙홀 안으로 숨김
       window.addEventListener('resize', layoutCluster);
       window.addEventListener('load', layoutCluster);
+      // 센싱 블록은 카운트업·폰트 로드 후 높이가 커지므로, 안정화된 뒤 한 번 더 정렬
+      setTimeout(layoutCluster, 900);
+      setTimeout(layoutCluster, 2200);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutCluster);
 
       // 2) 건수 배지 카운트업 — 히어로 최상단 고정 노출이므로 즉시 스태거 실행
       var nums = [].slice.call(document.querySelectorAll('.source-mosaic [data-count-to]'));

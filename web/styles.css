@@ -234,7 +234,7 @@ h1, h2, h3, h4, p, span, label, button, li, td, th {
 /* flex gap이 간격을 전담하도록 개별 하단 마진 제거 */
 .hero-lead .eyebrow,
 .hero-lead .hero-title { margin-bottom: 0; }
-.hero-lead .hero-film { margin: clamp(10px, 3vh, 40px) 0 0; }
+.hero-lead .hero-film { margin: 0; }   /* 우측 컬럼과 수직 중심 정렬(제목은 영상 위 오버레이) */
 /* 제목 ↔ 누적건수 사이를 더 벌림 */
 .hero-lead .hero-kpi { margin-top: clamp(6px, 1.4vh, 18px); }
 
@@ -346,6 +346,12 @@ h1, h2, h3, h4, p, span, label, button, li, td, th {
   padding: 0 clamp(16px, 4vw, 30px);   /* 그리드 좌우패딩 제거분 보전 */
   opacity: 0;
   animation: heroRise 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+  /* 좌측 영상과 같은 높이 안에서 센싱 블록 + 무대를 세로로 배분 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  box-sizing: border-box;
 }
 
 /* 온라인 누적 센싱 후기 — 포털(우주) 톤으로 이미지와 한 몸처럼 */
@@ -392,24 +398,30 @@ h1, h2, h3, h4, p, span, label, button, li, td, th {
 }
 
 /* 포털+모자이크를 담는 무대(포털 절대배치 기준) — 더 넓게 잡아 타일 절대 크기 확대 */
-.hero-stage { position: relative; width: 100%; max-width: min(420px, 56vh); margin: 0 auto; }
+.hero-stage { position: relative; width: 100%; max-width: min(420px, 56vh); margin: 0 auto;
+  flex: 1 1 auto; min-height: 0; }   /* 우측 컬럼에서 남는 높이를 스스로 채움 */
 
 /* ===== 블랙홀 포털 이미지 ===== */
 .hero-portal {
   position: absolute;
   inset: 0;
+  display: flex;                  /* grid 행이 콘텐츠 크기로 잡혀 이미지가 넘치던 문제 → flex로 컨테이너 높이 기준 */
+  align-items: center;
+  justify-content: center;
   z-index: 7;
-  display: grid;
-  place-items: center;
   transition: opacity .6s ease, scale .7s cubic-bezier(.6, 0, .35, 1), filter .6s ease;
 }
 /* 이미지: 테두리·그림자 없이 가장자리를 페이드해 배경과 자연스럽게 연결 */
 .hero-portal img {
-  width: 100%;
-  height: 100%;
+  /* 원형 유지 + 무대 안에 꼭 맞게 — 폭·높이 중 작은 쪽 기준으로 축소(항상 정원) */
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   display: block;
+  margin: 0 auto;
   border-radius: 50%;
   user-select: none;
   -webkit-user-drag: none;
@@ -515,7 +527,7 @@ body.portal-open #sourceMosaic {   /* ID로 우선순위 확보 — 클러스터
 }
 /* 트리맵은 이미 영역을 꽉 채우므로 확대하지 않는다(영상 박스와 크기 일치 유지) */
 body.portal-open #sourceMosaic.is-tree {
-  transform: translateY(14px) !important;   /* 좌측 영상과 상·하단 라인 정렬 */
+  transform: none !important;   /* 트리맵은 무대 크기에 정확히 맞춰 배치됨 */
 }
 /* 닫힘: 타일이 블랙홀 중심에 모여 안 보임 (--dx/--dy = 제자리까지의 편차) */
 .source-mosaic .src.closed {
@@ -1473,7 +1485,7 @@ body.mode-results .back-float { display: inline-flex; align-items: center; }
 .hero-film {
   width: 100%;
   max-width: 660px;
-  margin-top: clamp(10px, 2.4vh, 30px);   /* 제목과 간격 벌려 아래로 내림 */
+  margin-top: 0;   /* 제목이 영상 위에 오버레이되므로 여백 불필요(우측 컬럼과 수직 정렬) */
 }
 .hero-film-media {
   position: relative;
