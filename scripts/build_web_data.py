@@ -67,6 +67,22 @@ MGR_NAME = re.compile(r"([가-힣]{2,4})\s*(매니저|프로님|프로|부점장
 NOT_NAME = {"삼성", "엘지", "베스트", "하이", "가전", "우리", "저희", "담당", "실장", "직원",
             "여기", "이번", "그때", "당시", "정말", "완전", "너무", "친절", "최고", "감사"}
 
+# ── 판매 인사이트용 사전 ────────────────────────────────────────────
+ITEMS = {
+    "냉장고": ["냉장고", "디오스"], "세탁기": ["세탁기", "트롬", "워시타워", "워시콤보"],
+    "건조기": ["건조기"], "TV": ["TV", "티비", "올레드", "네오QLED", "QLED"],
+    "에어컨": ["에어컨", "무풍"], "스타일러": ["스타일러", "에어드레서"],
+    "식기세척기": ["식기세척기", "식세기"], "청소기": ["청소기", "제트", "코드제로"],
+    "김치냉장고": ["김치냉장고", "김치톡톡"], "인덕션": ["인덕션", "전기레인지"],
+    "정수기": ["정수기", "퓨리케어"], "오븐": ["오븐", "광파오븐"],
+}
+COMPARE_RE = re.compile("발품|비교|고민|둘러")          # 경쟁 접점(비교 상담) 신호
+BENEFITS = {
+    "사은품": ["사은품", "증정"], "체감가": ["체감가", "실구매가", "최저가"],
+    "페이백·상품권": ["페이백", "온누리", "상품권"], "카드할인": ["카드할인", "청구할인", "무이자"],
+    "임직원가": ["임직원", "직원가"], "전시품": ["전시품", "전시상품"],
+}
+
 RETAILERS = {
     "삼성스토어": ["삼성스토어", "디지털프라자", "디지탈프라자", "삼성전자판매"],
     "LG베스트샵": ["베스트샵", "베스트샾", "하이프라자", "LG전자베스트"],
@@ -119,6 +135,11 @@ def main():
     # 매니저 언급: 전체 / 매장별 / 실명
     mgr_all = {"s_on": 0, "l_on": 0, "s_off": 0, "l_off": 0}
     mgr_store = defaultdict(lambda: {"s": 0, "l": 0, "names": Counter()})
+    # 판매 인사이트: 품목별 승패 / 비교상담 전환 / 혜택 효과 / 성수기
+    items = {k: {"s": 0, "l": 0} for k in ITEMS}
+    compare = {"s": 0, "l": 0}
+    benefit = {k: {"s": 0, "l": 0} for k in BENEFITS}
+    season = Counter()
 
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
@@ -143,6 +164,20 @@ def main():
         for k, rx in RET_RE.items():
             if rx.search(txt):
                 retail[k] += 1
+
+        # ── 판매 인사이트 집계 ──
+        bk = "s" if single_s else ("l" if single_l else None)
+        if bk:
+            for nm, kws in ITEMS.items():
+                if any(w in txt for w in kws):
+                    items[nm][bk] += 1
+            if COMPARE_RE.search(txt):
+                compare[bk] += 1
+            for nm, kws in BENEFITS.items():
+                if any(w in txt for w in kws):
+                    benefit[nm][bk] += 1
+        if ym and len(ym) == 7:
+            season[ym[5:7]] += 1
 
         # 매니저 언급 유무 × 브랜드 (실명 후기 경쟁력 지표)
         hasMgr = bool(MGR_TITLE.search(txt))
@@ -186,6 +221,11 @@ def main():
         "retailers": dict(retail),
         "mgr": mgr_all,          # 매니저 언급 유무 × 브랜드(전국)
         "mgrStore": mgr_out,     # 매장별 매니저 언급 + 실명 TOP
+        # 판매 인사이트
+        "items": {k: v for k, v in sorted(items.items(), key=lambda kv: -(kv[1]["s"] + kv[1]["l"])) if v["s"] + v["l"] >= 50},
+        "compare": compare,      # 비교·발품 상담 후 최종 선택
+        "benefit": {k: v for k, v in benefit.items() if v["s"] + v["l"] >= 30},
+        "season": dict(sorted(season.items())),
         "months": months_arr,
         "regions": {k: v for k, v in sorted(regions.items(), key=lambda kv: -(kv[1]["s"] + kv[1]["l"]))},
         "stores": stores_out,

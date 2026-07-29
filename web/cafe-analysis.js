@@ -618,6 +618,60 @@
       `</div></div></div>`;
   }
 
+  /* ── 품목 공략 카드 — 어떤 품목으로 이기고 어디서 새는가 ── */
+  function itemCard() {
+    const IT = (CD && CD.items) || {};
+    const rows = Object.keys(IT).map((k) => {
+      const v = IT[k], tot = v.s + v.l;
+      return { n: k, s: v.s, l: v.l, tot, sh: pct(v.s, v.l) };
+    }).filter((x) => x.tot >= 50);
+    if (!rows.length) return "";
+    const win = rows.slice().sort((a, b) => b.sh - a.sh).slice(0, 3);
+    const lose = rows.slice().sort((a, b) => a.sh - b.sh).slice(0, 3);
+    const leak = lose.reduce((a, x) => a + (x.l - x.s), 0);   // 약점 품목에서 LG에 내준 격차
+    const bar = (x, cls) => `<li class="it-row ${cls}"><span class="it-n">${x.n}</span>` +
+      `<span class="it-bar"><i style="width:${x.sh}%"></i></span>` +
+      `<span class="it-v">${x.sh}<em>%</em></span>` +
+      `<span class="it-c">${fmtN(x.tot)}건</span></li>`;
+    return fcard("items", "품목 공략", "어떤 가전으로 이기나", win[0] ? win[0].sh + "%" : "—",
+      win[0] ? win[0].n + " 최강" : "",
+      `<div class="fc-sec"><h5>우리가 이기는 품목 <i class="it-tag s">방어</i></h5>` +
+      `<ul class="it-list">${win.map((x) => bar(x, "s")).join("")}</ul></div>` +
+      `<div class="fc-sec"><h5>LG에 내주는 품목 <i class="it-tag l">회복 대상</i></h5>` +
+      `<ul class="it-list">${lose.map((x) => bar(x, "l")).join("")}</ul></div>` +
+      `<div class="fc-sec tip"><h5>상담 전략</h5><p>강점 품목(<b>${win.map((x) => x.n).join("·")}</b>)으로 상담을 <b>열어 신뢰를 만들고</b>, ` +
+      `약점 품목(<b class="warn">${lose.map((x) => x.n).join("·")}</b>)에서 패키지가 깨집니다 — 이 세 품목에서만 LG가 <b class="warn">${fmtN(leak)}건</b> 앞섭니다. ` +
+      `해당 품목은 <b>비스포크 대안·묶음 할인</b>을 먼저 제시해 이탈을 막으세요.</p></div>`,
+      [win[0] ? win[0].n + " " + win[0].sh + "%" : "", lose[0] ? lose[0].n + " " + lose[0].sh + "%" : ""].filter(Boolean));
+  }
+
+  /* ── 승부처 카드 — 비교 상담·혜택·성수기 ── */
+  function winCard(notCards, smp) {
+    const CP = (CD && CD.compare) || { s: 0, l: 0 };
+    const cShare = pct(CP.s, CP.l);
+    const BN = (CD && CD.benefit) || {};
+    const bl = Object.keys(BN).map((k) => ({ n: k, sh: pct(BN[k].s, BN[k].l), tot: BN[k].s + BN[k].l }))
+      .sort((a, b) => b.tot - a.tot).slice(0, 4);
+    const SE = (CD && CD.season) || {};
+    const months = Object.keys(SE);
+    const peak = months.length ? months.reduce((a, b) => (SE[a] > SE[b] ? a : b)) : null;
+    const low = months.length ? months.reduce((a, b) => (SE[a] < SE[b] ? a : b)) : null;
+    const ratio = peak && low && SE[low] ? (SE[peak] / SE[low]).toFixed(1) : null;
+    return fcard("win", "승부처", "고객은 언제·왜 우리를 고르나", cShare + "%", "비교 후 삼성 선택",
+      `<div class="fc-sec"><h5>① 비교하러 온 고객은 우리가 이긴다</h5>` +
+      `<p class="fc-plain">‘발품·비교·고민’을 언급한 후기 <b>${fmtN(CP.s + CP.l)}건</b> 중 최종 선택은 ` +
+      `<b>삼성 ${cShare}%</b> : LG ${100 - cShare}% — 전체 평균(${pct((CD || {}).samsung || 0, (CD || {}).lg || 0)}%)보다 높습니다. ` +
+      `<b>비교 상담 기회를 늘릴수록 유리</b>합니다.</p></div>` +
+      (bl.length ? `<div class="fc-sec"><h5>② 계약을 만든 혜택</h5><ul class="fc-pts">` +
+        bl.map((x) => `<li><b>${x.n}</b> 언급 ${fmtN(x.tot)}건 · 삼성 <b>${x.sh}%</b></li>`).join("") +
+        `</ul></div>` : "") +
+      (peak ? `<div class="fc-sec"><h5>③ 성수기</h5><p class="fc-plain">후기는 <b>${+peak}월</b>에 가장 많고 ` +
+        `${+low}월이 최저 — 최대 <b>${ratio}배</b> 차이. <b>1~5월 혼수 시즌</b>에 상담·후기 요청을 집중하세요.</p></div>` : "") +
+      `<div class="fc-sec tip"><h5>실행</h5><p>① 매장 방문·<b>비교 견적</b>을 적극 유도(비교할수록 승률↑) ` +
+      `② 상담 마무리에 <b>사은품·체감가</b>를 수치로 제시 ③ 성수기 전 <b>후기 요청 캠페인</b>으로 표본을 선점.</p></div>`,
+      ["비교 " + cShare + "%", peak ? +peak + "월 성수기" : ""].filter(Boolean));
+  }
+
   // 애플식 분석 카드 — 앞면(라벨·제목·미니수치·＋) + 상세(영역 전체 덮음)
   function fcard(key, label, title, mini, miniLab, detail, keys) {
     const chips = (keys || []).length
@@ -698,19 +752,8 @@
           `</ul></div>` +
           `<div class="fc-sec tip"><h5>현업 활용</h5><p>프로모션·신제품 출시기에 상담을 집중하고, <b>매니저 1:1 견적·‘가전 졸업’ 경험</b>을 적극 부각 — 후기 1순위 구매 사유입니다.</p></div>`,
           ["온누리 페이백", "비스포크 신제품"]) +
-        fcard("notable", "현장 활용", "상담에 바로 쓰는 후기", notable.length, "건",
-          `<div class="ca-inslist">${notCards}</div>` +
-          `<div class="fc-sec tip"><h5>현업 활용</h5><p>이 후기 문구를 상담 시 <b>사회적 증거</b>로 인용 — 같은 매장·같은 품목 후기를 보여주면 계약 전환에 효과적입니다.</p></div>` +
-          `<p class="fc-note">유통 언급 글 우선 선별 · <b>조회수 순 아님</b>(대표성 기준).</p>`,
-          ["가전 졸업", "매장 매니저"]) +
-        fcard("samsung", "강·약점", "고객이 짚은 칭찬 & 아쉬움", smp.fav.length, "우호 건",
-          `<div class="ca-spl-stack">` + splCol("우호", "pos", smp.fav) + splCol("주의", "neg", smp.crit) + `</div>` +
-          `<div class="fc-sec"><h5>칭찬 포인트 TOP3</h5><ul class="fc-pts">` +
-          `<li><b>매니저 응대·맞춤 견적</b> — ‘○○매니저님 최고’ 표현 최다</li>` +
-          `<li><b>온누리 20% 페이백·체감가</b> — 임직원몰보다 저렴 사례</li>` +
-          `<li><b>비스포크 디자인·신기능</b> — 색상 패키지 만족</li></ul></div>` +
-          `<div class="fc-sec tip"><h5>주의</h5><p>‘가전 졸업’ 자랑 후기라 <b>긍정 편향</b> — AS·배송 불만은 표본이 적으니 별도 모니터링 필요.</p></div>`,
-          ["매니저 응대", "비스포크"]) +
+        itemCard() +
+        winCard(notCards, smp) +
         fcard("lg", "경쟁 방어", "LG로 간 고객, 왜?", smp.lg.length, "건",
           `<div class="ca-spl-stack">` + splCol("LG 선택", "lg", smp.lg) + `</div>` +
           `<div class="fc-sec"><h5>LG가 이긴 지점</h5><ul class="fc-pts">` +
