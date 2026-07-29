@@ -200,7 +200,14 @@
       "Bash(awk '{printf \"%8.1fKB  %s\\\\n\", $5/1024, $9}')",
       "Bash(cp web/assets/cafe-data.js /tmp/cafe-data.bak.js)",
       "Bash(timeout 300 python scripts/build_web_data.py)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'refactor: 코드·데이터 정리 및 파이프라인 재수립 *)",
+      "Bash(python naver_cafe_scraper.py --help)",
+      "Bash(python naver_cafe_scraper.py probe --help)",
+      "Bash(python naver_cafe_scraper.py menus --help)",
+      "Bash(timeout 240 python scripts/probes/probe_cafe_id.py https://cafe.naver.com/makemywedding https://cafe.naver.com/imsanbu)",
+      "Bash(python collect_history.py --help)",
+      "Bash(VIRAL_CLUBID=28757979 timeout 400 python collect_history.py --start 2026-05 --end 2026-05 --out ../artifacts/test-makemywedding.json --max-pages 5)"
     ]
   }
 }

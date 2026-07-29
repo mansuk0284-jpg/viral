@@ -281,6 +281,15 @@
       trend: vsBars(cdRow.s, cdRow.l), geoNote: bsr ? "" : "제목기반 점별 추정 — 본문 샘플은 부울경만 제공", samples: null };
   }
 
+  /* 지역 내 매장 목록(정렬됨) — 순위·평균 계산 공용 */
+  function storesOfRegion(rg) {
+    const R = regionRoll()[rg];
+    if (R) return R.stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l));
+    const bs = (CD && CD.bodyStores && CD.bodyStores[rg]) || (CD && CD.stores && CD.stores[rg]) || [];
+    return bs.map((x) => ({ name: x.n || x.name, s: x.s, l: x.l }))
+      .sort((a, b) => (b.s + b.l) - (a.s + a.l));
+  }
+
   // ── 렌더 ──
   function nav() {
     return `<div class="ca-nav" id="caNav">` +
@@ -401,6 +410,116 @@
       `<p class="rs-cap">시도 삼성비중 상·하위 · 제목기반 추정</p></div>`;
   }
 
+  /* ── 지역 페이지 — 매장(또는 하위지역) 랭킹 + 우위/열세 진단 ── */
+  function regionView(c) {
+    // 부울경 단계에서는 지역 목록을, 지역 단계에서는 매장 목록을 랭킹으로 보여준다
+    const isBu = !c.stores && !!c.regions;
+    const src = isBu ? c.regions.map((r) => ({ name: r.rg, s: r.s, l: r.l })) : (c.stores || []);
+    const attr = isBu ? "data-region" : "data-store";
+    const unit = isBu ? "지역" : "매장";
+    const list = src.map((x) => ({ n: x.name || x.n || x.rg, s: x.s, l: x.l }))
+      .filter((x) => x.n).sort((a, b) => (b.s + b.l) - (a.s + a.l));
+    const share = pct(c.s, c.l);
+    const nat = pct((CD && CD.samsung) || 0, (CD && CD.lg) || 0);
+    const diff = share - nat;
+    const max = Math.max(1, ...list.map((x) => x.s + x.l));
+    const rows = list.map((x, i) => {
+      const tot = x.s + x.l, sh = pct(x.s, x.l);
+      const lead = x.s > x.l ? "s" : x.l > x.s ? "l" : "even";
+      return `<button type="button" class="rv-row ${lead}" ${attr}="${x.n}" title="${x.n} 상세 보기">` +
+        `<span class="rv-rank">${i + 1}</span>` +
+        `<span class="rv-name">${x.n}</span>` +
+        `<span class="rv-bar"><i class="s" style="width:${(x.s / max * 100).toFixed(1)}%"></i>` +
+        `<i class="l" style="width:${(x.l / max * 100).toFixed(1)}%"></i></span>` +
+        `<span class="rv-num">${fmtN(tot)}</span>` +
+        `<span class="rv-sh ${lead}">${sh}%</span></button>`;
+    }).join("");
+    const win = list.filter((x) => x.s > x.l), lose = list.filter((x) => x.l > x.s);
+    const sorted = list.filter((x) => x.s + x.l >= 10);
+    const top = sorted.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l))[0];
+    const bot = sorted.slice().sort((a, b) => pct(a.s, a.l) - pct(b.s, b.l))[0];
+    return `<div class="ca-rv">` +
+      `<div class="rv-left">` +
+      `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
+      `<div class="rv-big"><b>${share}<i>%</i></b><span>삼성 비중</span></div>` +
+      `<p class="rv-vs ${diff >= 0 ? "up" : "down"}">전국 ${nat}% 대비 <b>${diff >= 0 ? "+" : ""}${diff}p</b> ${diff >= 0 ? "강세" : "약세"}</p>` +
+      `<div class="rv-kpis">` +
+      `<div><b>${fmtN(c.s + c.l)}</b><span>후기</span></div>` +
+      `<div class="s"><b>${fmtN(c.s)}</b><span>삼성</span></div>` +
+      `<div class="l"><b>${fmtN(c.l)}</b><span>LG</span></div>` +
+      `</div>` +
+      `<div class="rv-split"><span class="s">우위 ${win.length}곳</span><span class="l">열세 ${lose.length}곳</span></div>` +
+      (top ? `<div class="rv-pick s"><em>최강</em><b>${top.n}</b><span>삼성 ${pct(top.s, top.l)}%</span></div>` : "") +
+      (bot && bot !== top ? `<div class="rv-pick l"><em>공략</em><b>${bot.n}</b><span>삼성 ${pct(bot.s, bot.l)}%</span></div>` : "") +
+      (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
+      `</div>` +
+      `<div class="rv-right">` +
+      `<div class="rv-rhead"><h4>${unit}별 경쟁력 <em>${list.length}곳</em></h4>` +
+      `<span class="rv-leg"><i class="s"></i>삼성<i class="l"></i>LG · 클릭 시 ${unit} 상세</span></div>` +
+      (list.length ? `<div class="rv-list">${rows}</div>`
+        : `<p class="ca-splx">이 구간은 백화점 ${unit} 표본이 부족합니다.</p>`) +
+      `</div></div>`;
+  }
+
+  /* ── 매장 페이지 — 경쟁력 진단 + 실제 후기 + 액션 ── */
+  function storeView(c) {
+    const share = pct(c.s, c.l), tot = c.s + c.l;
+    const sib = storesOfRegion(st.region);
+    const rank = sib.findIndex((x) => x.name === st.store) + 1;
+    const agg = sib.reduce((o, x) => (o.s += x.s, o.l += x.l, o), { s: 0, l: 0 });
+    const rShare = pct(agg.s, agg.l);
+    const diff = share - rShare;
+    const lead = c.s > c.l ? "s" : c.l > c.s ? "l" : "even";
+    const verdict = lead === "s" ? "삼성 우위 매장" : lead === "l" ? "LG 우위 · 공략 대상" : "삼성·LG 백중";
+    const gap = Math.abs(c.s - c.l);
+    const smp = c.samples;
+    const card = (r) => `<a href="${r[2]}" target="_blank" rel="noopener">` +
+      `<span class="ca-sm-tag ${r[1]}">${({ s: "삼성", l: "LG", b: "삼성·LG" })[r[1]] || "기타"}</span>` +
+      `<span class="ca-sm-t">${r[0]}</span></a>`;
+    const action = lead === "s"
+      ? `이 매장은 <b>후기 우위</b>입니다. 성공 요인(매니저 1:1 상담·견적 만족)을 <b>인근 열세 매장에 전파</b>하고 후기 작성 유도를 유지하세요.`
+      : lead === "l"
+        ? `LG가 <b>${fmtN(gap)}건</b> 앞섭니다. LG 선택 사유(<b>오브제 디자인·패키지</b>)를 겨냥해 비스포크 디자인 라인업·체감가 견적으로 대응하고, 계약 고객에게 <b>후기 작성을 적극 요청</b>해 격차를 좁히세요.`
+        : `삼성·LG 백중 구간입니다. <b>후기 한 건이 순위를 바꾸는</b> 상황이니 계약 시 후기 요청을 습관화하세요.`;
+    return `<div class="ca-sv">` +
+      `<div class="sv-left">` +
+      `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
+      `<div class="sv-verdict ${lead}">${verdict}</div>` +
+      `<div class="sv-vs">` +
+      `<div class="sv-side s"><b>${fmtN(c.s)}</b><span>삼성</span></div>` +
+      `<div class="sv-mid"><b>${share}%</b><span>삼성 비중</span></div>` +
+      `<div class="sv-side l"><b>${fmtN(c.l)}</b><span>LG</span></div>` +
+      `</div>` +
+      `<div class="sv-bar"><i class="s" style="width:${tot ? (c.s / tot * 100).toFixed(1) : 50}%"></i>` +
+      `<i class="l" style="width:${tot ? (c.l / tot * 100).toFixed(1) : 50}%"></i></div>` +
+      `<div class="rv-kpis">` +
+      `<div><b>${fmtN(tot)}</b><span>후기</span></div>` +
+      `<div><b>${rank || "-"}<i>위</i></b><span>${st.region || ""} 내</span></div>` +
+      `<div class="${diff >= 0 ? "s" : "l"}"><b>${diff >= 0 ? "+" : ""}${diff}<i>p</i></b><span>지역평균 대비</span></div>` +
+      `</div>` +
+      (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
+      `</div>` +
+      `<div class="sv-right">` +
+      `<div class="ca-ncard"><h4 class="ca-ch">현장 액션</h4><p class="sv-action">${action}</p></div>` +
+      (sib.length > 1 ? `<div class="ca-ncard"><h4 class="ca-ch">${st.region} 내 비교 <i class="ca-tag">삼성 비중順</i></h4>` +
+        `<div class="sv-peers">` + sib.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l)).map((x) => {
+          const sh = pct(x.s, x.l), me = x.name === st.store;
+          const cl = x.s > x.l ? "s" : x.l > x.s ? "l" : "even";
+          return `<button type="button" class="sv-peer ${cl}${me ? " me" : ""}" data-store="${x.name}">` +
+            `<span class="pe-n">${x.name}${me ? " <em>현재</em>" : ""}</span>` +
+            `<span class="pe-bar"><i style="width:${sh}%"></i></span>` +
+            `<span class="pe-v">${sh}%</span></button>`;
+        }).join("") + `</div></div>` : "") +
+      `<div class="ca-ncard sv-rev"><h4 class="ca-ch">이 매장 후기 <i class="ca-tag">클릭 → 원문</i></h4>` +
+      (smp && (smp.pos.length || smp.neg.length)
+        ? `<div class="sv-revcols">` +
+          `<div><h6 class="pos">우호 ${smp.pos.length}</h6>${smp.pos.map(card).join("") || '<p class="ca-splx">없음</p>'}</div>` +
+          `<div><h6 class="neg">주의 ${smp.neg.length}</h6>${smp.neg.map(card).join("") || '<p class="ca-splx">검출 안 됨 · 졸업후기 긍정편향</p>'}</div>` +
+          `</div>`
+        : `<p class="ca-splx">이 매장은 본문 샘플이 아직 없습니다 — 본문매칭 완료 지역(부울경)부터 제공됩니다.</p>`) +
+      `</div></div></div>`;
+  }
+
   // 애플식 분석 카드 — 앞면(라벨·제목·미니수치·＋) + 상세(영역 전체 덮음)
   function fcard(key, label, title, mini, miniLab, detail, keys) {
     const chips = (keys || []).length
@@ -504,6 +623,10 @@
           ["오브제 디자인", "수도권 강세"]) +
         `</div>` +
         `</div>`;
+    } else if (st.level === "region" || st.level === "bu") {
+      mid = regionView(c);
+    } else if (st.level === "store") {
+      mid = storeView(c);
     } else {
       mid = `<div class="ca-stage">` +
         `<div class="ca-stat">` +
@@ -613,7 +736,8 @@
     if (sec) sec.hidden = false;
     document.body.classList.add("mode-results", "view-channel", "view-cafe");
     window.scrollTo({ top: 0, behavior: "auto" });
-    bind(host);
+    // 리스너는 1회만 등록 — 재진입 시 중복 등록되면 클릭 1회에 핸들러가 여러 번 실행된다
+    if (!host.dataset.caBound) { bind(host); host.dataset.caBound = "1"; }
   }
   window.openCafeAnalysis = openCafeAnalysis;
 })();

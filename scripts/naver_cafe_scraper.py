@@ -19,6 +19,7 @@
 """
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -36,8 +37,9 @@ except Exception:
 ROOT = Path(__file__).resolve().parent.parent
 PROFILE_DIR = ROOT / ".browser-profile"
 ARTIFACTS = ROOT / "artifacts"
-CAFE_URL = "https://cafe.naver.com/directwedding"
-CLUBID = "25228091"  # 다이렉트결혼준비 카페 clubid (probe로 확인)
+CAFE_URL = os.environ.get("VIRAL_CAFE_URL", "https://cafe.naver.com/directwedding")
+# 기본은 다이렉트결혼준비(probe로 확인). 다른 카페는 VIRAL_CLUBID 환경변수로 교체.
+CLUBID = os.environ.get("VIRAL_CLUBID", "25228091")
 
 # 권역 매장 단서 (data/target-stores.md와 동기화)
 # 2026-06-11 KakaoMap 검증 12개점. 폐점/미실재(현대 부산점·롯데 김해점) 제거.
