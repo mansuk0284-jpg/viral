@@ -354,18 +354,33 @@
         mosaic.style.height = box + 'px';
         var C = box / 2;
         var center = tiles.filter(function (t) { return t.classList.contains('src-hot'); })[0] || tiles[0];
-        setSize(center, box * 0.37);                         // 확대(텍스트 가림 없는 최대치)
-        placeAt(center, C, C);
+        // 겹침 방지 기하 — 타일 실제 크기에서 필요한 궤도 반경을 역산한다.
+        //   폭 = size × 1.28(.src CSS), 높이 ≈ size + 캡션(약 0.125·box)
+        //   R_in ≥ (중앙 반높이) + (둘레 반높이) + 여유
+        var CEN = 0.28, SAT = 0.115, SAT_R = 0.055;          // 중앙·둘레 크기 계수
         var others = tiles.filter(function (t) { return t !== center; });
         var n = others.length;
-        // 둘레를 안(R_in)·바깥(R_out) 두 겹으로 번갈아 — 이웃 타일을 반경 방향으로 어긋나게 해
-        // 각 타일 중앙(텍스트 영역)이 옆 타일에 가려지지 않도록 한다.
-        var R_in = box * 0.31, R_out = box * 0.40;
+        // ── 1패스: 크기만 확정하고 실제 렌더 높이를 잰다(캡션 줄수에 따라 높이가 달라짐) ──
+        setSize(center, box * CEN);
+        others.forEach(function (t) { setSize(t, box * (SAT + (t._ratio || 0) * SAT_R)); });
+        var cenH = center.offsetHeight || box * CEN;
+        var satH = 0, satW = 0;
+        others.forEach(function (t) {
+          satH = Math.max(satH, t.offsetHeight || 0);
+          satW = Math.max(satW, t.offsetWidth || 0);
+        });
+        // ── 2패스: 측정값으로 겹치지 않는 최소 반경을 역산해 배치 ──
+        placeAt(center, C, C);
+        var need = cenH / 2 + satH / 2 + box * 0.035;          // 중앙과 안 겹치는 최소 반경(여유 포함)
+        var ring = (satW * n) / (2 * Math.PI);                 // 둘레에 n개가 늘어설 최소 반경
+        var R_in = Math.max(need, ring * 0.62, box * 0.34);    // 두 겹이므로 ring 요구는 완화
+        var R_out = R_in + Math.max(satH * 0.42, box * 0.08);  // 이웃과 반경 방향으로 어긋나기
+        // 타원 궤도 — 가로는 좁히고(좌측 영상 침범 방지) 세로로 여유를 쓴다
+        var KX = 0.80, KY = 1.00;
         others.forEach(function (t, i) {
-          setSize(t, box * (0.15 + (t._ratio || 0) * 0.085));   // 둘레 타일 확대
-          var ang = (i / n) * Math.PI * 2 - Math.PI / 2 + (t._jit || 0) * 0.5;
-          var rad = (i % 2 === 0 ? R_in : R_out) + (t._rjit || 0) * (box / 1100);
-          placeAt(t, C + Math.cos(ang) * rad, C + Math.sin(ang) * rad);
+          var ang = (i / n) * Math.PI * 2 - Math.PI / 2 + (t._jit || 0) * 0.3;
+          var rad = (i % 2 === 0 ? R_in : R_out) + (t._rjit || 0) * (box / 2000);
+          placeAt(t, C + Math.cos(ang) * rad * KX, C + Math.sin(ang) * rad * KY);
         });
         mosaic._hub = C;
         if (!portalOpened) applyClosed();
