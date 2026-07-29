@@ -714,3 +714,61 @@ body.view-cafe .back-float { display: none !important; }
 .mgr-empty b { color: var(--text); } .mgr-empty b.warn { color: #d23b54; }
 /* 매장 페이지 우측 3카드 — 스크롤 없이 수납 */
 .sv-right { overflow-y: auto; }
+
+/* ===== 매장 페이지: 넓은 화면에서는 우측을 2열로 — 스크롤 없이 한눈에 ===== */
+@media (min-width: 1180px) {
+  .sv-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr);   /* 3행: 매니저 / 액션 / 비교·후기 */
+    gap: 11px;
+    overflow: hidden;
+  }
+  .sv-right > .mgr-card   { grid-column: 1 / -1; grid-row: 1; }   /* 매니저 카드는 가로 전체 */
+  .sv-right > .sv-actcard { grid-column: 1; grid-row: 2; }
+  .sv-right > .sv-peercard{ grid-column: 1; grid-row: 3; min-height: 0; display: flex; flex-direction: column; }
+  .sv-right > .sv-rev     { grid-column: 2; grid-row: 2 / 4; min-height: 0; }
+  .sv-peercard .sv-peers { flex: 1; min-height: 0; overflow-y: auto; }
+}
+
+/* ===== 낮은 화면(노트북·작업표시줄) 대응 — 밀도를 높여 스크롤 없이 ===== */
+@media (max-height: 820px) {
+  body.view-cafe #channel.section { padding: 14px 0 10px; }
+  .ca2 { gap: 8px; }
+  .ca-nsumcol { padding: 18px 16px; gap: 12px; }
+  .ca-nsumcol .nsc-h h3 { font-size: clamp(24px, 2.6vw, 32px); }
+  .ca-nsumcol .nsc-total b { font-size: clamp(30px, 3vw, 40px); }
+  .ca-nsumcol .nsc-vs .nv b { font-size: clamp(26px, 2.6vw, 34px); }
+  .nsc-rsum { margin-top: 4px; padding-top: 10px; gap: 6px; }
+
+  .rv-left, .sv-left { padding: 18px 16px; gap: 9px; }
+  .rv-head h3 { font-size: clamp(22px, 2.4vw, 30px); }
+  .rv-big b { font-size: clamp(34px, 3.6vw, 46px); }
+  .rv-kpis > div { padding: 6px 7px; }
+  .rv-kpis b { font-size: 17px; }
+  .rv-pick { padding: 6px 9px; }
+
+  .rv-diag { padding: 10px 12px; margin-bottom: 8px; }
+  .rv-dtext { font-size: 12.5px; line-height: 1.5; }
+  .rv-opps { margin-top: 7px; gap: 5px; }
+  .rv-opp { padding: 4px 9px; }
+  .rv-act { margin-top: 7px; padding-top: 7px; font-size: 12px; line-height: 1.5; }
+  .rv-right { padding: 12px 14px; }
+  .rv-row { padding: 4px 7px; }
+  .rv-bar i { height: 6px; }
+
+  .ca-ncard { padding: 10px 12px; }
+  .ca-ch { margin-bottom: 7px; padding-bottom: 6px; font-size: 13px; }
+  .sv-action { font-size: 12.5px; line-height: 1.5; }
+  .mgr-vs .mv b { font-size: 21px; }
+  .mgr-tip { font-size: 12px; line-height: 1.5; padding-top: 7px; }
+  .fc-title { font-size: clamp(16px, 1.5vw, 20px); }
+  .fc-mini b { font-size: clamp(26px, 3vw, 38px); }
+  .fc-front { padding: 14px 16px; }
+}
+
+/* ===== 줄바꿈·가독성 공통 ===== */
+.rv-dtext, .rv-act, .sv-action, .mgr-tip, .fc-note, .ca-note,
+.fc-sec.tip p, .fc-pts li { word-break: keep-all; overflow-wrap: break-word; }
+.rv-name, .pe-n, .op-n, .fc-title { word-break: keep-all; }
+.ca-sm-t { word-break: keep-all; overflow-wrap: anywhere; }

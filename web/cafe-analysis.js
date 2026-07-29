@@ -598,8 +598,8 @@
       `</div>` +
       `<div class="sv-right">` +
       mgrBlock(st.store, c) +
-      `<div class="ca-ncard"><h4 class="ca-ch">현장 액션</h4><p class="sv-action">${action}</p></div>` +
-      (sib.length > 1 ? `<div class="ca-ncard"><h4 class="ca-ch">${st.region} 내 비교 <i class="ca-tag">삼성 비중順</i></h4>` +
+      `<div class="ca-ncard sv-actcard"><h4 class="ca-ch">현장 액션</h4><p class="sv-action">${action}</p></div>` +
+      (sib.length > 1 ? `<div class="ca-ncard sv-peercard"><h4 class="ca-ch">${st.region} 내 비교 <i class="ca-tag">삼성 비중順</i></h4>` +
         `<div class="sv-peers">` + sib.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l)).map((x) => {
           const sh = pct(x.s, x.l), me = x.name === st.store;
           const cl = x.s > x.l ? "s" : x.l > x.s ? "l" : "even";
