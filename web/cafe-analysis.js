@@ -506,6 +506,67 @@
       `</div></div>`;
   }
 
+  /* ── 매장 상세 데이터 조회(표기 차 흡수) ── */
+  function storeDetailOf(name) {
+    const SD = (CD && CD.storeDetail) || {};
+    if (SD[name]) return SD[name];
+    const k = Object.keys(SD).find((x) => name.indexOf(x) === 0 || x.indexOf(name) === 0);
+    return k ? SD[k] : null;
+  }
+
+  /* ── 매장 전반 후기 진단 — 품목·혜택·추이를 한 카드에 ── */
+  function storeProfile(name, c) {
+    const d = storeDetailOf(name);
+    if (!d) return `<div class="ca-ncard"><h4 class="ca-ch">매장 후기 진단</h4>` +
+      `<p class="ca-splx">이 매장은 상세 분석 표본(30건)에 못 미칩니다 — 후기가 쌓이면 품목·혜택·추이가 표시됩니다.</p></div>`;
+    const its = d.items || [];
+    const win = its.filter((x) => x.s > x.l), lose = its.filter((x) => x.l > x.s);
+    const bars = its.map((x) => {
+      const t = x.s + x.l, sh = pct(x.s, x.l), cls = x.s > x.l ? "s" : x.l > x.s ? "l" : "even";
+      return `<li class="it-row ${cls}"><span class="it-n">${x.n}</span>` +
+        `<span class="it-bar"><i style="width:${sh}%"></i></span>` +
+        `<span class="it-v">${sh}<em>%</em></span><span class="it-c">${fmtN(t)}건</span></li>`;
+    }).join("");
+    // 추이: 최근 6개월 vs 직전 6개월
+    const mon = d.mon || [];
+    const half = Math.floor(mon.length / 2);
+    const prev = mon.slice(0, half).reduce((a, x) => a + x[1], 0);
+    const recent = mon.slice(half).reduce((a, x) => a + x[1], 0);
+    const mom = prev ? Math.round((recent - prev) / prev * 100) : 0;
+    const spark = mon.length ? sparkline(mon) : "";
+    const cp = d.cmp || { s: 0, l: 0 };
+    const cShare = pct(cp.s, cp.l);
+    const bens = (d.ben || []).map((b) => `<span class="pf-ben">${b.n}<i>${b.c}</i></span>`).join("");
+    return `<div class="ca-ncard sv-profile">` +
+      `<h4 class="ca-ch">매장 후기 진단 <i class="ca-tag">품목·혜택·추이</i></h4>` +
+      `<div class="pf-top">` +
+      `<div class="pf-kpi ${mom >= 0 ? "up" : "down"}"><b>${mom >= 0 ? "+" : ""}${mom}<i>%</i></b>` +
+      `<span>최근 6개월 vs 직전</span></div>` +
+      `<div class="pf-spark">${spark}</div>` +
+      `<div class="pf-kpi ${cShare >= 50 ? "up" : "down"}"><b>${cShare}<i>%</i></b><span>비교 상담 승률</span></div>` +
+      `</div>` +
+      (its.length ? `<p class="pf-lb">품목별 승패 <em>삼성 비중</em></p><ul class="it-list pf-items">${bars}</ul>` : "") +
+      (bens ? `<p class="pf-lb">후기에 언급된 혜택</p><div class="pf-bens">${bens}</div>` : "") +
+      `<p class="pf-sum">` +
+      (win.length ? `<b>${win.map((x) => x.n).slice(0, 2).join("·")}</b>에서 강세` : "뚜렷한 강세 품목 없음") +
+      (lose.length ? `, <b class="warn">${lose.map((x) => x.n).slice(0, 2).join("·")}</b>는 LG 우위 — 이 품목 상담 시 대안 제시가 필요합니다.`
+        : `. 열세 품목이 없어 <b>패키지 방어가 잘 되고 있습니다.</b>`) +
+      `</p></div>`;
+  }
+
+  /* 미니 추이 스파크라인 */
+  function sparkline(mon) {
+    const vals = mon.map((x) => x[1]);
+    const max = Math.max(1, ...vals), W = 132, H = 34;
+    const pts = vals.map((v, i) => [(i / Math.max(1, vals.length - 1)) * W, H - (v / max) * (H - 4) - 2]);
+    const dpath = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    const area = dpath + ` L${W} ${H} L0 ${H} Z`;
+    return `<svg class="pf-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="최근 추이">` +
+      `<path d="${area}" fill="rgba(31,95,208,0.12)"/>` +
+      `<path d="${dpath}" fill="none" stroke="#1f5fd0" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+      `</svg><span class="pf-cap">${mon[0][0].slice(2)} → ${mon[mon.length - 1][0].slice(2)}</span>`;
+  }
+
   /* ── 매장 페이지: 매니저(프로·명장) 실명 후기 경쟁력 ── */
   function mgrBlock(storeName, c) {
     const MS = (CD && CD.mgrStore) || {};
@@ -597,6 +658,7 @@
       (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
       `</div>` +
       `<div class="sv-right">` +
+      storeProfile(st.store, c) +
       mgrBlock(st.store, c) +
       `<div class="ca-ncard sv-actcard"><h4 class="ca-ch">현장 액션</h4><p class="sv-action">${action}</p></div>` +
       (sib.length > 1 ? `<div class="ca-ncard sv-peercard"><h4 class="ca-ch">${st.region} 내 비교 <i class="ca-tag">삼성 비중順</i></h4>` +

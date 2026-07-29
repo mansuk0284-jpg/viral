@@ -140,6 +140,9 @@ def main():
     compare = {"s": 0, "l": 0}
     benefit = {k: {"s": 0, "l": 0} for k in BENEFITS}
     season = Counter()
+    # 매장별 상세: 품목 승패 / 혜택 언급 / 월별 추이 / 비교상담
+    sdet = defaultdict(lambda: {"items": defaultdict(lambda: {"s": 0, "l": 0}),
+                                "ben": Counter(), "mon": Counter(), "cmp": {"s": 0, "l": 0}})
 
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
@@ -192,6 +195,18 @@ def main():
             st = dept_store_of(txt)           # 매장은 백화점만
             if st:
                 stores[rg][st]["s" if single_s else "l"] += 1
+                # 매장 상세 — 품목·혜택·월별·비교상담
+                sd = sdet[st]
+                for nm, kws in ITEMS.items():
+                    if any(w in txt for w in kws):
+                        sd["items"][nm]["s" if single_s else "l"] += 1
+                for nm, kws in BENEFITS.items():
+                    if any(w in txt for w in kws):
+                        sd["ben"][nm] += 1
+                if ym:
+                    sd["mon"][ym] += 1
+                if COMPARE_RE.search(txt):
+                    sd["cmp"]["s" if single_s else "l"] += 1
                 if hasMgr:
                     m = mgr_store[st]
                     m["s" if single_s else "l"] += 1
@@ -223,6 +238,7 @@ def main():
         "mgrStore": mgr_out,     # 매장별 매니저 언급 + 실명 TOP
         # 판매 인사이트
         "items": {k: v for k, v in sorted(items.items(), key=lambda kv: -(kv[1]["s"] + kv[1]["l"])) if v["s"] + v["l"] >= 50},
+        "storeDetail": {},       # 아래에서 채움 (매장별 품목·혜택·추이)
         "compare": compare,      # 비교·발품 상담 후 최종 선택
         "benefit": {k: v for k, v in benefit.items() if v["s"] + v["l"] >= 30},
         "season": dict(sorted(season.items())),
@@ -231,6 +247,22 @@ def main():
         "stores": stores_out,
         "scope": "전국·지역=전체 후기 / 매장=백화점 입점(삼성스토어 vs LG)만",
     }
+
+    # 매장 상세 — 표본이 충분한 매장만(노이즈 방지), 품목은 상위 6개, 추이는 최근 12개월
+    sdet_out = {}
+    for stn, v in sdet.items():
+        if sum(v["mon"].values()) < 30:
+            continue
+        its = sorted(v["items"].items(), key=lambda kv: -(kv[1]["s"] + kv[1]["l"]))
+        its = [{"n": k, "s": d["s"], "l": d["l"]} for k, d in its if d["s"] + d["l"] >= 3][:6]
+        mon = sorted(v["mon"].items())[-12:]
+        sdet_out[stn] = {
+            "items": its,
+            "ben": [{"n": k, "c": c} for k, c in v["ben"].most_common(4)],
+            "mon": [[m, c] for m, c in mon],
+            "cmp": v["cmp"],
+        }
+    data["storeDetail"] = sdet_out
 
     with open(a.out, "w", encoding="utf-8") as f:
         f.write("/* build_web_data.py 자동생성 — 수정 금지. census 갱신 후 재실행할 것 */\n")
