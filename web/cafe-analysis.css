@@ -538,8 +538,14 @@ body.view-cafe .back-float { display: none !important; }
 
 /* ===== 지역 페이지 (regionView) ===== */
 .ca-rv { flex: 1 1 auto; min-height: 0; display: grid;
-  grid-template-columns: clamp(210px, 20vw, 280px) minmax(0, 1fr);
-  gap: clamp(14px, 2vw, 26px); align-items: stretch; }
+  grid-template-columns: clamp(200px, 18vw, 260px) minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: clamp(10px, 1.4vw, 18px); align-items: stretch; }
+.rv-third { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.rv-third > .ca-ncard { flex: 1; min-height: 0; }
+@media (max-width: 1180px) {
+  .ca-rv { grid-template-columns: clamp(190px, 22vw, 250px) minmax(0, 1fr); }
+  .rv-third { display: none; }        /* 좁은 화면에서는 진단 카드 숨김(한 화면 유지) */
+}
 .rv-left { display: flex; flex-direction: column; gap: 13px; padding: 26px 22px;
   background: #f3f5f9; border: 1px solid rgba(23,42,66,0.07); border-radius: 18px; }
 .rv-head h3 { margin: 0; font-size: clamp(28px, 3.2vw, 40px); font-weight: 900; letter-spacing: -0.03em; color: var(--text); line-height: 1.1; }
@@ -813,3 +819,21 @@ body.view-cafe .back-float { display: none !important; }
 .pf-sum { margin: 2px 0 0; padding-top: 7px; border-top: 1px dashed rgba(23,42,66,0.14);
   font-size: 12.5px; line-height: 1.55; color: var(--muted); word-break: keep-all; }
 .pf-sum b { color: #1f5fd0; } .pf-sum b.warn { color: #d23b54; }
+
+
+/* 지역 3열 배치에서 진단 카드 밀도 조정 */
+.rv-third .sv-profile { padding: 12px 14px; gap: 7px; }
+.rv-third .pf-kpi b { font-size: 19px; }
+.rv-third .pf-svg { height: 30px; }
+.rv-third .it-row { grid-template-columns: 58px minmax(0, 1fr) 40px 34px; gap: 6px; }
+.rv-third .it-n { font-size: 11.5px; }
+.rv-third .pf-sum { font-size: 11.5px; line-height: 1.5; }
+.rv-third .pf-ben { font-size: 11px; padding: 2px 8px; }
+
+
+/* 매장 우측 그리드 — 잔여 넘침 제거(행 높이를 콘텐츠에 맞춰 배분) */
+@media (min-width: 1180px) {
+  .sv-right { grid-template-rows: minmax(0, auto) minmax(0, auto) minmax(0, 1fr); }
+  .sv-right > .ca-ncard, .sv-right > .sv-rev { min-height: 0; overflow: hidden; }
+  .sv-right > .sv-profile .pf-items { max-height: 168px; }
+}

@@ -143,6 +143,9 @@ def main():
     # 매장별 상세: 품목 승패 / 혜택 언급 / 월별 추이 / 비교상담
     sdet = defaultdict(lambda: {"items": defaultdict(lambda: {"s": 0, "l": 0}),
                                 "ben": Counter(), "mon": Counter(), "cmp": {"s": 0, "l": 0}})
+    # 지역(시/도)별 상세 — 매장과 동일 구조
+    rdet = defaultdict(lambda: {"items": defaultdict(lambda: {"s": 0, "l": 0}),
+                                "ben": Counter(), "mon": Counter(), "cmp": {"s": 0, "l": 0}})
 
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
@@ -192,6 +195,18 @@ def main():
         rg = region_of(txt)
         if rg and (single_s or single_l):
             regions[rg]["s" if single_s else "l"] += 1
+            # 지역 상세 — 품목·혜택·월별·비교상담 (매장 유무와 무관하게 지역 전체)
+            rd = rdet[rg]
+            for nm, kws in ITEMS.items():
+                if any(w in txt for w in kws):
+                    rd["items"][nm]["s" if single_s else "l"] += 1
+            for nm, kws in BENEFITS.items():
+                if any(w in txt for w in kws):
+                    rd["ben"][nm] += 1
+            if ym:
+                rd["mon"][ym] += 1
+            if COMPARE_RE.search(txt):
+                rd["cmp"]["s" if single_s else "l"] += 1
             st = dept_store_of(txt)           # 매장은 백화점만
             if st:
                 stores[rg][st]["s" if single_s else "l"] += 1
@@ -263,6 +278,21 @@ def main():
             "cmp": v["cmp"],
         }
     data["storeDetail"] = sdet_out
+
+    # 지역 상세 — 매장과 동일 구조(표본 50건 이상)
+    rdet_out = {}
+    for rgn, v in rdet.items():
+        if sum(v["mon"].values()) < 50:
+            continue
+        its = sorted(v["items"].items(), key=lambda kv: -(kv[1]["s"] + kv[1]["l"]))
+        its = [{"n": k, "s": d["s"], "l": d["l"]} for k, d in its if d["s"] + d["l"] >= 5][:6]
+        rdet_out[rgn] = {
+            "items": its,
+            "ben": [{"n": k, "c": c} for k, c in v["ben"].most_common(4)],
+            "mon": [[m, c] for m, c in sorted(v["mon"].items())[-12:]],
+            "cmp": v["cmp"],
+        }
+    data["regionDetail"] = rdet_out
 
     with open(a.out, "w", encoding="utf-8") as f:
         f.write("/* build_web_data.py 자동생성 — 수정 금지. census 갱신 후 재실행할 것 */\n")
