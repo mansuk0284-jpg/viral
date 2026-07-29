@@ -1559,3 +1559,50 @@ body.mode-results .back-float { display: inline-flex; align-items: center; }
 @media (max-width: 560px) {
   .hero-film { max-width: 420px; }
 }
+
+/* ===== 트리맵(주식 히트맵) 배치 — 센싱 건수 비례 직사각형 ===== */
+.source-mosaic.is-tree .src {
+  position: absolute;
+  /* 폭·높이는 JS가 트리맵 계산값으로 직접 지정 → CSS 배수 규칙 무효화 */
+  width: auto; min-height: 0;
+  border-radius: 10px;
+  padding: 6px 8px;
+  gap: 4px;
+  overflow: hidden;                /* 칸 밖으로 글자가 새지 않게 */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  rotate: 0deg;                    /* 트리맵에서는 기울임 없이 정렬 */
+  animation: none;                 /* 부유 애니메이션 해제(격자 정렬 유지) */
+}
+.source-mosaic.is-tree .src figcaption { width: 100%; align-items: center; text-align: center; }
+.source-mosaic.is-tree .src figcaption b {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; width: 100%;
+  font-size: clamp(11px, calc(var(--size) * 0.115), 17px);
+  line-height: 1.15;
+}
+.source-mosaic.is-tree .src figcaption small {
+  width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: clamp(9px, calc(var(--size) * 0.075), 12px);
+}
+.source-mosaic.is-tree .src-ic {
+  width: clamp(20px, calc(var(--size) * 0.26), 54px);
+  height: clamp(20px, calc(var(--size) * 0.26), 54px);
+  border-radius: 26%;
+}
+.source-mosaic.is-tree .src-count { margin-top: 1px; }
+.source-mosaic.is-tree .src-count i { font-size: clamp(12px, calc(var(--size) * 0.17), 30px); }
+.source-mosaic.is-tree .src-count em,
+.source-mosaic.is-tree .src-delta { font-size: clamp(8px, calc(var(--size) * 0.06), 12px); }
+/* 아주 작은 칸: 보조 라벨·전일비 숨겨 이름과 건수만 또렷하게 */
+.source-mosaic.is-tree .tile-xs figcaption small,
+.source-mosaic.is-tree .tile-xs .src-delta { display: none; }
+.source-mosaic.is-tree .tile-xs .src-ic { display: none; }
+/* 호버: 확대 대신 밝기·테두리로 강조(격자가 흐트러지지 않게) */
+.source-mosaic.is-tree:hover .src { scale: 1; opacity: 1; filter: brightness(.94) saturate(.92); }
+.source-mosaic.is-tree .src:hover,
+.source-mosaic.is-tree:hover .src:hover {
+  translate: 0 0; scale: 1.04; filter: none;
+  box-shadow: 0 0 0 3px var(--ping), 0 18px 40px rgba(23,42,66,0.28);
+}

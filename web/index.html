@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r84" />
+  <link rel="stylesheet" href="styles.css?v=2026r85" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r56" />
 </head>
 <body>
@@ -338,6 +338,54 @@
         t.style.zIndex = Math.round(s);          // 큰 타일이 겹침 위로(중앙이 최상단)
         t._tx = x; t._ty = y;                    // 목표 중심(블랙홀 → 제자리 비행에 사용)
       }
+      /* 스퀘어파이드 트리맵 — 값(v)에 비례한 직사각형으로 영역을 빈틈없이 분할.
+         주식 히트맵과 같은 방식으로, 칸이 정사각형에 가깝도록 행을 끊는다. */
+      function squarify(nodes, X, Y, W, H) {
+        var total = nodes.reduce(function (a, n) { return a + n.v; }, 0) || 1;
+        var scale = (W * H) / total;
+        var items = nodes.map(function (n) { return { ref: n.ref, a: n.v * scale }; })
+          .sort(function (p, q) { return q.a - p.a; });
+        var out = [], x = X, y = Y, w = W, h = H, row = [], rowArea = 0;
+
+        function worst(r, area, side) {
+          if (!r.length || area <= 0) return Infinity;
+          var mx = -Infinity, mn = Infinity;
+          for (var i = 0; i < r.length; i++) { if (r[i].a > mx) mx = r[i].a; if (r[i].a < mn) mn = r[i].a; }
+          var s2 = area * area, l2 = side * side;
+          return Math.max((l2 * mx) / s2, s2 / (l2 * mn));
+        }
+        function flush() {
+          if (!row.length) return;
+          var side = Math.min(w, h);
+          var thick = rowArea / side;                 // 행(열) 두께
+          var pos = 0;
+          if (w >= h) {                               // 세로 방향으로 쌓는 열
+            row.forEach(function (it) {
+              var ih = it.a / thick;
+              out.push({ ref: it.ref, x: x, y: y + pos, w: thick, h: ih });
+              pos += ih;
+            });
+            x += thick; w -= thick;
+          } else {                                    // 가로 방향으로 쌓는 행
+            row.forEach(function (it) {
+              var iw = it.a / thick;
+              out.push({ ref: it.ref, x: x + pos, y: y, w: iw, h: thick });
+              pos += iw;
+            });
+            y += thick; h -= thick;
+          }
+          row = []; rowArea = 0;
+        }
+        while (items.length) {
+          var it = items[0], side = Math.min(w, h);
+          if (!row.length || worst(row.concat([it]), rowArea + it.a, side) <= worst(row, rowArea, side)) {
+            row.push(it); rowArea += it.a; items.shift();
+          } else { flush(); }
+        }
+        flush();
+        return out;
+      }
+
       function layoutCluster() {
         if (!mosaic) return;
         var box = mosaic.clientWidth || 520;
@@ -349,38 +397,30 @@
           if (!portalOpened) applyClosed();
           return;
         }
-        // 타일 크기를 컨테이너 폭에 비례시켜 항상 들어맞게(중앙=최대, 둘레=작게)
-        mosaic.classList.add('is-radial');
-        mosaic.style.height = box + 'px';
+        // ── 트리맵(주식 히트맵) 배치 — 센싱 건수 비례 직사각형으로 빈틈없이 채운다 ──
+        mosaic.classList.add('is-radial', 'is-tree');
+        var boxH = Math.round(box * 0.92);
+        mosaic.style.height = boxH + 'px';
         var C = box / 2;
-        var center = tiles.filter(function (t) { return t.classList.contains('src-hot'); })[0] || tiles[0];
-        // 겹침 방지 기하 — 타일 실제 크기에서 필요한 궤도 반경을 역산한다.
-        //   폭 = size × 1.28(.src CSS), 높이 ≈ size + 캡션(약 0.125·box)
-        //   R_in ≥ (중앙 반높이) + (둘레 반높이) + 여유
-        var CEN = 0.28, SAT = 0.115, SAT_R = 0.055;          // 중앙·둘레 크기 계수
-        var others = tiles.filter(function (t) { return t !== center; });
-        var n = others.length;
-        // ── 1패스: 크기만 확정하고 실제 렌더 높이를 잰다(캡션 줄수에 따라 높이가 달라짐) ──
-        setSize(center, box * CEN);
-        others.forEach(function (t) { setSize(t, box * (SAT + (t._ratio || 0) * SAT_R)); });
-        var cenH = center.offsetHeight || box * CEN;
-        var satH = 0, satW = 0;
-        others.forEach(function (t) {
-          satH = Math.max(satH, t.offsetHeight || 0);
-          satW = Math.max(satW, t.offsetWidth || 0);
+        // 면적 가중치: 건수 격차가 극단적(7만 vs 0)이라 log 스케일 + 최소치로 0건도 보이게
+        var nodes = tiles.map(function (t) {
+          var cnt = +t.getAttribute('data-count') || 0;
+          return { ref: t, v: Math.log(cnt + 1) + 2.4 };   // 기저값 ↑ = 작은 칸도 읽히는 크기 확보
         });
-        // ── 2패스: 측정값으로 겹치지 않는 최소 반경을 역산해 배치 ──
-        placeAt(center, C, C);
-        var need = cenH / 2 + satH / 2 + box * 0.035;          // 중앙과 안 겹치는 최소 반경(여유 포함)
-        var ring = (satW * n) / (2 * Math.PI);                 // 둘레에 n개가 늘어설 최소 반경
-        var R_in = Math.max(need, ring * 0.62, box * 0.34);    // 두 겹이므로 ring 요구는 완화
-        var R_out = R_in + Math.max(satH * 0.42, box * 0.08);  // 이웃과 반경 방향으로 어긋나기
-        // 타원 궤도 — 가로는 좁히고(좌측 영상 침범 방지) 세로로 여유를 쓴다
-        var KX = 0.80, KY = 1.00;
-        others.forEach(function (t, i) {
-          var ang = (i / n) * Math.PI * 2 - Math.PI / 2 + (t._jit || 0) * 0.3;
-          var rad = (i % 2 === 0 ? R_in : R_out) + (t._rjit || 0) * (box / 2000);
-          placeAt(t, C + Math.cos(ang) * rad * KX, C + Math.sin(ang) * rad * KY);
+        var rects = squarify(nodes, 0, 0, box, boxH);
+        var GAP = 5;
+        rects.forEach(function (r) {
+          var t = r.ref;
+          var w = Math.max(28, r.w - GAP), h = Math.max(28, r.h - GAP);
+          t.style.left = Math.round(r.x + GAP / 2) + 'px';
+          t.style.top = Math.round(r.y + GAP / 2) + 'px';
+          t.style.width = Math.round(w) + 'px';
+          t.style.height = Math.round(h) + 'px';
+          t.style.zIndex = Math.round(w);
+          t._size = Math.min(w, h);
+          t.style.setProperty('--size', Math.round(Math.min(w, h)) + 'px');
+          t.classList.toggle('tile-xs', Math.min(w, h) < 86);   // 아주 작은 칸: 보조라벨 숨김
+          t._tx = r.x + r.w / 2; t._ty = r.y + r.h / 2;          // 포털 비행 목표 중심
         });
         mosaic._hub = C;
         if (!portalOpened) applyClosed();
