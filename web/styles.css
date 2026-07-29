@@ -218,7 +218,7 @@ h1, h2, h3, h4, p, span, label, button, li, td, th {
   margin: 0 auto;
   padding: clamp(14px, 2.5vh, 36px) clamp(16px, 3vw, 40px);   /* 상하 여백으로 중앙 정렬, 좌우 균형 */
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);  /* 좌측 영상 넓게 */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);  /* 좌 영상 · 우 트리맵 같은 폭 */
   align-items: center;           /* 영상·타일 세로 중앙 정렬 → 좌우 균형 */
   gap: clamp(28px, 5vw, 80px);   /* 좌·우 콘텐츠 간격 */
   min-height: 0;
@@ -512,6 +512,10 @@ body.portal-open #sourceMosaic {   /* ID로 우선순위 확보 — 클러스터
   transform: translateY(-60px) scale(1.5) !important;
   transform-origin: 50% 45%;
   transition: transform .6s cubic-bezier(.34,1.3,.5,1);
+}
+/* 트리맵은 이미 영역을 꽉 채우므로 확대하지 않는다(영상 박스와 크기 일치 유지) */
+body.portal-open #sourceMosaic.is-tree {
+  transform: translateY(14px) !important;   /* 좌측 영상과 상·하단 라인 정렬 */
 }
 /* 닫힘: 타일이 블랙홀 중심에 모여 안 보임 (--dx/--dy = 제자리까지의 편차) */
 .source-mosaic .src.closed {
@@ -1587,18 +1591,23 @@ body.mode-results .back-float { display: inline-flex; align-items: center; }
   font-size: clamp(9px, calc(var(--size) * 0.075), 12px);
 }
 .source-mosaic.is-tree .src-ic {
-  width: clamp(20px, calc(var(--size) * 0.26), 54px);
-  height: clamp(20px, calc(var(--size) * 0.26), 54px);
+  width: clamp(24px, calc(var(--size) * 0.30), 62px);
+  height: clamp(24px, calc(var(--size) * 0.30), 62px);
   border-radius: 26%;
+  box-shadow: 0 4px 12px rgba(23,42,66,0.16);
 }
 .source-mosaic.is-tree .src-count { margin-top: 1px; }
 .source-mosaic.is-tree .src-count i { font-size: clamp(12px, calc(var(--size) * 0.17), 30px); }
 .source-mosaic.is-tree .src-count em,
 .source-mosaic.is-tree .src-delta { font-size: clamp(8px, calc(var(--size) * 0.06), 12px); }
-/* 아주 작은 칸: 보조 라벨·전일비 숨겨 이름과 건수만 또렷하게 */
+/* 아주 작은 칸: 보조 라벨·전일비만 숨기고 대표 아이콘은 항상 유지(채널 식별) */
 .source-mosaic.is-tree .tile-xs figcaption small,
 .source-mosaic.is-tree .tile-xs .src-delta { display: none; }
-.source-mosaic.is-tree .tile-xs .src-ic { display: none; }
+.source-mosaic.is-tree .tile-xs .src-ic {
+  width: clamp(18px, calc(var(--size) * 0.30), 30px);
+  height: clamp(18px, calc(var(--size) * 0.30), 30px);
+}
+.source-mosaic.is-tree .tile-xs { gap: 3px; padding: 5px 6px; }
 /* 호버: 확대 대신 밝기·테두리로 강조(격자가 흐트러지지 않게) */
 .source-mosaic.is-tree:hover .src { scale: 1; opacity: 1; filter: brightness(.94) saturate(.92); }
 .source-mosaic.is-tree .src:hover,

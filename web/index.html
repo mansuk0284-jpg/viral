@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r85" />
+  <link rel="stylesheet" href="styles.css?v=2026r88" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r56" />
 </head>
 <body>
@@ -399,7 +399,20 @@
         }
         // ── 트리맵(주식 히트맵) 배치 — 센싱 건수 비례 직사각형으로 빈틈없이 채운다 ──
         mosaic.classList.add('is-radial', 'is-tree');
-        var boxH = Math.round(box * 0.92);
+        // 좌측 영상 박스와 폭·높이를 맞춰 좌우 균형을 만든다
+        var film = document.querySelector('.hero-film-media');
+        var stage = mosaic.parentElement;
+        var boxH;
+        if (film) {
+          var fr = film.getBoundingClientRect();
+          var avail = (stage && stage.parentElement) ? stage.parentElement.clientWidth : box;
+          box = Math.round(Math.min(fr.width, avail));
+          boxH = Math.round(fr.height);
+          if (stage) { stage.style.maxWidth = box + 'px'; stage.style.width = box + 'px'; }
+          mosaic.style.width = box + 'px';
+        } else {
+          boxH = Math.round(box * 0.92);
+        }
         mosaic.style.height = boxH + 'px';
         var C = box / 2;
         // 면적 가중치: 건수 격차가 극단적(7만 vs 0)이라 log 스케일 + 최소치로 0건도 보이게
