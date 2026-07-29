@@ -423,21 +423,57 @@
     const nat = pct((CD && CD.samsung) || 0, (CD && CD.lg) || 0);
     const diff = share - nat;
     const max = Math.max(1, ...list.map((x) => x.s + x.l));
-    const rows = list.map((x, i) => {
-      const tot = x.s + x.l, sh = pct(x.s, x.l);
+    // ── 진단: 우위/열세/기회 분류 ──
+    const win = list.filter((x) => x.s > x.l), lose = list.filter((x) => x.l > x.s);
+    const sized = list.filter((x) => x.s + x.l >= 10);
+    const top = sized.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l))[0];
+    // 기회 = 표본이 큰데 삼성이 지는 곳(격차가 클수록 우선). 여기를 잡으면 지역 순위가 바뀐다.
+    const opps = list.filter((x) => x.l > x.s).sort((a, b) => (b.l - b.s) - (a.l - a.s));
+    const oppGap = opps.reduce((a, x) => a + (x.l - x.s), 0);
+    const bot = opps[0] || sized.slice().sort((a, b) => pct(a.s, a.l) - pct(b.s, b.l))[0];
+    // 집중도: 상위 1곳이 지역 표본에서 차지하는 비중(쏠림이면 그 매장이 지역 성적을 좌우)
+    const totAll = list.reduce((a, x) => a + x.s + x.l, 0) || 1;
+    const headShare = list[0] ? Math.round((list[0].s + list[0].l) / totAll * 100) : 0;
+
+    const rowOf = (x, i) => {
+      const tot = x.s + x.l, sh = pct(x.s, x.l), gap = x.s - x.l;
       const lead = x.s > x.l ? "s" : x.l > x.s ? "l" : "even";
-      return `<button type="button" class="rv-row ${lead}" ${attr}="${x.n}" title="${x.n} 상세 보기">` +
-        `<span class="rv-rank">${i + 1}</span>` +
+      return `<button type="button" class="rv-row ${lead}" ${attr}="${x.n}" title="${x.n} · 삼성 ${x.s} vs LG ${x.l}">` +
+        `<span class="rv-rank">${i}</span>` +
         `<span class="rv-name">${x.n}</span>` +
+        `<span class="rv-cnt"><i class="s">${fmtN(x.s)}</i><em>:</em><i class="l">${fmtN(x.l)}</i></span>` +
         `<span class="rv-bar"><i class="s" style="width:${(x.s / max * 100).toFixed(1)}%"></i>` +
         `<i class="l" style="width:${(x.l / max * 100).toFixed(1)}%"></i></span>` +
         `<span class="rv-num">${fmtN(tot)}</span>` +
-        `<span class="rv-sh ${lead}">${sh}%</span></button>`;
+        `<span class="rv-sh ${lead}">${sh}%</span>` +
+        `<span class="rv-gap ${gap >= 0 ? "s" : "l"}">${gap >= 0 ? "+" : ""}${fmtN(gap)}</span></button>`;
+    };
+    const rows = list.map((x, i) => rowOf(x, i + 1)).join("");
+
+    // ── 자동 진단 문장 (데이터에서 도출) · 한글 조사 자동 처리 ──
+    const hasJong = (w) => { const ch = (w || "").replace(/[^가-힣]/g, "").slice(-1); return ch ? (ch.charCodeAt(0) - 0xac00) % 28 !== 0 : false; };
+    const josa = (w, a, b) => w + (hasJong(w) ? a : b);   // 예: josa("경기","은","는")
+    const diag = [];
+    diag.push(`${josa(c.title, "은", "는")} 삼성 비중 <b>${share}%</b>로 전국(${nat}%) 대비 <b class="${diff >= 0 ? "up" : "down"}">${diff >= 0 ? "+" : ""}${diff}p ${diff >= 0 ? "강세" : "약세"}</b>입니다.`);
+    if (list.length) diag.push(`${unit} ${list.length}곳 중 <b>${win.length}곳 우위</b>, <b class="down">${lose.length}곳 열세</b>.`);
+    if (headShare >= 40 && list[0]) diag.push(`표본이 <b>${list[0].n}</b>에 ${headShare}% 쏠려 있어 이 ${unit}의 성적이 지역 전체를 좌우합니다.`);
+    if (opps.length) diag.push(`열세 ${unit}에서 LG가 누적 <b class="down">${fmtN(oppGap)}건</b> 앞서며, 이 격차가 지역 순위의 실질 손실분입니다.`);
+    else if (list.length) diag.push(`열세 ${josa(unit, "이", "가")} 없어 <b>방어 국면</b> — 현 우위를 유지하며 후기 확보를 지속하는 것이 과제입니다.`);
+
+    const oppCards = opps.slice(0, 3).map((x) => {
+      const gap = x.l - x.s;
+      return `<button type="button" class="rv-opp" ${attr}="${x.n}">` +
+        `<span class="op-n">${x.n}</span>` +
+        `<span class="op-gap">LG <b>+${fmtN(gap)}</b></span>` +
+        `<span class="op-sh">삼성 ${pct(x.s, x.l)}%</span></button>`;
     }).join("");
-    const win = list.filter((x) => x.s > x.l), lose = list.filter((x) => x.l > x.s);
-    const sorted = list.filter((x) => x.s + x.l >= 10);
-    const top = sorted.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l))[0];
-    const bot = sorted.slice().sort((a, b) => pct(a.s, a.l) - pct(b.s, b.l))[0];
+
+    const action = opps.length
+      ? `<b>${opps[0].n}</b>부터 공략하세요 — 이곳 한 곳만 뒤집어도 지역 격차의 ` +
+        `<b>${Math.round((opps[0].l - opps[0].s) / (oppGap || 1) * 100)}%</b>가 해소됩니다. ` +
+        `LG 우세 사유(오브제 디자인·패키지)에 대응해 <b>비스포크 견적·체감가</b>를 전면에 두고, 계약 고객에게 <b>후기 작성을 요청</b>해 표본을 늘리세요.`
+      : `현재 열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두 매장"}</b>의 성공 방식(매니저 1:1 상담·견적 만족)을 표본이 적은 ${unit}으로 확산해 <b>후기 절대량</b>을 키우는 것이 다음 단계입니다.`;
+
     return `<div class="ca-rv">` +
       `<div class="rv-left">` +
       `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
@@ -454,6 +490,15 @@
       (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
       `</div>` +
       `<div class="rv-right">` +
+      // 진단 + 기회 + 액션
+      `<div class="rv-diag">` +
+      `<div class="rv-dhead"><h4>진단</h4>` +
+      (opps.length ? `<span class="rv-oppsum">기회 ${opps.length}곳 · 회복 여지 <b>${fmtN(oppGap)}건</b></span>` : `<span class="rv-oppsum ok">열세 없음 · 방어 국면</span>`) +
+      `</div>` +
+      `<p class="rv-dtext">${diag.join(" ")}</p>` +
+      (oppCards ? `<div class="rv-opps">${oppCards}</div>` : "") +
+      `<p class="rv-act"><em>액션</em>${action}</p>` +
+      `</div>` +
       `<div class="rv-rhead"><h4>${unit}별 경쟁력 <em>${list.length}곳</em></h4>` +
       `<span class="rv-leg"><i class="s"></i>삼성<i class="l"></i>LG · 클릭 시 ${unit} 상세</span></div>` +
       (list.length ? `<div class="rv-list">${rows}</div>`

@@ -540,33 +540,33 @@ body.view-cafe .back-float { display: none !important; }
 .ca-rv { flex: 1 1 auto; min-height: 0; display: grid;
   grid-template-columns: clamp(210px, 20vw, 280px) minmax(0, 1fr);
   gap: clamp(14px, 2vw, 26px); align-items: stretch; }
-.rv-left { display: flex; flex-direction: column; gap: 11px; padding: 20px 18px;
+.rv-left { display: flex; flex-direction: column; gap: 13px; padding: 26px 22px;
   background: #f3f5f9; border: 1px solid rgba(23,42,66,0.07); border-radius: 18px; }
-.rv-head h3 { margin: 0; font-size: clamp(22px, 2.4vw, 30px); font-weight: 900; letter-spacing: -0.03em; color: var(--text); line-height: 1.1; }
-.rv-head span { display: block; margin-top: 3px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.rv-head h3 { margin: 0; font-size: clamp(28px, 3.2vw, 40px); font-weight: 900; letter-spacing: -0.03em; color: var(--text); line-height: 1.1; }
+.rv-head span { display: block; margin-top: 5px; font-size: 13.5px; font-weight: 600; color: var(--muted); }
 .rv-big { display: flex; align-items: baseline; gap: 7px; margin-top: 2px; }
-.rv-big b { font-size: clamp(38px, 4.4vw, 56px); font-weight: 900; letter-spacing: -0.04em; color: #1f5fd0; line-height: 1; }
+.rv-big b { font-size: clamp(46px, 5.2vw, 68px); font-weight: 900; letter-spacing: -0.04em; color: #1f5fd0; line-height: 1; }
 .rv-big b i { font-style: normal; font-size: 0.45em; margin-left: 1px; }
-.rv-big span { font-size: 12.5px; font-weight: 700; color: var(--muted); }
-.rv-vs { margin: 0; font-size: 12.5px; font-weight: 700; color: var(--muted); }
-.rv-vs b { font-size: 14px; }
+.rv-big span { font-size: 14px; font-weight: 700; color: var(--muted); }
+.rv-vs { margin: 0; font-size: 14px; font-weight: 700; color: var(--muted); }
+.rv-vs b { font-size: 17px; }
 .rv-vs.up b { color: #1f5fd0; } .rv-vs.down b { color: #d23b54; }
 .rv-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 3px; }
 .rv-kpis > div { background: #fff; border: 1px solid rgba(23,42,66,0.08); border-radius: 11px; padding: 8px 9px; text-align: center; }
-.rv-kpis b { display: block; font-size: 17px; font-weight: 900; letter-spacing: -0.02em; color: var(--text); line-height: 1.1; }
+.rv-kpis b { display: block; font-size: 21px; font-weight: 900; letter-spacing: -0.02em; color: var(--text); line-height: 1.1; }
 .rv-kpis b i { font-style: normal; font-size: 0.6em; font-weight: 800; margin-left: 1px; }
-.rv-kpis span { font-size: 10.5px; font-weight: 700; color: var(--muted); }
+.rv-kpis span { font-size: 12px; font-weight: 700; color: var(--muted); }
 .rv-kpis > div.s b { color: #1f5fd0; } .rv-kpis > div.l b { color: #d23b54; }
 .rv-split { display: flex; gap: 7px; }
-.rv-split span { flex: 1; text-align: center; font-size: 12px; font-weight: 800; border-radius: 9px; padding: 6px 4px; }
+.rv-split span { flex: 1; text-align: center; font-size: 13.5px; font-weight: 800; border-radius: 9px; padding: 6px 4px; }
 .rv-split .s { color: #1f5fd0; background: rgba(31,95,208,0.1); }
 .rv-split .l { color: #d23b54; background: rgba(210,59,84,0.1); }
 .rv-pick { display: flex; align-items: baseline; gap: 7px; padding: 8px 11px; border-radius: 11px; background: #fff; border-left: 3px solid #1f5fd0; }
 .rv-pick.l { border-left-color: #d23b54; }
-.rv-pick em { font-style: normal; font-size: 10.5px; font-weight: 800; color: #1f5fd0; flex-shrink: 0; }
+.rv-pick em { font-style: normal; font-size: 11.5px; font-weight: 800; color: #1f5fd0; flex-shrink: 0; }
 .rv-pick.l em { color: #d23b54; }
-.rv-pick b { flex: 1; font-size: 13px; font-weight: 800; color: var(--text); }
-.rv-pick span { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.rv-pick b { flex: 1; font-size: 14.5px; font-weight: 800; color: var(--text); }
+.rv-pick span { font-size: 12.5px; font-weight: 700; color: var(--muted); }
 
 .rv-right { display: flex; flex-direction: column; min-height: 0; padding: 16px 18px;
   background: #fff; border: 1px solid rgba(23,42,66,0.08); border-radius: 18px; }
@@ -578,12 +578,12 @@ body.view-cafe .back-float { display: none !important; }
 .rv-leg i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; margin: 0 2px 0 6px; }
 .rv-leg i.s { background: #1f5fd0; } .rv-leg i.l { background: #d23b54; }
 .rv-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 4px; }
-.rv-row { display: grid; grid-template-columns: 22px minmax(84px, 1.5fr) minmax(0, 3fr) 46px 44px;
+.rv-row { display: grid; grid-template-columns: 20px minmax(78px, 1.4fr) 74px minmax(0, 2.2fr) 44px 42px 44px;
   align-items: center; gap: 9px; width: 100%; text-align: left; border: 0; background: transparent;
   font: inherit; cursor: pointer; padding: 6px 8px; border-radius: 9px; transition: background .15s ease; }
 .rv-row:hover { background: rgba(31,95,208,0.07); }
 .rv-rank { font-size: 11px; font-weight: 800; color: var(--muted); text-align: center; }
-.rv-name { font-size: 13px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rv-name { font-size: 13.5px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rv-bar { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .rv-bar i { height: 7px; border-radius: 3px; min-width: 2px; display: block; }
 .rv-bar i.s { background: linear-gradient(90deg, #1f5fd0, #4f86e6); }
@@ -645,3 +645,37 @@ body.view-cafe .back-float { display: none !important; }
 .sv-peer.l .pe-bar i { background: linear-gradient(90deg, #d23b54, #e87186); }
 .pe-v { font-size: 12px; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
 .sv-peer.s .pe-v { color: #1f5fd0; } .sv-peer.l .pe-v { color: #d23b54; }
+
+
+/* ── 지역 페이지: 매장 행 건수·격차 ── */
+.rv-cnt { display: inline-flex; align-items: baseline; gap: 2px; font-size: 11.5px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rv-cnt i { font-style: normal; }
+.rv-cnt i.s { color: #1f5fd0; } .rv-cnt i.l { color: #d23b54; }
+.rv-cnt em { font-style: normal; color: var(--muted); font-weight: 700; }
+.rv-gap { font-size: 11.5px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.rv-gap.s { color: #1f5fd0; } .rv-gap.l { color: #d23b54; }
+
+/* ── 지역 페이지: 진단 블록 ── */
+.rv-diag { background: linear-gradient(160deg, rgba(31,95,208,0.07), rgba(255,255,255,0.5));
+  border: 1px solid rgba(31,95,208,0.16); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+.rv-dhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.rv-dhead h4 { margin: 0; font-size: 15px; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
+.rv-oppsum { font-size: 12.5px; font-weight: 800; color: #d23b54; background: rgba(210,59,84,0.1); border-radius: 999px; padding: 4px 11px; }
+.rv-oppsum.ok { color: #1f5fd0; background: rgba(31,95,208,0.1); }
+.rv-oppsum b { font-size: 14px; }
+.rv-dtext { margin: 0; font-size: 13.5px; line-height: 1.65; color: var(--text); }
+.rv-dtext b { color: #1f5fd0; }
+.rv-dtext b.up { color: #1f5fd0; } .rv-dtext b.down { color: #d23b54; }
+.rv-opps { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.rv-opp { display: inline-flex; align-items: baseline; gap: 7px; border: 1px solid rgba(210,59,84,0.28);
+  background: #fff; border-radius: 10px; padding: 6px 11px; font: inherit; cursor: pointer; transition: all .15s ease; }
+.rv-opp:hover { background: rgba(210,59,84,0.07); border-color: #d23b54; }
+.op-n { font-size: 13px; font-weight: 800; color: var(--text); }
+.op-gap { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.op-gap b { color: #d23b54; font-size: 13px; }
+.op-sh { font-size: 11px; font-weight: 700; color: var(--muted); }
+.rv-act { margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed rgba(23,42,66,0.15);
+  font-size: 13px; line-height: 1.6; color: var(--text); }
+.rv-act em { font-style: normal; display: inline-block; font-size: 11px; font-weight: 900; color: #fff;
+  background: #1f5fd0; border-radius: 6px; padding: 2px 8px; margin-right: 7px; vertical-align: 1px; }
+.rv-act b { color: #1f5fd0; }
