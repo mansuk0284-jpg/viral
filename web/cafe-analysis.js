@@ -812,6 +812,8 @@
         sumCol +
         `<div class="ca-nleft">` + geoMap() +
         `<div class="ca-geo-legend"><span class="gl s">삼성 우위</span><span class="gl l">LG 우위</span><span class="gl off">미집계</span></div>` +
+        `<p class="ca-geonote">지도는 <b>모든 유통 채널</b> 기준(삼성스토어·백화점·하이마트 등) — ` +
+        `백화점이 없는 지역도 단독매장 후기가 집계됩니다. <b>매장별 비교</b>는 백화점 입점 매장만 다룹니다.</p>` +
         `</div>` +
         `</div>` +
         // 우: 분석 카드 2×2 (＋클릭 → 상세가 영역 전체를 덮음)

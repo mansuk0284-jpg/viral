@@ -256,8 +256,9 @@ body.view-channel .site-footer { display: none; }
 .gt-bd i.s { color: #1f5fd0; } .gt-bd i.l { color: #d23b54; font-style: normal; }
 .gt-bd i { font-style: normal; }
 /* 시도명 라벨 */
-.geo-svg .pv-name { text-anchor: middle; font-size: 5px; font-weight: 700; fill: #9aa7bd; pointer-events: none; }
-.geo-svg .pv-name.on { fill: #34507a; font-weight: 800; }
+.geo-svg .pv-name { text-anchor: middle; font-size: 9.6px; font-weight: 800; fill: #6b7890;
+  pointer-events: none; paint-order: stroke; stroke: #fff; stroke-width: 2px; stroke-linejoin: round; }
+.geo-svg .pv-name.on { fill: #17263c; font-weight: 900; font-size: 10.6px; }
 /* 우측 분석 — 애플식 카드 2×2, 지도 세로 크기와 비슷하게 */
 .ca-nright { position: relative; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px;
   height: 100%; min-width: 0; min-height: 0; }   /* 좌측 패널과 상·하단 라인 일치(고정 높이 제거) */
@@ -852,3 +853,8 @@ body.view-cafe .back-float { display: none !important; }
   .ca-npanel { grid-template-columns: 1fr; }
   .ca-nsumcol { border-right: 0; border-bottom: 1px solid rgba(23,42,66,0.10); padding-bottom: 12px; }
 }
+
+/* 지도 범위 안내 — 지역 레이어는 전체 유통, 매장 비교는 백화점만 */
+.ca-geonote { margin: 4px 2px 0; font-size: 11px; line-height: 1.5; color: var(--muted);
+  text-align: center; word-break: keep-all; max-width: 420px; }
+.ca-geonote b { color: var(--text); font-weight: 800; }
