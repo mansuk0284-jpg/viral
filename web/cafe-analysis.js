@@ -704,7 +704,7 @@
       `<span class="it-bar"><i style="width:${x.sh}%"></i></span>` +
       `<span class="it-v">${x.sh}<em>%</em></span>` +
       `<span class="it-c">${fmtN(x.tot)}건</span></li>`;
-    return fcard("items", "품목 공략", "어떤 가전으로 이기나", win[0] ? win[0].sh + "%" : "—",
+    return fcard("items", "품목 전략", "카테고리별 경쟁 지형", win[0] ? win[0].sh + "%" : "—",
       win[0] ? win[0].n + " 최강" : "",
       `<div class="fc-sec"><h5>우리가 이기는 품목 <i class="it-tag s">방어</i></h5>` +
       `<ul class="it-list">${win.map((x) => bar(x, "s")).join("")}</ul></div>` +
@@ -728,7 +728,7 @@
     const peak = months.length ? months.reduce((a, b) => (SE[a] > SE[b] ? a : b)) : null;
     const low = months.length ? months.reduce((a, b) => (SE[a] < SE[b] ? a : b)) : null;
     const ratio = peak && low && SE[low] ? (SE[peak] / SE[low]).toFixed(1) : null;
-    return fcard("win", "승부처", "고객은 언제·왜 우리를 고르나", cShare + "%", "비교 후 삼성 선택",
+    return fcard("win", "결정 요인", "선택이 갈리는 순간", cShare + "%", "비교 후 삼성 선택",
       `<div class="fc-sec"><h5>① 비교하러 온 고객은 우리가 이긴다</h5>` +
       `<p class="fc-plain">‘발품·비교·고민’을 언급한 후기 <b>${fmtN(CP.s + CP.l)}건</b> 중 최종 선택은 ` +
       `<b>삼성 ${cShare}%</b> : LG ${100 - cShare}% — 전체 평균(${pct((CD || {}).samsung || 0, (CD || {}).lg || 0)}%)보다 높습니다. ` +
@@ -807,14 +807,16 @@
         regionSummary() +
         `</div>`;
       mid = `<div class="ca-nation">` +
+        // 좌: 전국 요약 + 지도를 하나의 패널로
+        `<div class="ca-npanel">` +
         sumCol +
-        // 가운데: 전국 지도
         `<div class="ca-nleft">` + geoMap() +
         `<div class="ca-geo-legend"><span class="gl s">삼성 우위</span><span class="gl l">LG 우위</span><span class="gl off">미집계</span></div>` +
         `</div>` +
+        `</div>` +
         // 우: 분석 카드 2×2 (＋클릭 → 상세가 영역 전체를 덮음)
         `<div class="ca-nright">` +
-        fcard("reasons", "우위 진단", "삼성이 이기는 진짜 이유", share + "%", "삼성 비중",
+        fcard("reasons", "우위 진단", "우위를 만든 구조", share + "%", "삼성 비중",
           `<ul class="ca-reasons">${reasonLi}</ul>` +
           `<div class="fc-sec"><h5>데이터 포인트</h5><ul class="fc-pts">` +
           `<li>전구간 <b>삼성 49.6% : LG 50.4%</b> 박빙 — 단 <b>2026년 삼성 회복세</b></li>` +
@@ -825,7 +827,7 @@
           ["온누리 페이백", "비스포크 신제품"]) +
         itemCard() +
         winCard(notCards, smp) +
-        fcard("lg", "경쟁 방어", "LG로 간 고객, 왜?", smp.lg.length, "건",
+        fcard("lg", "경쟁 방어", "이탈이 일어나는 지점", smp.lg.length, "건",
           `<div class="ca-spl-stack">` + splCol("LG 선택", "lg", smp.lg) + `</div>` +
           `<div class="fc-sec"><h5>LG가 이긴 지점</h5><ul class="fc-pts">` +
           `<li><b>오브제 디자인</b> 선호 — 인테리어 매칭</li>` +
