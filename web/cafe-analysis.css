@@ -260,7 +260,7 @@ body.view-channel .site-footer { display: none; }
 .geo-svg .pv-name.on { fill: #34507a; font-weight: 800; }
 /* 우측 분석 — 애플식 카드 2×2, 지도 세로 크기와 비슷하게 */
 .ca-nright { position: relative; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px;
-  height: min(78vh, 660px); min-width: 0; min-height: 0; }
+  height: 100%; min-width: 0; min-height: 0; }   /* 좌측 패널과 상·하단 라인 일치(고정 높이 제거) */
 .ca-spl-stack { display: flex; flex-direction: column; gap: 10px; }
 
 /* 카드 앞면 */
