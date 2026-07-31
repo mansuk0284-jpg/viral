@@ -25,7 +25,7 @@ const CHANNELS = {
   },
   "busan-mom-cafe": {
     cls: "ch-mom", name: "부울경 맘카페", sub: "지역 커뮤니티 · 소스ID busan-mom-cafe",
-    ic: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5C7.6 5 4 7.9 4 11.4c0 2.2 1.5 4.2 3.7 5.3-.2.6-.6 2-.7 2.3 0 .2.1.4.4.2.3-.2 2.3-1.6 3.1-2.2.5.1 1 .1 1.5.1 4.4 0 8-2.9 8-6.4S16.4 5 12 5Z" fill="#3C1E1E"/></svg>',
+    ic: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5C7.6 5 4 7.9 4 11.4c0 2.2 1.5 4.2 3.7 5.3-.2.6-.6 2-.7 2.3 0 .2.1.4.4.2.3-.2 2.3-1.6 3.1-2.2.5.1 1 .1 1.5.1 4.4 0 8-2.9 8-6.4S16.4 5 12 5Z" fill="#fff"/><circle cx="9.2" cy="11.3" r="1.15" fill="#03C75A"/><circle cx="12" cy="11.3" r="1.15" fill="#03C75A"/><circle cx="14.8" cy="11.3" r="1.15" fill="#03C75A"/></svg>',
     method: "<b>네이버 카페 검색 API</b> → naver_api_collect.py (권역 필터+<b>--read-body</b>). 현재는 키 없이 게스트 표본.",
     total: 4, ad: 0, s: 2, l: 0, both: 2, etc: 0,
     tone: { pos: 0, neg: 1, neu: 3 },

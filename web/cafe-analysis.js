@@ -860,7 +860,7 @@
     return `<div class="ca2">` +
       `<div class="ca-head ca-head-row">` +
       `<div class="ca-periodnav" tabindex="0">` +
-      `<span class="ca-ic" title="다이렉트결혼준비 — 마우스를 올리면 기간 선택"><svg viewBox="0 0 24 24"><path d="M7 6.5h3.4l3.1 4.7V6.5H17v11h-3.4l-3.1-4.7v4.7H7v-11Z" fill="#fff"/></svg></span>` +
+      `<span class="ca-ic" title="다이렉트결혼준비 — 마우스를 올리면 기간 선택"><svg viewBox="0 0 40 40" fill="none"><text x="20" y="18.5" text-anchor="middle" fill="#fff" font-family="Arial Black,Arial,sans-serif" font-size="10.5" font-weight="900" letter-spacing="-0.6">DIRECT</text><text x="21" y="29.5" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-style="italic" font-size="9.5">Wedding</text></svg></span>` +
       `<span class="cpn-cur">${perLab(st.period)}<i>기간 ▸</i></span>` +
       nav() +
       `</div>` +

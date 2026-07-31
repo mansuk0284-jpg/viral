@@ -208,7 +208,8 @@
       "Bash(timeout 240 python scripts/probes/probe_cafe_id.py https://cafe.naver.com/makemywedding https://cafe.naver.com/imsanbu)",
       "Bash(python collect_history.py --help)",
       "Bash(VIRAL_CLUBID=28757979 timeout 400 python collect_history.py --start 2026-05 --end 2026-05 --out ../artifacts/test-makemywedding.json --max-pages 5)",
-      "Bash(timeout 400 python scripts/build_web_data.py)"
+      "Bash(timeout 400 python scripts/build_web_data.py)",
+      "Bash(awk '/DIRECT/{print NR\": \"prev} {prev=$0}' index.html)"
     ]
   }
 }

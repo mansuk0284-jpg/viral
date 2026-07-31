@@ -708,12 +708,12 @@ body.portal-open #sourceMosaic.is-tree {
   box-shadow: 0 6px 16px rgba(23,42,66,0.18);
 }
 .src-ic svg { width: 60%; height: 60%; display: block; }
-.src-cafe .src-ic    { background: #03C75A; }
+.src-cafe .src-ic    { background: #111; }        /* 다이렉트결혼준비 실제 브랜드(검정 로고) */
+.src-mom .src-ic     { background: #03C75A; }     /* 부울경 맘카페 = 네이버 카페 수집 */
 .src-ohou .src-ic    { background: #35C5F0; }
 .src-insta .src-ic   { background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); }
 .src-blog .src-ic    { background: #03C75A; }
 .src-youtube .src-ic { background: #FF0000; }
-.src-mom .src-ic     { background: #FEE500; }
 .src-gyeoljun .src-ic{ background: #03C75A; }
 .src-gnwed .src-ic   { background: #03C75A; }
 .src-wbook .src-ic   { background: linear-gradient(135deg, #ff6f91, #ff3d68); }
@@ -1253,9 +1253,9 @@ body.mode-results .back-float { display: inline-flex; align-items: center; }
   box-shadow: 0 8px 20px rgba(23,42,66,0.18);
 }
 .ch-ic svg { width: 58%; height: 58%; }
-.ch-cafe .ch-ic    { background: #03C75A; }
+.ch-cafe .ch-ic    { background: #111; }
 .ch-blog .ch-ic    { background: #03C75A; }
-.ch-mom .ch-ic     { background: #FEE500; }
+.ch-mom .ch-ic     { background: #03C75A; }
 .ch-youtube .ch-ic { background: #FF0000; }
 .ch-ohou .ch-ic    { background: #35C5F0; }
 .ch-insta .ch-ic   { background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); }

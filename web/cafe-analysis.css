@@ -4,8 +4,8 @@
 .ca-head { display: flex; align-items: center; gap: 16px; margin: 4px 0 26px; }
 .ca-ic {
   flex-shrink: 0; width: 54px; height: 54px; border-radius: 16px;
-  background: #03C75A; display: grid; place-items: center;
-  box-shadow: 0 8px 20px rgba(3,199,90,0.28);
+  background: #111; display: grid; place-items: center;
+  box-shadow: 0 8px 20px rgba(17,17,17,0.28);
 }
 .ca-ic svg { width: 60%; height: 60%; }
 .ca-htext { min-width: 0; flex: 1; }
