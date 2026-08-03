@@ -159,6 +159,10 @@ def main():
                 "ben": defaultdict(lambda: {"s": 0, "l": 0}),
                 "cmp": {"s": 0, "l": 0}}
     perbuk = defaultdict(newbucket)
+    # 기간별 매장 집계 + 지역/매장 상세(전체·연도 단위. 월은 표본이 희박해 연도로 폴백)
+    per_store = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"s": 0, "l": 0})))
+    per_sdet = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"s": 0, "l": 0})))
+    per_rdet = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"s": 0, "l": 0})))
 
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
@@ -240,9 +244,19 @@ def main():
                 rd["mon"][ym] += 1
             if COMPARE_RE.search(txt):
                 rd["cmp"]["s" if single_s else "l"] += 1
+            pkeys = ["all"] + ([ym[:4]] if ym and len(ym) == 7 else [])
+            for pk in pkeys:                       # 지역 상세(품목) 기간별
+                for nm, kws in ITEMS.items():
+                    if any(w in txt for w in kws):
+                        per_rdet[pk][rg][nm][bk] += 1
             st = dept_store_of(txt)           # 매장은 백화점만
             if st:
                 stores[rg][st]["s" if single_s else "l"] += 1
+                for pk in pkeys:                   # 매장 집계·상세 기간별
+                    per_store[pk][rg][st][bk] += 1
+                    for nm, kws in ITEMS.items():
+                        if any(w in txt for w in kws):
+                            per_sdet[pk][st][nm][bk] += 1
                 # 매장 상세 — 품목·혜택·월별·비교상담
                 sd = sdet[st]
                 for nm, kws in ITEMS.items():
@@ -337,6 +351,26 @@ def main():
             continue
         per_out[pk] = {"regions": rg, "items": it, "benefit": bn, "compare": pb["cmp"]}
     data["byPeriod"] = per_out
+
+    # 기간별 매장 랭킹 / 매장·지역 품목 상세
+    ps_out = {}
+    for pk, byrg in per_store.items():
+        rgs = {}
+        for rg, sd in byrg.items():
+            lst = [{"n": n, "s": v["s"], "l": v["l"]} for n, v in sd.items() if v["s"] + v["l"] >= 3]
+            if lst:
+                rgs[rg] = sorted(lst, key=lambda x: -(x["s"] + x["l"]))
+        if rgs:
+            ps_out[pk] = rgs
+    data["periodStores"] = ps_out
+
+    def top_items(d, minn=3, n=6):
+        its = sorted(d.items(), key=lambda kv: -(kv[1]["s"] + kv[1]["l"]))
+        return [{"n": k, "s": v["s"], "l": v["l"]} for k, v in its if v["s"] + v["l"] >= minn][:n]
+    data["periodStoreItems"] = {pk: {st: top_items(d) for st, d in m.items() if top_items(d)}
+                                for pk, m in per_sdet.items()}
+    data["periodRegionItems"] = {pk: {rg: top_items(d, 5) for rg, d in m.items() if top_items(d, 5)}
+                                 for pk, m in per_rdet.items()}
 
     with open(a.out, "w", encoding="utf-8") as f:
         f.write("/* build_web_data.py 자동생성 — 수정 금지. census 갱신 후 재실행할 것 */\n")

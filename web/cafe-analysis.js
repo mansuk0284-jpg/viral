@@ -90,6 +90,30 @@
     if (/^\d{4}-\d\d$/.test(p)) return p.slice(0, 4);
     return "all";
   }
+  /* 매장 단위 기간 키 — 월(YYYY-MM)은 표본이 희박해 해당 연도로 폴백 */
+  function storePeriodKey() {
+    const p = st.period;
+    if (p === "all") return "all";
+    if (/^\d{4}-\d\d$/.test(p)) return p.slice(0, 4);
+    return p;
+  }
+  /* 선택 기간의 매장 목록(지역별). 없으면 전체 */
+  function periodStores(rg) {
+    const PS = (CD && CD.periodStores) || {};
+    const k = storePeriodKey();
+    const m = PS[k] || PS.all || {};
+    return (m[rg] || []).map((x) => ({ name: x.n, s: x.s, l: x.l }));
+  }
+  /* 선택 기간의 품목 상세 */
+  function periodItems(kind, key) {
+    const SRC = (CD && CD[kind === "store" ? "periodStoreItems" : "periodRegionItems"]) || {};
+    const k = storePeriodKey();
+    const m = SRC[k] || SRC.all || {};
+    if (m[key]) return m[key];
+    const hit = Object.keys(m).find((x) => key.indexOf(x) === 0 || x.indexOf(key) === 0);
+    return hit ? m[hit] : null;
+  }
+
   /* 선택 기간의 분석 묶음(지역·품목·혜택·비교). 없으면 전체로 폴백 */
   function perData() {
     const BP = (CD && CD.byPeriod) || {};
@@ -270,8 +294,8 @@
         return { title: st.region, sub: "매장 본문매칭 · 전체기간", s: gr.s, l: gr.l, trend: vsBars(gr.s, gr.l),
           geoNote: "", stores: bs.map((x) => ({ name: x.n, s: x.s, l: x.l })) };
       }
-      const cd = ((CD && CD.stores && CD.stores[st.region]) || []).map((x) => ({ name: x.n, s: x.s, l: x.l }));
-      return { title: st.region, sub: "제목기반 점별 추정 · 전체기간", s: gr.s, l: gr.l, trend: vsBars(gr.s, gr.l),
+      const cd = periodStores(st.region);
+      return { title: st.region, sub: `제목기반 점별 추정 · ${perLab(st.period)}`, s: gr.s, l: gr.l, trend: vsBars(gr.s, gr.l),
         geoNote: "이 지역은 제목기반 추정(매장명 추출) — 본문매칭 전", stores: cd };
     }
     // store — 부울경은 본문매칭 STORES, 그 외는 제목기반 CD.stores
@@ -280,9 +304,11 @@
       return { title: st.store, sub: `${row[1]} · 매장 본문매칭 2026 누적`, s: row[2], l: row[3],
         trend: vsBars(row[2], row[3]), geoNote, samples: SAMPLES[st.store] };
     }
+    const psList = periodStores(st.region);
+    const pHit = psList.find((x) => x.name === st.store);
     const bsr = (CD && CD.bodyStores && CD.bodyStores[st.region]) || null;
     const src = bsr || ((CD && CD.stores && CD.stores[st.region]) || []);
-    const cdRow = src.find((x) => x.n === st.store) || { s: 0, l: 0 };
+    const cdRow = pHit || src.find((x) => x.n === st.store) || { s: 0, l: 0 };
     return { title: st.store, sub: `${st.region} · ${bsr ? "매장 본문매칭" : "제목기반 추정"}`, s: cdRow.s, l: cdRow.l,
       trend: vsBars(cdRow.s, cdRow.l), geoNote: bsr ? "" : "제목기반 점별 추정 — 본문 샘플은 부울경만 제공", samples: null };
   }
@@ -512,7 +538,7 @@
       `</div>` +
       // 3열: 지역 진단(품목·혜택·추이)
       `<div class="rv-third">` +
-      profileCard(isBu ? null : regionDetailOf(c.title), { title: `${c.title} 후기 진단` }) +
+      profileCard(isBu ? null : regionDetailOf(c.title), { title: `${c.title} 후기 진단`, items: periodItems("region", c.title) }) +
       `</div></div>`;
   }
 
@@ -520,7 +546,7 @@
   function profileCard(d, opt) {
     if (!d) return `<div class="ca-ncard"><h4 class="ca-ch">${opt.title}</h4>` +
       `<p class="ca-splx">표본이 부족해 상세 분석을 제공하지 않습니다.</p></div>`;
-    const its = d.items || [];
+    const its = (opt && opt.items) || d.items || [];
     const win = its.filter((x) => x.s > x.l), lose = its.filter((x) => x.l > x.s);
     const bars = its.map((x) => {
       const t = x.s + x.l, sh = pct(x.s, x.l), cls = x.s > x.l ? "s" : x.l > x.s ? "l" : "even";
@@ -566,7 +592,7 @@
 
   /* ── 매장 전반 후기 진단 — 품목·혜택·추이를 한 카드에 ── */
   function storeProfile(name) {
-    return profileCard(storeDetailOf(name), { title: "매장 후기 진단" });
+    return profileCard(storeDetailOf(name), { title: "매장 후기 진단", items: periodItems("store", name) });
   }
 
   /* 미니 추이 스파크라인 */
