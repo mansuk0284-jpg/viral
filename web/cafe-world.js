@@ -18,6 +18,16 @@
     { key: "etc", label: "강원·제주", desc: "", r2: ["강원", "제주"] },
     { key: "nat", label: "전국", desc: "권역 무관", r2: ["전국"] },
   ];
+  /* 권역별 특색 아이콘 — 지역 성격이 한눈에 */
+  const ZONE_IC = {
+    buk: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3.2l2.5 5.4 5.9.7-4.4 4 1.2 5.8L12 16.2 6.8 19.1 8 13.3 3.6 9.3l5.9-.7L12 3.2Z" fill="#fff"/></svg>',
+    cap: '<svg viewBox="0 0 24 24" fill="none"><path d="M3 20V9l5-3v3l5-3v4l6-3v13H3Z" fill="#fff"/><rect x="6" y="12" width="2" height="2" fill="#1f5fd0"/><rect x="11" y="12" width="2" height="2" fill="#1f5fd0"/><rect x="16" y="12" width="2" height="2" fill="#1f5fd0"/></svg>',
+    chu: '<svg viewBox="0 0 24 24" fill="none"><path d="M2 19l6.5-11 4 6.5 2.5-4L22 19H2Z" fill="#fff"/></svg>',
+    hon: '<svg viewBox="0 0 24 24" fill="none"><path d="M20 4c0 8-4.5 13-11 13H5c0-8 4.6-13 11-13h4Z" fill="#fff"/><path d="M4 21c3-6 7-9 12-11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    yng: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 7c3.5-2.5 8 .5 8 5.5 0 4-3 8-5 8-1.2 0-2-.6-3-.6s-1.8.6-3 .6c-2 0-5-4-5-8C4 7.5 8.5 4.5 12 7Z" fill="#fff"/><path d="M12 7V4.2c1.6-.5 3-.2 3.6.6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    etc: '<svg viewBox="0 0 24 24" fill="none"><path d="M2 15l5-7 3.5 5 3-4L21 15H2Z" fill="#fff"/><path d="M2 19c2-1.4 3.6-1.4 5.5 0 1.9 1.4 3.6 1.4 5.5 0 1.9-1.4 3.6-1.4 5.5 0" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    nat: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.6" stroke="#fff" stroke-width="1.8"/><path d="M12 3.4c3 3.4 3 13.8 0 17.2M12 3.4c-3 3.4-3 13.8 0 17.2M3.6 12h16.8" stroke="#fff" stroke-width="1.5"/></svg>',
+  };
   const zoneOf = (c) => (ZONES.find((z) => z.r2.indexOf(c.r2) >= 0) || ZONES[ZONES.length - 1]).key;
 
   const st = { cat: null, zone: null };
@@ -29,7 +39,7 @@
     return `<figure class="src ${o.cls}" ${o.attr} data-count="${o.v}" title="${o.title}">` +
       `<span class="src-ping" aria-hidden="true"></span>` +
       (o.badge ? `<span class="src-badge">${o.badge}</span>` : "") +
-      `<span class="src-ic">${CAFE_IC}</span>` +
+      `<span class="src-ic">${o.ic || CAFE_IC}</span>` +
       `<figcaption><b>${o.name}</b><small>${o.sub}</small></figcaption>` +
       `<span class="src-count"><i>${o.disp}</i><em>${o.unit}</em></span></figure>`;
   }
@@ -61,7 +71,8 @@
         zones.map((z) => {
           const arr = byZone[z.key], mem = arr.reduce((a, x) => a + x.m, 0);
           return tile({
-            cls: "src-zone" + (z.mine ? " zone-mine" : ""), attr: `data-zone="${z.key}"`, v: mem,
+            cls: "src-zone zone-" + z.key + (z.mine ? " zone-mine" : ""), attr: `data-zone="${z.key}"`, v: mem,
+            ic: ZONE_IC[z.key],
             name: z.label, sub: `${arr.length}곳` + (z.desc ? ` · ${z.desc}` : ""),
             disp: man(mem), unit: "명", badge: z.mine ? "우리 권역" : "",
             title: `${z.label} ${arr.length}곳 · 회원 ${fmt(mem)}명`,
@@ -110,11 +121,24 @@
 
   mosaic.addEventListener("click", (e) => {
     if (e.target.closest("[data-cwback]")) {
-      if (st.zone) st.zone = null; else st.cat = null;
+      if (st.zone) {
+        const zs = {};
+        (D.cafes[st.cat] || []).forEach((x) => { zs[zoneOf(x)] = 1; });
+        if (Object.keys(zs).length === 1) { st.cat = null; st.zone = null; }   // 단일권역이면 카테고리로
+        else st.zone = null;
+      } else st.cat = null;
       build(); return;
     }
     const c = e.target.closest("[data-cat]");
-    if (c) { st.cat = c.getAttribute("data-cat"); st.zone = null; build(); return; }
+    if (c) {
+      st.cat = c.getAttribute("data-cat"); st.zone = null;
+      // 권역이 하나뿐이면(예: 기타=전국) 중간 단계를 건너뛰고 카페 목록으로
+      const zs = {};
+      (D.cafes[st.cat] || []).forEach((x) => { zs[zoneOf(x)] = 1; });
+      const ks = Object.keys(zs);
+      if (ks.length === 1) st.zone = ks[0];
+      build(); return;
+    }
     const z = e.target.closest("[data-zone]");
     if (z) { st.zone = z.getAttribute("data-zone"); build(); return; }
     const f = e.target.closest("[data-cafe]");

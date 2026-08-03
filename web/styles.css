@@ -1792,3 +1792,18 @@ body.portal-open .hero-art .hero-stage { flex: 1 1 auto; min-height: 0; }
 .zone-mine .src-badge { background: #d62d3f; box-shadow: 0 3px 8px rgba(214,45,63,0.32); }
 .zone-mine .src-count i { color: #d62d3f !important; }
 .zone-mine .src-ic { background: #d62d3f !important; }
+
+/* 권역 타일 — 아이콘 배경을 권역별로 구분 */
+.zone-buk .src-ic { background: #d62d3f !important; }
+.zone-cap .src-ic { background: #1f5fd0; }
+.zone-chu .src-ic { background: #0e9488; }
+.zone-hon .src-ic { background: #16a34a; }
+.zone-yng .src-ic { background: #ea580c; }
+.zone-etc .src-ic { background: #7c8ba1; }
+.zone-nat .src-ic { background: #6d28d9; }
+.zone-cap { --ping: rgba(31,95,208,0.45); }
+.zone-chu { --ping: rgba(14,148,136,0.45); }
+.zone-hon { --ping: rgba(22,163,74,0.45); }
+.zone-yng { --ping: rgba(234,88,12,0.45); }
+.zone-etc { --ping: rgba(124,139,161,0.45); }
+.zone-nat { --ping: rgba(109,40,217,0.45); }
