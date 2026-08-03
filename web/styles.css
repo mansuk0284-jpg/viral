@@ -1730,3 +1730,65 @@ body.portal-open .stage-left #sourceMosaic { transform: none !important; }
 .cat-mom .src-count i    { color: #03a24a; }
 .cat-local .src-count i  { color: #d97706; }
 .cat-etc .src-count i    { color: #7c3aed; }
+
+/* ===== 2번 페이지 그룹 타이틀 ===== */
+.grp[hidden] { display: none; }
+.grp { flex-shrink: 0; padding: 0 2px 10px; min-height: 92px; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: flex-end; }   /* 좌우 타이틀 높이 통일(정렬 원칙) */
+.grp-eyebrow { margin: 0; font-size: 11px; font-weight: 900; letter-spacing: .16em;
+  text-transform: uppercase; color: #7d8ba5; }
+.grp-title { margin: 3px 0 0; font-size: clamp(20px, 2.1vw, 28px); font-weight: 900;
+  letter-spacing: -0.03em; color: var(--text); line-height: 1.15; }
+.grp-sub { margin: 3px 0 0; font-size: 12.5px; font-weight: 600; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grp-right .grp-eyebrow { color: #1f5fd0; }
+/* 좌우 컬럼: 타이틀 + 무대(잔여 높이) */
+body.portal-open .hero-lead { display: flex; flex-direction: column; justify-content: center;
+  gap: 10px; }   /* 우측(hero-art)과 동일한 gap·정렬 → 무대 상단선 일치 */
+body.portal-open .stage-left { flex: 1 1 auto; min-height: 0; }
+body.portal-open .hero-art .hero-stage { flex: 1 1 auto; min-height: 0; }
+
+/* ===== 타일 표현력 강화(단조로움 완화) ===== */
+.source-mosaic.is-tree .src {
+  border: 1px solid rgba(23,42,66,0.10);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 6px 16px rgba(23,42,66,0.08);
+  background: linear-gradient(168deg, #ffffff, #f7f9fc);
+  transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+}
+/* 채널명 — 크고 또렷하게 */
+.source-mosaic.is-tree .src figcaption b { font-size: clamp(12px, calc(var(--size) * 0.145), 22px); letter-spacing: -0.03em; }
+.source-mosaic.is-tree .src figcaption small { font-size: clamp(9.5px, calc(var(--size) * 0.082), 13px); }
+.source-mosaic.is-tree .src-count i { font-size: clamp(13px, calc(var(--size) * 0.20), 34px); }
+/* 상단 얇은 브랜드 컬러 바 — 채널별 구분감 */
+.source-mosaic.is-tree .src::before {
+  content: ""; position: absolute; left: 10px; right: 10px; top: 0; height: 3px;
+  border-radius: 0 0 3px 3px; background: var(--ping); opacity: .85;
+}
+.source-mosaic.is-tree .src:hover { transform: translateY(-2px); border-color: rgba(23,42,66,0.18); }
+
+/* 주목 채널 — 최다 센싱 타일 부각 */
+.source-mosaic.is-tree .src-hot {
+  border-color: rgba(31,95,208,0.45);
+  box-shadow: 0 0 0 2px rgba(31,95,208,0.18), 0 12px 30px rgba(31,95,208,0.20);
+  background: linear-gradient(165deg, #ffffff, #eef4ff);
+}
+.source-mosaic.is-tree .src-hot::before { height: 4px; background: linear-gradient(90deg, #1f5fd0, #4f86e6); opacity: 1; }
+/* 배지(주목·부울경·최대) */
+.src-badge {
+  position: absolute; top: 7px; right: 7px; z-index: 3;
+  font-size: 9.5px; font-weight: 900; letter-spacing: -0.02em; line-height: 1;
+  padding: 3px 7px; border-radius: 999px; white-space: nowrap;
+  background: #1f5fd0; color: #fff; box-shadow: 0 3px 8px rgba(31,95,208,0.32);
+}
+.tile-xs .src-badge { display: none; }
+
+/* 부울경(우리 권역) — 한눈에 구별 */
+.source-mosaic.is-tree .zone-mine {
+  border-color: rgba(214,45,63,0.45);
+  background: linear-gradient(165deg, #fffdfd, #fff1f2);
+  box-shadow: 0 0 0 2px rgba(214,45,63,0.16), 0 10px 26px rgba(214,45,63,0.16);
+}
+.source-mosaic.is-tree .zone-mine::before { background: linear-gradient(90deg, #d62d3f, #f2717f); opacity: 1; height: 4px; }
+.zone-mine .src-badge { background: #d62d3f; box-shadow: 0 3px 8px rgba(214,45,63,0.32); }
+.zone-mine .src-count i { color: #d62d3f !important; }
+.zone-mine .src-ic { background: #d62d3f !important; }

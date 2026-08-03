@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r100" />
+  <link rel="stylesheet" href="styles.css?v=2026r103" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r67" />
 </head>
 <body>
@@ -34,16 +34,21 @@
               <div class="hero-film-veil" aria-hidden="true"></div>
             </div>
             <figcaption class="hero-film-overlay">
-              <p class="eyebrow eyebrow-on"><span class="eyebrow-bar"></span>구매후기로 읽는 혼수가전</p>
+              <p class="eyebrow eyebrow-on"><span class="eyebrow-bar"></span>구매후기로 읽는 가전 바이럴</p>
               <h1 class="hero-title">
                 <span class="ht-line ht-line-1">Viral to</span>
                 <span class="ht-line ht-line-2">Insight</span>
-                <span class="ht-line ht-line-3">혼수가전 <em>’26</em></span>
+                <span class="ht-line ht-line-3">가전 인사이트 <em>’26</em></span>
               </h1>
             </figcaption>
           </figure>
 
           <!-- 2번 페이지: 혼수채널 타일 무대(포털 열림 시 #sourceMosaic를 여기로 이동) -->
+          <div class="grp grp-left" id="grpLeft" hidden>
+            <p class="grp-eyebrow">Channel</p>
+            <h2 class="grp-title">혼수 기반 바이럴 채널</h2>
+            <p class="grp-sub">웨딩카페·블로그·SNS에서 오가는 가전 구매후기</p>
+          </div>
           <div class="hero-stage stage-left" id="stageLeft" hidden></div>
         </div>
 
@@ -56,6 +61,11 @@
                 <span class="hkd-cap">전일비</span><span class="hkd-val">+0</span><span class="hkd-unit">건</span>
               </span>
             </span>
+          </div>
+          <div class="grp grp-right" id="grpRight" hidden>
+            <p class="grp-eyebrow">Affiliate</p>
+            <h2 class="grp-title">제휴카페 바이럴 채널</h2>
+            <p class="grp-sub">우리 회사 제휴카페 84곳 · 회원 1,136만명</p>
           </div>
           <div class="hero-stage">
           <div class="hero-portal" id="heroPortal">
@@ -197,7 +207,7 @@
   <script src="assets/korea-sido.js?v=2026r36"></script>
   <script src="assets/cafe-data.js?v=2026r45"></script>
   <script src="assets/cafes-data.js?v=2026r1"></script>
-  <script src="cafe-world.js?v=2026r3"></script>
+  <script src="cafe-world.js?v=2026r4"></script>
   <script src="cafe-analysis.js?v=2026r64"></script>
   <!-- 소스 타일: 크기=센싱 건수 비례 + 살아있는 클러스터 연출 + 클릭 이동 -->
   <script>
@@ -481,9 +491,13 @@
         var left = document.getElementById('stageLeft');
         var artEl = document.querySelector('.hero-art');
         if (left && mosaic.parentElement !== left) { left.hidden = false; left.appendChild(mosaic); }
-        if (left && artEl) {                          // 좌우 높이 동일(기본 UI 원칙)
+        var gl = document.getElementById('grpLeft'), gr = document.getElementById('grpRight');
+        if (gl) gl.hidden = false;
+        if (gr) gr.hidden = false;
+        if (left && artEl) {                          // 좌우 총높이 동일(기본 UI 원칙)
           var ah = Math.round(artEl.getBoundingClientRect().height);
-          if (ah > 200) { left.style.height = ah + 'px'; }
+          var leadEl = left.parentElement;
+          if (ah > 200 && leadEl) { leadEl.style.height = ah + 'px'; left.style.height = ''; }
         }
         if (typeof window.showCafeMosaic === 'function') window.showCafeMosaic();
         layoutCluster();                              // 무대가 바뀐 기준으로 재배치
