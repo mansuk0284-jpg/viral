@@ -602,8 +602,23 @@
     const lead = d.s > d.l ? "s" : d.l > d.s ? "l" : "even";
     const vsNat = natMgr !== null ? mShare - natMgr : null;
     const names = d.names || [];
+    // 후기 스타 — 실명 언급이 가장 많은 담당자를 1위부터 부각(등급: 스타/에이스/루키)
+    const RANK = [
+      { t: "⭐ 후기 스타", cls: "s1" },
+      { t: "🥈 에이스", cls: "s2" },
+      { t: "🥉 라이징", cls: "s3" },
+    ];
+    const topC = names.length ? names[0].c : 0;
     const nameChips = names.length
-      ? names.map((x) => `<span class="mgr-name"><b>${x.n}</b><i>${x.c}건</i></span>`).join("")
+      ? `<div class="mgr-stars">` + names.map((x, i) => {
+          const r = RANK[i];
+          const w = topC ? Math.max(12, Math.round(x.c / topC * 100)) : 0;
+          return `<div class="mgr-star ${r ? r.cls : "sx"}">` +
+            `<span class="ms-rank">${r ? r.t : i + 1 + "위"}</span>` +
+            `<span class="ms-name">${x.n}</span>` +
+            `<span class="ms-bar"><i style="width:${w}%"></i></span>` +
+            `<span class="ms-cnt">${fmtN(x.c)}<em>건</em></span></div>`;
+        }).join("") + `</div>`
       : `<span class="mgr-none">실명이 특정되지 않음</span>`;
     // 개선 제안 — 이 매장 수치에 맞춘 구체 지침
     const tip = lead === "l"
@@ -623,7 +638,7 @@
       `<i class="l" style="width:${mTot ? (d.l / mTot * 100).toFixed(1) : 50}%"></i></div>` +
       (vsNat !== null ? `<p class="mgr-nat">전국 실명 후기 삼성 비중 <b>${natMgr}%</b> 대비 ` +
         `<b class="${vsNat >= 0 ? "up" : "warn"}">${vsNat >= 0 ? "+" : ""}${vsNat}p</b></p>` : "") +
-      `<div class="mgr-names"><span class="mgr-lb">후기에 자주 등장한 우리 담당자</span><div class="mgr-chips">${nameChips}</div></div>` +
+      `<div class="mgr-names"><span class="mgr-lb">후기 스타 <em>고객이 이름까지 남긴 담당자</em></span><div class="mgr-chips">${nameChips}</div></div>` +
       `<p class="mgr-tip"><em>좋은 후기 만들기</em>${tip}</p>` +
       `</div>`;
   }

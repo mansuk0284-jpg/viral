@@ -858,3 +858,30 @@ body.view-cafe .back-float { display: none !important; }
 .ca-geonote { margin: 4px 2px 0; font-size: 11px; line-height: 1.5; color: var(--muted);
   text-align: center; word-break: keep-all; max-width: 420px; }
 .ca-geonote b { color: var(--text); font-weight: 800; }
+
+/* ── 후기 스타 — 고객이 이름까지 남긴 담당자 부각 ── */
+.mgr-lb em { font-style: normal; font-weight: 700; color: #9aa7bd; margin-left: 5px; }
+.mgr-stars { display: flex; flex-direction: column; gap: 5px; }
+.mgr-star { display: grid; grid-template-columns: 74px minmax(64px, auto) minmax(0, 1fr) 50px;
+  align-items: center; gap: 8px; padding: 5px 9px; border-radius: 10px;
+  background: rgba(255,255,255,0.72); border: 1px solid rgba(23,42,66,0.07); }
+.ms-rank { font-size: 10.5px; font-weight: 900; white-space: nowrap; letter-spacing: -0.02em; }
+.ms-name { font-size: 13.5px; font-weight: 800; color: var(--text); white-space: nowrap; }
+.ms-bar { height: 8px; border-radius: 4px; background: rgba(23,42,66,0.07); overflow: hidden; }
+.ms-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #1f5fd0, #4f86e6); }
+.ms-cnt { font-size: 12.5px; font-weight: 900; color: #1f5fd0; text-align: right; font-variant-numeric: tabular-nums; }
+.ms-cnt em { font-style: normal; font-size: 0.72em; font-weight: 700; color: var(--muted); margin-left: 1px; }
+/* 1위 — 골드 강조 */
+.mgr-star.s1 { background: linear-gradient(100deg, rgba(255,196,0,0.16), rgba(255,255,255,0.8));
+  border-color: rgba(214,160,0,0.42); box-shadow: 0 4px 14px rgba(214,160,0,0.16); }
+.mgr-star.s1 .ms-rank { color: #a87400; }
+.mgr-star.s1 .ms-name { font-size: 15px; font-weight: 900; }
+.mgr-star.s1 .ms-bar i { background: linear-gradient(90deg, #e0a400, #ffc94d); }
+.mgr-star.s1 .ms-cnt { color: #a87400; font-size: 14px; }
+.mgr-star.s2 .ms-rank { color: #5b6b82; }
+.mgr-star.s3 .ms-rank { color: #9a6b3f; }
+.mgr-star.sx .ms-rank { color: var(--muted); font-weight: 800; }
+@media (max-height: 820px) {
+  .mgr-star { padding: 4px 8px; grid-template-columns: 68px minmax(58px, auto) minmax(0, 1fr) 46px; }
+  .mgr-star.s1 .ms-name { font-size: 14px; }
+}
