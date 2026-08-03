@@ -152,6 +152,14 @@ def main():
     rdet = defaultdict(lambda: {"items": defaultdict(lambda: {"s": 0, "l": 0}),
                                 "ben": Counter(), "mon": Counter(), "cmp": {"s": 0, "l": 0}})
 
+    # ── 기간별(전체/연도/월) 분석 버킷 — 기간 탭과 화면을 연동하기 위함 ──
+    def newbucket():
+        return {"regions": defaultdict(lambda: {"s": 0, "l": 0}),
+                "items": defaultdict(lambda: {"s": 0, "l": 0}),
+                "ben": defaultdict(lambda: {"s": 0, "l": 0}),
+                "cmp": {"s": 0, "l": 0}}
+    perbuk = defaultdict(newbucket)
+
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
         if not (s or l):
@@ -189,6 +197,26 @@ def main():
                     benefit[nm][bk] += 1
         if ym and len(ym) == 7:
             season[ym[5:7]] += 1
+
+        # ── 기간별 누적: 전체 / 해당 연도 / 해당 월 ──
+        if bk:
+            keys = ["all"]
+            if ym and len(ym) == 7:
+                keys += [ym[:4], ym]
+            hit_items = [nm for nm, kws in ITEMS.items() if any(w in txt for w in kws)]
+            hit_ben = [nm for nm, kws in BENEFITS.items() if any(w in txt for w in kws)]
+            is_cmp = bool(COMPARE_RE.search(txt))
+            rg0 = region_of(txt)
+            for pk in keys:
+                pb = perbuk[pk]
+                for nm in hit_items:
+                    pb["items"][nm][bk] += 1
+                for nm in hit_ben:
+                    pb["ben"][nm][bk] += 1
+                if is_cmp:
+                    pb["cmp"][bk] += 1
+                if rg0:
+                    pb["regions"][rg0][bk] += 1
 
         # 매니저 언급 유무 × 브랜드 (실명 후기 경쟁력 지표)
         hasMgr = bool(MGR_TITLE.search(txt))
@@ -298,6 +326,17 @@ def main():
             "cmp": v["cmp"],
         }
     data["regionDetail"] = rdet_out
+
+    # 기간별 분석(표본이 너무 적은 항목은 제외해 노이즈 방지)
+    per_out = {}
+    for pk, pb in perbuk.items():
+        rg = {k: v for k, v in pb["regions"].items() if v["s"] + v["l"] >= 3}
+        it = {k: v for k, v in pb["items"].items() if v["s"] + v["l"] >= 5}
+        bn = {k: v for k, v in pb["ben"].items() if v["s"] + v["l"] >= 3}
+        if not rg and not it:
+            continue
+        per_out[pk] = {"regions": rg, "items": it, "benefit": bn, "compare": pb["cmp"]}
+    data["byPeriod"] = per_out
 
     with open(a.out, "w", encoding="utf-8") as f:
         f.write("/* build_web_data.py 자동생성 — 수정 금지. census 갱신 후 재실행할 것 */\n")

@@ -90,8 +90,14 @@
     if (/^\d{4}-\d\d$/.test(p)) return p.slice(0, 4);
     return "all";
   }
+  /* 선택 기간의 분석 묶음(지역·품목·혜택·비교). 없으면 전체로 폴백 */
+  function perData() {
+    const BP = (CD && CD.byPeriod) || {};
+    return BP[st.period] || BP.all || {};
+  }
+
   function geoRegions() {
-    const RG = (CD && CD.regions) || {};
+    const RG = perData().regions || (CD && CD.regions) || {};
     // 신구조: {지역:{s,l}} 평면. (구조: 기간별·배열 [s,l]도 호환)
     const src = (RG.all || RG[geoRegionKey ? geoRegionKey(st.period) : "all"] || RG);
     const out = {};
@@ -706,11 +712,11 @@
 
   /* ── 품목 공략 카드 — 어떤 품목으로 이기고 어디서 새는가 ── */
   function itemCard() {
-    const IT = (CD && CD.items) || {};
+    const IT = perData().items || (CD && CD.items) || {};
     const rows = Object.keys(IT).map((k) => {
       const v = IT[k], tot = v.s + v.l;
       return { n: k, s: v.s, l: v.l, tot, sh: pct(v.s, v.l) };
-    }).filter((x) => x.tot >= 50);
+    }).filter((x) => x.tot >= 5);
     if (!rows.length) return "";
     const win = rows.slice().sort((a, b) => b.sh - a.sh).slice(0, 3);
     const lose = rows.slice().sort((a, b) => a.sh - b.sh).slice(0, 3);
@@ -733,9 +739,10 @@
 
   /* ── 승부처 카드 — 비교 상담·혜택·성수기 ── */
   function winCard(notCards, smp) {
-    const CP = (CD && CD.compare) || { s: 0, l: 0 };
+    const PD = perData();
+    const CP = PD.compare || (CD && CD.compare) || { s: 0, l: 0 };
     const cShare = pct(CP.s, CP.l);
-    const BN = (CD && CD.benefit) || {};
+    const BN = PD.benefit || (CD && CD.benefit) || {};
     const bl = Object.keys(BN).map((k) => ({ n: k, sh: pct(BN[k].s, BN[k].l), tot: BN[k].s + BN[k].l }))
       .sort((a, b) => b.tot - a.tot).slice(0, 4);
     const SE = (CD && CD.season) || {};
