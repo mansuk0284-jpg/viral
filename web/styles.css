@@ -1699,3 +1699,34 @@ body.world-open .hero-film { display: none; }
 .cf-r { font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--muted); }
 
 @media (max-width: 900px) { .cw-cats { grid-template-columns: 1fr; } .cw-cafe.sm { flex: 1 1 calc(50% - 4px); } }
+
+/* ===== 2번 페이지: 좌 채널 타일 · 우 제휴카페 타일 ===== */
+/* 포털이 열리면 좌측 영상은 비우고 채널 무대가 그 자리를 쓴다 */
+body.portal-open .hero-film { display: none; }
+.stage-left { position: relative; width: 100%; margin: 0 auto; min-height: 0; }
+.stage-left[hidden] { display: none; }
+body.portal-open .stage-left { display: block; }
+/* 우측 제휴카페 무대 — 포털 이미지 자리를 그대로 사용 */
+#cafeMosaic { position: absolute; inset: 0; }   /* 무대(hero-stage) 크기를 그대로 채움 */
+#cafeMosaic[hidden] { display: none; }
+body.portal-open #cafeMosaic { display: block; }
+/* 좌측으로 옮겨간 채널 클러스터는 확대 변환 없이 무대에 꽉 차게 */
+body.portal-open .stage-left #sourceMosaic { transform: none !important; }
+
+/* 카테고리·카페 타일 — 채널 타일과 같은 모양, 색만 카테고리별로 */
+.src-cwhead { background: linear-gradient(150deg, #1f2330, #2b3346) !important; border-color: rgba(255,255,255,0.14) !important; }
+.src-cwhead figcaption b { color: #fff; }
+.src-cwhead figcaption small { color: rgba(255,255,255,0.72); }
+.src-cwhead .src-count { display: none; }
+.cat-mom .src-ic    { background: #03C75A; }
+.cat-estate .src-ic { background: #1f5fd0; }
+.cat-local .src-ic  { background: #f59e0b; }
+.cat-etc .src-ic    { background: #7c3aed; }
+.cat-mom    { --ping: rgba(3,199,90,0.45); }
+.cat-estate { --ping: rgba(31,95,208,0.45); }
+.cat-local  { --ping: rgba(245,158,11,0.45); }
+.cat-etc    { --ping: rgba(124,58,237,0.45); }
+.src-cat .src-count i, .src-cafe2 .src-count i { color: #1f5fd0; }
+.cat-mom .src-count i    { color: #03a24a; }
+.cat-local .src-count i  { color: #d97706; }
+.cat-etc .src-count i    { color: #7c3aed; }

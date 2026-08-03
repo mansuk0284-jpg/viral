@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r98" />
+  <link rel="stylesheet" href="styles.css?v=2026r100" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r67" />
 </head>
 <body>
@@ -41,25 +41,10 @@
                 <span class="ht-line ht-line-3">혼수가전 <em>’26</em></span>
               </h1>
             </figcaption>
-            <button type="button" class="film-cta" id="worldBtn" aria-expanded="false">
-              <span class="fc-dot" aria-hidden="true"></span>바이럴세상
-            </button>
           </figure>
 
-          <!-- 제휴카페 세상 — '바이럴세상' 클릭 시 영상 대신 표시 -->
-          <section class="cworld" id="cafeWorld" hidden aria-label="제휴카페 바이럴세상">
-            <header class="cw-head">
-              <div class="cw-htext">
-                <h2 id="cwTitle">바이럴세상</h2>
-                <p id="cwSub">제휴카페 <b>84</b>곳 · 회원 <b>1,136만</b>명 — 성격별로 묶어 보여줍니다</p>
-              </div>
-              <div class="cw-acts">
-                <button type="button" class="cw-back" id="cwBack" hidden>‹ 카테고리</button>
-                <button type="button" class="cw-close" id="cwClose" aria-label="닫고 영상으로">×</button>
-              </div>
-            </header>
-            <div class="cw-body" id="cwBody"></div>
-          </section>
+          <!-- 2번 페이지: 혼수채널 타일 무대(포털 열림 시 #sourceMosaic를 여기로 이동) -->
+          <div class="hero-stage stage-left" id="stageLeft" hidden></div>
         </div>
 
         <div class="hero-art">
@@ -80,6 +65,7 @@
               <span class="portal-suck" aria-hidden="true"></span>
             </button>
           </div>
+          <div class="source-mosaic" id="cafeMosaic" aria-label="제휴카페 — 타일 크기는 카페 회원수에 비례" hidden></div>
           <div class="source-mosaic" id="sourceMosaic" aria-label="채널별 바이럴 센싱 — 타일 크기는 센싱 건수에 비례">
             <!-- 다이렉트결혼준비 (네이버 카페) — 메인 소스: 내부 분석 결과로 이동 -->
             <figure class="src src-lead src-cafe" data-go="results" data-count="14804" data-unit="건" title="다이렉트결혼준비 카페 분석 결과 보기 · 센싱 14,804건">
@@ -211,7 +197,7 @@
   <script src="assets/korea-sido.js?v=2026r36"></script>
   <script src="assets/cafe-data.js?v=2026r45"></script>
   <script src="assets/cafes-data.js?v=2026r1"></script>
-  <script src="cafe-world.js?v=2026r2"></script>
+  <script src="cafe-world.js?v=2026r3"></script>
   <script src="cafe-analysis.js?v=2026r64"></script>
   <!-- 소스 타일: 크기=센싱 건수 비례 + 살아있는 클러스터 연출 + 클릭 이동 -->
   <script>
@@ -406,6 +392,7 @@
         return out;
       }
 
+      window.squarify = squarify;   // 제휴카페 타일도 같은 트리맵 로직 사용
       function layoutCluster() {
         if (!mosaic) return;
         var box = mosaic.clientWidth || 520;
@@ -423,7 +410,8 @@
         var film = document.querySelector('.hero-film-media');
         var stage = mosaic.parentElement;
         var boxH;
-        if (film) {
+        var filmVisible = film && film.getBoundingClientRect().height > 100;
+        if (filmVisible) {
           var fr = film.getBoundingClientRect();
           var avail = (stage && stage.parentElement) ? stage.parentElement.clientWidth : box;
           box = Math.round(Math.min(fr.width, avail));
@@ -439,8 +427,10 @@
           }
           mosaic.style.width = box + 'px';
           boxH = Math.max(280, Math.round(stage ? stage.clientHeight : fr.height));
-        } else {
-          boxH = Math.round(box * 0.92);
+        } else {                                   // 2번 페이지: 무대(stage) 크기를 그대로 사용
+          var sb = stage ? stage.getBoundingClientRect() : null;
+          if (sb && sb.width > 80) { box = Math.round(sb.width); mosaic.style.width = box + 'px'; }
+          boxH = sb && sb.height > 80 ? Math.round(sb.height) : Math.round(box * 0.92);
         }
         mosaic.style.height = boxH + 'px';
         var C = box / 2;
@@ -487,7 +477,16 @@
       function revealPortal() {
         if (portalOpened) return; portalOpened = true;
         document.body.classList.add('portal-open');   // 이미지 페이드·축소
-        layoutCluster();                              // 센싱 블록이 빠진 만큼 무대를 넓혀 재배치
+        // 2번 페이지: 채널 타일은 좌측 무대로 이동, 우측에는 제휴카페 타일을 띄운다
+        var left = document.getElementById('stageLeft');
+        var artEl = document.querySelector('.hero-art');
+        if (left && mosaic.parentElement !== left) { left.hidden = false; left.appendChild(mosaic); }
+        if (left && artEl) {                          // 좌우 높이 동일(기본 UI 원칙)
+          var ah = Math.round(artEl.getBoundingClientRect().height);
+          if (ah > 200) { left.style.height = ah + 'px'; }
+        }
+        if (typeof window.showCafeMosaic === 'function') window.showCafeMosaic();
+        layoutCluster();                              // 무대가 바뀐 기준으로 재배치
         var hub = mosaic._hub;
         // 각도 순서로 줄지어 등장(중앙 타일 먼저) — 끊김 없이 한 줄로 이어지는 생동감
         var order = tiles.slice().sort(function (a, b) {
