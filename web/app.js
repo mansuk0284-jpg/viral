@@ -243,6 +243,27 @@ function openChannel(id) {
 }
 window.openChannel = openChannel;
 
+/* 제휴카페 타일 클릭 → 채널 분석 화면(동일 양식). 아직 수집 전이므로 정직하게 '수집 대기'. */
+function openAffiliateCafe(cafe) {
+  const host = $("#channelPanel");
+  if (!host || !cafe) return;
+  const id = "affiliate:" + cafe.n;
+  const rg = [cafe.r2, cafe.r3].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(" · ");
+  CHANNELS[id] = {
+    cls: "ch-cafe", name: cafe.n,
+    sub: `제휴카페 · ${cafe.t}${rg ? " · " + rg : ""} · 회원 ${(cafe.m || 0).toLocaleString("ko-KR")}명`,
+    ic: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H10l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" fill="#fff"/><circle cx="9" cy="10.5" r="1.3" fill="#03C75A"/><circle cx="12" cy="10.5" r="1.3" fill="#03C75A"/><circle cx="15" cy="10.5" r="1.3" fill="#03C75A"/></svg>',
+    method: "<b>네이버 카페 스크래퍼</b> → naver_cafe_scraper.py (clubid 확인 후 board 정주행 + <b>--read-body</b>). 본인 로그인 세션 우선, 없으면 공개검색 폴백.",
+    total: 0, ad: 0, s: 0, l: 0, both: 0, etc: 0,
+    tone: { pos: 0, neg: 0, neu: 0 }, items: [], pending: true,
+    note: `제휴카페 — <b>아직 수집 전(표본 0건)</b>. 회원 ${(cafe.m || 0).toLocaleString("ko-KR")}명 규모로, ` +
+      `clubid 확정 후 가전 후기 게시판을 정주행하면 삼성·LG 후기 비교가 이 화면에 채워집니다.`,
+    go: cafe.u, records: [],
+  };
+  openChannel(id);
+}
+window.openAffiliateCafe = openAffiliateCafe;
+
 /* ===== 유틸 ===== */
 const $ = (sel, root = document) => root.querySelector(sel);
 const el = (tag, cls, html) => {

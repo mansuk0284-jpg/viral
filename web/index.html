@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r97" />
+  <link rel="stylesheet" href="styles.css?v=2026r98" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r67" />
 </head>
 <body>
@@ -41,7 +41,25 @@
                 <span class="ht-line ht-line-3">혼수가전 <em>’26</em></span>
               </h1>
             </figcaption>
+            <button type="button" class="film-cta" id="worldBtn" aria-expanded="false">
+              <span class="fc-dot" aria-hidden="true"></span>바이럴세상
+            </button>
           </figure>
+
+          <!-- 제휴카페 세상 — '바이럴세상' 클릭 시 영상 대신 표시 -->
+          <section class="cworld" id="cafeWorld" hidden aria-label="제휴카페 바이럴세상">
+            <header class="cw-head">
+              <div class="cw-htext">
+                <h2 id="cwTitle">바이럴세상</h2>
+                <p id="cwSub">제휴카페 <b>84</b>곳 · 회원 <b>1,136만</b>명 — 성격별로 묶어 보여줍니다</p>
+              </div>
+              <div class="cw-acts">
+                <button type="button" class="cw-back" id="cwBack" hidden>‹ 카테고리</button>
+                <button type="button" class="cw-close" id="cwClose" aria-label="닫고 영상으로">×</button>
+              </div>
+            </header>
+            <div class="cw-body" id="cwBody"></div>
+          </section>
         </div>
 
         <div class="hero-art">
@@ -189,9 +207,11 @@
     </div>
   </footer>
 
-  <script src="app.js?v=2026r42"></script>
+  <script src="app.js?v=2026r43"></script>
   <script src="assets/korea-sido.js?v=2026r36"></script>
   <script src="assets/cafe-data.js?v=2026r45"></script>
+  <script src="assets/cafes-data.js?v=2026r1"></script>
+  <script src="cafe-world.js?v=2026r2"></script>
   <script src="cafe-analysis.js?v=2026r64"></script>
   <!-- 소스 타일: 크기=센싱 건수 비례 + 살아있는 클러스터 연출 + 클릭 이동 -->
   <script>
