@@ -116,6 +116,38 @@
       t.style.zIndex = Math.round(w);
       t.style.setProperty("--size", Math.round(Math.min(w, h)) + "px");
       t.classList.toggle("tile-xs", Math.min(w, h) < 86);
+      t._cx = r.x + r.w / 2; t._cy = r.y + r.h / 2;     // 중심(등장 애니메이션 기준점)
+    });
+    fly();
+  }
+
+  /* 좌측 채널 타일과 동일한 등장 효과 — 중앙에서 튀어나와 제자리로 */
+  function fly() {
+    const tiles = [].slice.call(mosaic.querySelectorAll(".src"));
+    if (!tiles.length) return;
+    const hub = mosaic.clientWidth / 2, hubY = mosaic.clientHeight / 2;
+    tiles.forEach((t) => {                              // 1) 중심에 모아 숨김
+      t.style.setProperty("--dx", Math.round(hub - (t._cx || hub)) + "px");
+      t.style.setProperty("--dy", Math.round(hubY - (t._cy || hubY)) + "px");
+      t.classList.add("closed");
+      t.classList.remove("flew");
+    });
+    // 2) 중심에서 가까운 순 → 각도 순으로 줄지어 등장(좌측과 동일한 리듬)
+    const order = tiles.slice().sort((a, b) => {
+      const k = (t) => {
+        const d = Math.hypot((t._cx || 0) - hub, (t._cy || 0) - hubY);
+        return d < 3 ? -9 : Math.atan2((t._cy || 0) - hubY, (t._cx || 0) - hub);
+      };
+      return k(a) - k(b);
+    });
+    order.forEach((t, i) => {
+      setTimeout(() => {
+        t.classList.remove("closed");
+        t.classList.add("flew");
+        const clear = () => t.classList.remove("flew");
+        t.addEventListener("animationend", clear, { once: true });
+        setTimeout(clear, 720);
+      }, 60 + i * 45);
     });
   }
 
