@@ -433,12 +433,16 @@
       return { rg, tot, sh: pct(d.s, d.l) };
     }).filter((x) => x.tot >= 200);   // 소표본(제주 25건 등)이 1위로 오르는 왜곡 방지
     if (arr.length < 2) return "";
-    const win = arr.slice().sort((a, b) => b.sh - a.sh).slice(0, 3);
-    const lose = arr.slice().sort((a, b) => a.sh - b.sh).slice(0, 3);
+    // 우위=삼성 50% 초과, 열세=50% 미만으로 갈라 중복을 원천 차단
+    // (상·하위 N개를 따로 뽑으면 지역 수가 적을 때 같은 지역이 양쪽에 나온다)
+    const win = arr.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 3);
+    const lose = arr.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 3);
+    if (!win.length && !lose.length) return "";
     const chips = (list) => list.map((x) => `<span class="rs-chip" title="표본 ${fmtN(x.tot)}건">${x.rg} <i>${x.sh}%</i><em>${fmtN(x.tot)}</em></span>`).join("");
     return `<div class="nsc-rsum">` +
-      `<div class="rs-row s"><b>삼성 우위</b>${chips(win)}</div>` +
-      `<div class="rs-row l"><b>열세(LG↑)</b>${chips(lose)}</div>` +
+      (win.length ? `<div class="rs-row s"><b>삼성 우위</b>${chips(win)}</div>` : "") +
+      (lose.length ? `<div class="rs-row l"><b>열세(LG↑)</b>${chips(lose)}</div>`
+                   : `<div class="rs-row l"><b>열세(LG↑)</b><span class="rs-none">표본 기준 없음</span></div>`) +
       `<p class="rs-cap">시도 삼성비중 상·하위 · 제목기반 추정</p></div>`;
   }
 

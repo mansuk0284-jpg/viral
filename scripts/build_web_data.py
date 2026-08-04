@@ -189,6 +189,9 @@ def main():
             continue
         txt = text_of(r)
         ym = r.get("writeMonth") or (r.get("addDate") or "")[:7]
+        # 화면 표시 범위(2021-01~)와 합계를 일치시킨다 — 그 이전 소량(28건)은 제외
+        if ym and ym < "2021-01":
+            continue
         single_s, single_l = (s and not l), (l and not s)
 
         tot += 1
