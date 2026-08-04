@@ -564,6 +564,7 @@
       // 3열: 지역 진단(품목·혜택·추이)
       `<div class="rv-third">` +
       profileCard(isBu ? null : regionDetailOf(c.title), { title: `${c.title} 후기 진단`, items: periodItems("region", c.title) }) +
+      (isBu ? "" : scaleCard("region", c.title)) +
       `</div></div>`;
   }
 
@@ -631,6 +632,51 @@
       `<path d="${area}" fill="rgba(31,95,208,0.12)"/>` +
       `<path d="${dpath}" fill="none" stroke="#1f5fd0" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
       `</svg><span class="pf-cap">${mon[0][0].slice(2)} → ${mon[mon.length - 1][0].slice(2)}</span>`;
+  }
+
+  /* ── 계약 규모·리스크 카드 — 객단가 프록시(패키지 규모)와 불만 신호 ── */
+  function scaleCard(kind, key, regionKey) {
+    const SRC = (CD && CD[kind === "store" ? "extStore" : "extRegion"]) || {};
+    let d = SRC[key];
+    if (!d) {
+      const hit = Object.keys(SRC).find((x) => key.indexOf(x) === 0 || x.indexOf(key) === 0);
+      d = hit ? SRC[hit] : null;
+    }
+    if (!d) return "";
+    // 비교 기준: 매장이면 소속 지역, 지역이면 전국 평균
+    const BASE = (CD && CD.extRegion) || {};
+    let base = null;
+    if (kind === "store" && regionKey && BASE[regionKey]) base = BASE[regionKey];
+    else {
+      const vals = Object.values(BASE);
+      if (vals.length) base = {
+        pkgAvg: +(vals.reduce((a, x) => a + x.pkgAvg, 0) / vals.length).toFixed(1),
+        negRate: +(vals.reduce((a, x) => a + x.negRate, 0) / vals.length).toFixed(1),
+      };
+    }
+    const dPkg = base ? +(d.pkgAvg - base.pkgAvg).toFixed(1) : 0;
+    const dNeg = base ? +(d.negRate - base.negRate).toFixed(1) : 0;
+    const baseLab = kind === "store" ? (regionKey || "지역") + " 평균" : "전국 평균";
+    const bigRate = d.tot ? Math.round(d.pkgBig / d.tot * 100) : 0;
+    const tip = dPkg >= 0.3
+      ? `묶음 규모가 ${baseLab}보다 큽니다 — <b>패키지 상담이 강점</b>. 단품 문의도 세트 견적으로 확장해 보세요.`
+      : dPkg <= -0.3
+        ? `묶음 규모가 ${baseLab}보다 <b class="warn">작습니다</b> — 단품 계약 비중이 높습니다. <b>세트 할인·묶음 견적</b>을 먼저 제시해 객단가를 올리세요.`
+        : `묶음 규모는 ${baseLab} 수준입니다. <b>4개 이상 대형 패키지</b>(현재 ${bigRate}%) 비중을 늘리는 것이 객단가 개선 포인트입니다.`;
+    const negTip = dNeg > 0.5
+      ? ` 불만 언급이 ${baseLab} 대비 <b class="warn">+${dNeg}p</b> 높습니다 — 설치·배송 일정 안내를 강화하세요.`
+      : ` 불만 언급은 ${baseLab} 대비 ${dNeg >= 0 ? "+" : ""}${dNeg}p로 관리되고 있습니다.`;
+    return `<div class="ca-ncard sc-card">` +
+      `<h4 class="ca-ch">계약 규모 · 리스크 <i class="ca-tag">객단가 프록시</i></h4>` +
+      `<div class="sc-kpis">` +
+      `<div class="sc-k"><b>${d.pkgAvg}<i>개</i></b><span>평균 묶음 품목</span>` +
+      `<em class="${dPkg >= 0 ? "up" : "down"}">${dPkg >= 0 ? "+" : ""}${dPkg}</em></div>` +
+      `<div class="sc-k"><b>${bigRate}<i>%</i></b><span>4개↑ 대형 패키지</span><em>${fmtN(d.pkgBig)}건</em></div>` +
+      `<div class="sc-k ${dNeg > 0.5 ? "warn" : ""}"><b>${d.negRate}<i>%</i></b><span>불만 언급</span>` +
+      `<em class="${dNeg <= 0 ? "up" : "down"}">${dNeg >= 0 ? "+" : ""}${dNeg}p</em></div>` +
+      (d.priceMid ? `<div class="sc-k"><b>${fmtN(d.priceMid)}<i>만</i></b><span>계약 중앙값</span><em>${d.priceN}건</em></div>` : "") +
+      `</div>` +
+      `<p class="sc-tip">${tip}${negTip}</p></div>`;
   }
 
   /* ── 매장 페이지: 매니저(프로·명장) 실명 후기 경쟁력 ── */
@@ -718,19 +764,19 @@
     // 이 매장이 지는 품목 — 액션에 직접 반영
     const sIt = (typeof periodItems === "function") ? (periodItems("store", st.store) || []) : [];
     const sLose = sIt.filter((x) => x.l > x.s).sort((a, b) => (b.l - b.s) - (a.l - a.s)).slice(0, 2);
+    const sLoseTop = sLose.slice(0, 1);
     const sWin = sIt.filter((x) => x.s > x.l).sort((a, b) => (b.s - b.l) - (a.s - a.l)).slice(0, 2);
     const loseLine = sLose.length
-      ? ` 취약 품목은 <b class="warn">${sLose.map((x) => x.n + " " + pct(x.s, x.l) + "%").join(" · ")}</b> — 이 품목 상담에서 이탈이 발생합니다.`
+      ? ` 취약: <b class="warn">${sLose.map((x) => x.n + " " + pct(x.s, x.l) + "%").join("·")}</b>.`
       : "";
-    const winLine = sWin.length ? ` 강점은 <b>${sWin.map((x) => x.n + " " + pct(x.s, x.l) + "%").join(" · ")}</b>.` : "";
+    const winLine = sWin.length ? ` 강점: <b>${sWin.map((x) => x.n + " " + pct(x.s, x.l) + "%").join("·")}</b>.` : "";
     const action = lead === "s"
-      ? `삼성 <b>${share}%</b>로 우위입니다(지역평균 ${rShare}% 대비 ${diff >= 0 ? "+" : ""}${diff}p).${winLine}` +
-        (sLose.length ? loseLine + ` 강점 품목으로 상담을 열고 취약 품목은 <b>패키지 묶음</b>으로 방어하세요.`
-                      : ` 이 방식을 인근 열세 매장에 전파하고 후기 요청을 유지하세요.`)
+      ? `삼성 <b>${share}%</b> 우위(지역평균 ${rShare}% 대비 ${diff >= 0 ? "+" : ""}${diff}p).${winLine}` +
+        (sLose.length ? loseLine + ` 취약 품목은 <b>패키지 묶음</b>으로 방어.` : ` 이 방식을 열세 매장에 전파.`)
       : lead === "l"
-        ? `LG가 <b class="warn">${fmtN(gap)}건</b> 앞섭니다. 동률까지 <b>${fmtN(gap)}건</b>의 삼성 후기가 필요합니다.${loseLine}` +
-          ` 계약 고객에게 <b>담당자 이름을 넣은 후기</b>를 요청하면 실명 후기 열세(전국 삼성 38%)까지 함께 좁힐 수 있습니다.`
-        : `삼성·LG 백중(${share}%)입니다. <b>후기 ${fmtN(Math.max(1, Math.ceil(tot * 0.02)))}건</b>이면 우위로 전환됩니다.${loseLine}`;
+        ? `LG가 <b class="warn">${fmtN(gap)}건</b> 앞섭니다 — 동률까지 <b>${fmtN(gap)}건</b> 필요.${loseLine}` +
+          ` <b>담당자 이름을 넣은 후기</b>를 요청하세요.`
+        : `백중(${share}%) — <b>후기 ${fmtN(Math.max(1, Math.ceil(tot * 0.02)))}건</b>이면 우위 전환.${loseLine}`;
     return `<div class="ca-sv">` +
       `<div class="sv-left">` +
       `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
@@ -751,6 +797,7 @@
       `</div>` +
       `<div class="sv-right">` +
       storeProfile(st.store, c) +
+      scaleCard("store", st.store, st.region) +
       mgrBlock(st.store, c) +
       `<div class="ca-ncard sv-actcard"><h4 class="ca-ch">현장 액션</h4><p class="sv-action">${action}</p></div>` +
       (sib.length > 1 ? `<div class="ca-ncard sv-peercard"><h4 class="ca-ch">${st.region} 내 비교 <i class="ca-tag">삼성 비중順</i></h4>` +

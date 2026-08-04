@@ -81,7 +81,10 @@ ITEMS = {
     "김치냉장고": ["김치냉장고", "김치톡톡"], "인덕션": ["인덕션", "전기레인지"],
     "정수기": ["정수기", "퓨리케어"], "오븐": ["오븐", "광파오븐"],
 }
-COMPARE_RE = re.compile("발품|비교|고민|둘러")          # 경쟁 접점(비교 상담) 신호
+COMPARE_RE = re.compile("발품|비교|고민|둘러")
+# 불만·리스크 신호(매장 방어 포인트) / 계약 금액
+NEG_RE = re.compile("불친절|실망|최악|짜증|환불|취소|하자|고장|지연|늦게|안와|기다렸|불만|후회")
+PRICE_RE = re.compile(r"(\d{3,4})\s*만\s*원")          # 경쟁 접점(비교 상담) 신호
 BENEFITS = {
     "사은품": ["사은품", "증정"], "체감가": ["체감가", "실구매가", "최저가"],
     "페이백·상품권": ["페이백", "온누리", "상품권"], "카드할인": ["카드할인", "청구할인", "무이자"],
@@ -225,6 +228,9 @@ def main():
     per_store = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"s": 0, "l": 0})))
     per_sdet = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"s": 0, "l": 0})))
     per_rdet = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"s": 0, "l": 0})))
+    # 신규 분석축: 패키지 규모(품목 수) / 불만 신호 / 계약 금액
+    ext_store = defaultdict(lambda: {"pkg": [], "neg": 0, "tot": 0, "price": []})
+    ext_region = defaultdict(lambda: {"pkg": [], "neg": 0, "tot": 0, "price": []})
 
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
@@ -314,8 +320,30 @@ def main():
                 for nm, kws in ITEMS.items():
                     if any(w in txt for w in kws):
                         per_rdet[pk][rg][nm][bk] += 1
+            # 신규 축 — 지역 단위
+            nItem = sum(1 for kws in ITEMS.values() if any(w in txt for w in kws))
+            isNeg = bool(NEG_RE.search(txt))
+            pm = PRICE_RE.search(txt)
+            pv = int(pm.group(1)) if pm else 0
+            er = ext_region[rg]
+            er["tot"] += 1
+            if nItem:
+                er["pkg"].append(nItem)
+            if isNeg:
+                er["neg"] += 1
+            if 200 <= pv <= 5000:
+                er["price"].append(pv)
+
             st = dept_store_of(txt)           # 매장은 백화점만
             if st:
+                es = ext_store[st]
+                es["tot"] += 1
+                if nItem:
+                    es["pkg"].append(nItem)
+                if isNeg:
+                    es["neg"] += 1
+                if 200 <= pv <= 5000:
+                    es["price"].append(pv)
                 stores[rg][st]["s" if single_s else "l"] += 1
                 for pk in pkeys:                   # 매장 집계·상세 기간별
                     per_store[pk][rg][st][bk] += 1
@@ -405,6 +433,25 @@ def main():
             "cmp": v["cmp"],
         }
     data["regionDetail"] = rdet_out
+
+    def ext_out(src, minn):
+        o = {}
+        for k, v in src.items():
+            if v["tot"] < minn:
+                continue
+            pk = sorted(v["pkg"]); pr = sorted(v["price"])
+            o[k] = {
+                "tot": v["tot"],
+                "pkgAvg": round(sum(pk) / len(pk), 1) if pk else 0,
+                "pkgBig": sum(1 for x in pk if x >= 4),          # 4개 이상 대형 묶음
+                "negRate": round(v["neg"] / v["tot"] * 100, 1),
+                "neg": v["neg"],
+                "priceMid": pr[len(pr) // 2] if pr else 0,
+                "priceN": len(pr),
+            }
+        return o
+    data["extStore"] = ext_out(ext_store, 30)
+    data["extRegion"] = ext_out(ext_region, 100)
 
     # 기간별 분석(표본이 너무 적은 항목은 제외해 노이즈 방지)
     per_out = {}
