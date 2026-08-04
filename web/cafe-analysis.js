@@ -847,31 +847,49 @@
   }
 
   /* ── 승부처 카드 — 비교 상담·혜택·성수기 ── */
-  function winCard(notCards, smp) {
+  const hasJong = (w) => { const ch = (w || '').replace(/[^가-힣]/g, '').slice(-1); return ch ? (ch.charCodeAt(0) - 0xac00) % 28 !== 0 : false; };
+  function winCard() {
     const PD = perData();
-    const CP = PD.compare || (CD && CD.compare) || { s: 0, l: 0 };
+    const CP = PD.compare || { s: 0, l: 0 };
     const cShare = pct(CP.s, CP.l);
-    const BN = PD.benefit || (CD && CD.benefit) || {};
+    const rows = monthsFor(st.period);
+    const pS = rows.reduce((a, r) => a + r[2], 0), pL = rows.reduce((a, r) => a + r[3], 0);
+    const base = pct(pS, pL);                       // 같은 기간 전체 비중(비교 기준)
+    const gap = cShare - base;
+    const winsCompare = gap > 0;
+    const BN = PD.benefit || {};
     const bl = Object.keys(BN).map((k) => ({ n: k, sh: pct(BN[k].s, BN[k].l), tot: BN[k].s + BN[k].l }))
-      .sort((a, b) => b.tot - a.tot).slice(0, 4);
-    const SE = (CD && CD.season) || {};
-    const months = Object.keys(SE);
-    const peak = months.length ? months.reduce((a, b) => (SE[a] > SE[b] ? a : b)) : null;
-    const low = months.length ? months.reduce((a, b) => (SE[a] < SE[b] ? a : b)) : null;
-    const ratio = peak && low && SE[low] ? (SE[peak] / SE[low]).toFixed(1) : null;
-    return fcard("win", "결정 요인", "선택이 갈리는 순간", cShare + "%", "비교 후 삼성 선택",
-      `<div class="fc-sec"><h5>① 비교하러 온 고객은 우리가 이긴다</h5>` +
-      `<p class="fc-plain">‘발품·비교·고민’을 언급한 후기 <b>${fmtN(CP.s + CP.l)}건</b> 중 최종 선택은 ` +
-      `<b>삼성 ${cShare}%</b> : LG ${100 - cShare}% — 전체 평균(${pct((CD || {}).samsung || 0, (CD || {}).lg || 0)}%)보다 높습니다. ` +
-      `<b>비교 상담 기회를 늘릴수록 유리</b>합니다.</p></div>` +
-      (bl.length ? `<div class="fc-sec"><h5>② 계약을 만든 혜택</h5><ul class="fc-pts">` +
-        bl.map((x) => `<li><b>${x.n}</b> 언급 ${fmtN(x.tot)}건 · 삼성 <b>${x.sh}%</b></li>`).join("") +
+      .filter((x) => x.tot >= 5).sort((a, b) => b.tot - a.tot).slice(0, 4);
+    // 성수기 — 선택 기간이 연도면 그 해 월분포, 아니면 전체
+    const yr = /^\d{4}$/.test(st.period) ? st.period : null;
+    const mrows = (yr ? MONTHS.filter((m) => m[0].slice(0, 4) === yr) : MONTHS);
+    const byM = {};
+    mrows.forEach((m) => { const k = m[0].slice(5); byM[k] = (byM[k] || 0) + m[1]; });
+    const mk = Object.keys(byM);
+    const peak = mk.length ? mk.reduce((a, b) => (byM[a] > byM[b] ? a : b)) : null;
+    const low = mk.length ? mk.reduce((a, b) => (byM[a] < byM[b] ? a : b)) : null;
+    const ratio = peak && low && byM[low] ? (byM[peak] / byM[low]).toFixed(1) : null;
+
+    return fcard("win", "결정 요인",
+      winsCompare ? "선택이 갈리는 순간" : "밀리는 접점",
+      cShare + "%", "비교 후 삼성 선택",
+      `<div class="fc-sec"><h5>① 비교 상담의 결과</h5>` +
+      `<p class="fc-plain">‘발품·비교·고민’ 언급 <b>${fmtN(CP.s + CP.l)}건</b> 중 삼성 <b${winsCompare ? "" : ' class="warn"'}>${cShare}%</b> : LG ${100 - cShare}% — ` +
+      `같은 기간 전체(${base}%) 대비 <b${winsCompare ? "" : ' class="warn"'}>${gap >= 0 ? "+" : ""}${gap}p</b>. ` +
+      (winsCompare ? `<b>비교될수록 유리</b>하므로 매장 방문·비교 견적을 적극 유도하세요.`
+                   : `<b class="warn">비교 상담에서 밀립니다</b> — 상담 스크립트·경쟁 대응 논리부터 점검이 필요합니다.`) +
+      `</p></div>` +
+      (bl.length ? `<div class="fc-sec"><h5>② 이 기간 작동한 혜택</h5><ul class="fc-pts">` +
+        bl.map((x) => `<li><b>${x.n}</b> ${fmtN(x.tot)}건 · 삼성 <b${x.sh >= 50 ? "" : ' class="warn"'}>${x.sh}%</b></li>`).join("") +
         `</ul></div>` : "") +
-      (peak ? `<div class="fc-sec"><h5>③ 성수기</h5><p class="fc-plain">후기는 <b>${+peak}월</b>에 가장 많고 ` +
-        `${+low}월이 최저 — 최대 <b>${ratio}배</b> 차이. <b>1~5월 혼수 시즌</b>에 상담·후기 요청을 집중하세요.</p></div>` : "") +
-      `<div class="fc-sec tip"><h5>실행</h5><p>① 매장 방문·<b>비교 견적</b>을 적극 유도(비교할수록 승률↑) ` +
-      `② 상담 마무리에 <b>사은품·체감가</b>를 수치로 제시 ③ 성수기 전 <b>후기 요청 캠페인</b>으로 표본을 선점.</p></div>`,
-      ["비교 " + cShare + "%", peak ? +peak + "월 성수기" : ""].filter(Boolean));
+      (peak ? `<div class="fc-sec"><h5>③ 성수기 ${yr ? "(" + yr + "년)" : "(전 기간)"}</h5>` +
+        `<p class="fc-plain">후기는 <b>${+peak}월</b> 최다, ${+low}월 최저 — 최대 <b>${ratio}배</b> 차이.</p></div>` : "") +
+      `<div class="fc-sec tip"><h5>실행</h5><p>` +
+      (winsCompare ? `① <b>비교 견적</b>을 먼저 제안(승률 ${cShare}%) ` : `① 비교 상담 <b class="warn">패턴 분석</b> 후 대응 논리 보강 `) +
+      (bl.length ? `② <b>${bl[0].n}</b>${hasJong(bl[0].n) ? "을" : "를"} 상담 마무리에 수치로 제시 ` : "") +
+      (peak ? `③ <b>${+peak}월</b> 성수기 전 후기 요청 캠페인` : "") +
+      `</p></div>`,
+      [(winsCompare ? "비교 우위 " : "비교 열세 ") + cShare + "%", peak ? +peak + "월 성수기" : ""].filter(Boolean));
   }
 
   // 애플식 분석 카드 — 앞면(라벨·제목·미니수치·＋) + 상세(영역 전체 덮음)
@@ -919,12 +937,65 @@
             `<span class="ca-sm-t">${r.t}</span></a>`).join("")
         : `<p class="ca-splx">이 기간 표본 없음</p>`;
       // 이달 삼성 우위 심도 분석 (근거 ev / 가설 hy)
-      const REASONS_M = [
-        ["전국 프로모션 효과", "삼성 <b>온누리상품권 20% 페이백</b>·가정의달 행사 시기에 백화점 삼성스토어 계약이 몰림 — 맘카페·블로그 실후기 다수", "ev"],
-        ["신제품 만족", "<b>비스포크 AI 콤보·냉장고</b> 등 디자인+신기능 만족이 ‘가전 졸업’ 후기의 핵심 — 품목 만족이 브랜드 선택으로", "ev"],
-        ["상담 경험 우위", "발품 비교 후 <b>매장 매니저 1:1 견적</b>에 만족해 삼성 확정(‘매니저님 최고’ 표현 빈출)", "ev"],
-        ["LG 요인", "뚜렷한 기피 이슈는 후기상 <b>미확인</b> — LG는 오브제 디자인 선호층에서 선택되는 양상", "hy"],
-      ];
+      // ── 기간에서 실제로 도출하는 진단(하드코딩 금지) ──
+      const PD0 = perData();
+      const share0 = pct(c.s, c.l);
+      const lead0 = share0 > 52 ? "win" : share0 < 48 ? "lose" : "even";
+      // 직전 기간 대비 변화
+      const prevKey = /^\d{4}$/.test(st.period) ? String(+st.period - 1)
+        : /^\d{4}-\d\d$/.test(st.period) ? (function () {
+            const y = +st.period.slice(0, 4), m = +st.period.slice(5);
+            return m > 1 ? y + "-" + String(m - 1).padStart(2, "0") : (y - 1) + "-12";
+          })() : null;
+      const prevB = prevKey && CD.byPeriod ? CD.byPeriod[prevKey] : null;
+      const prevShare = prevB && prevB.compare ? null : null;
+      const rowsP = monthsFor(prevKey || "");
+      const pS = rowsP.reduce((a, r) => a + r[2], 0), pL = rowsP.reduce((a, r) => a + r[3], 0);
+      const prevSh = (pS + pL) ? pct(pS, pL) : null;
+      const dSh = prevSh !== null ? share0 - prevSh : null;
+      // 품목 승패
+      const itAll = Object.keys(PD0.items || {}).map((k) => {
+        const v = PD0.items[k]; return { n: k, s: v.s, l: v.l, tot: v.s + v.l, sh: pct(v.s, v.l) };
+      }).filter((x) => x.tot >= 5);
+      const itWin = itAll.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 3);
+      const itLose = itAll.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 3);
+      const loseGap = itLose.reduce((a, x) => a + (x.l - x.s), 0);
+      // 혜택·비교
+      const cpP = PD0.compare || { s: 0, l: 0 };
+      const cpSh = pct(cpP.s, cpP.l);
+      const benTop = Object.keys(PD0.benefit || {}).map((k) => ({ n: k, ...PD0.benefit[k] }))
+        .map((x) => ({ n: x.n, tot: x.s + x.l, sh: pct(x.s, x.l) }))
+        .sort((a, b) => b.tot - a.tot).slice(0, 3);
+      // 지역 편차
+      const rgArr = Object.keys(PD0.regions || {}).map((k) => {
+        const v = PD0.regions[k]; return { rg: k, tot: v.s + v.l, sh: pct(v.s, v.l) };
+      }).filter((x) => x.tot >= 200);
+      const rgWin = rgArr.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh)[0];
+      const rgLose = rgArr.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh)[0];
+
+      // 상황별 진단 문장 — 우위/열세/백중이 각각 다르게
+      const REASONS_M = [];
+      REASONS_M.push([
+        lead0 === "win" ? "우위 구간" : lead0 === "lose" ? "열세 구간" : "백중 구간",
+        `${perLab(st.period)} 삼성 <b${lead0 === "lose" ? ' class="warn"' : ""}>${share0}%</b> : LG ${100 - share0}%` +
+        (dSh !== null ? ` — 직전 기간 대비 <b${dSh >= 0 ? "" : ' class="warn"'}>${dSh >= 0 ? "+" : ""}${dSh}p</b>` : "") +
+        ` (분석 ${fmtN(c.total)}건)`, "ev"]);
+      if (itWin.length) REASONS_M.push(["이기는 품목",
+        itWin.map((x) => `<b>${x.n} ${x.sh}%</b>`).join(" · ") + ` — 이 품목이 이 기간 우위를 떠받칩니다`, "ev"]);
+      if (itLose.length) REASONS_M.push(["새는 품목",
+        itLose.map((x) => `<b class="warn">${x.n} ${x.sh}%</b>`).join(" · ") +
+        ` — 합산 LG <b class="warn">+${fmtN(loseGap)}건</b>, 이 구간 손실의 핵심`, "ev"]);
+      if (cpP.s + cpP.l >= 20) REASONS_M.push(["비교 상담 결과",
+        `발품·비교 언급 ${fmtN(cpP.s + cpP.l)}건 중 삼성 <b>${cpSh}%</b>` +
+        (cpSh > share0 ? ` — 전체(${share0}%)보다 <b>${cpSh - share0}p 높아</b> 비교될수록 유리`
+                       : ` — 전체(${share0}%)보다 <b class="warn">${share0 - cpSh}p 낮아</b> 비교 상담에서 밀림`), "ev"]);
+      if (benTop.length) REASONS_M.push(["작동한 혜택",
+        benTop.map((x) => `<b>${x.n}</b> ${fmtN(x.tot)}건(삼성 ${x.sh}%)`).join(" · "), "ev"]);
+      if (rgWin || rgLose) REASONS_M.push(["지역 편차",
+        (rgWin ? `최고 <b>${rgWin.rg} ${rgWin.sh}%</b>` : "") +
+        (rgWin && rgLose ? " ↔ " : "") +
+        (rgLose ? `최저 <b class="warn">${rgLose.rg} ${rgLose.sh}%</b>` : "") +
+        (rgWin && rgLose ? ` — 격차 <b>${rgWin.sh - rgLose.sh}p</b>` : ""), "ev"]);
       const reasonLi = REASONS_M.map((r) =>
         `<li class="rs-${r[2]}"><b>${r[0]}</b><span>${r[1]}</span></li>`).join("");
       const slTot = c.s + c.l || 1, ss = Math.round(c.s / slTot * 100), ls = 100 - ss;
@@ -949,26 +1020,57 @@
         `</div>` +
         // 우: 분석 카드 2×2 (＋클릭 → 상세가 영역 전체를 덮음)
         `<div class="ca-nright">` +
-        fcard("reasons", "우위 진단", "우위를 만든 구조", share + "%", "삼성 비중",
+        fcard("reasons",
+          lead0 === "win" ? "우위 진단" : lead0 === "lose" ? "열세 진단" : "접전 진단",
+          lead0 === "win" ? "우위를 만든 구조" : lead0 === "lose" ? "열세를 만든 구조" : "접전의 구조",
+          share0 + "%", "삼성 비중",
           `<ul class="ca-reasons">${reasonLi}</ul>` +
-          `<div class="fc-sec"><h5>데이터 포인트</h5><ul class="fc-pts">` +
-          `<li>전구간 <b>삼성 49.6% : LG 50.4%</b> 박빙 — 단 <b>2026년 삼성 회복세</b></li>` +
-          `<li>연도 변곡: 2021 <b>65%</b> → 2024 <b class="warn">42%</b>(LG 우위) → 2026 <b>50%+</b></li>` +
-          `<li>유통 구성: 백화점 ${rN("백화점")} · 삼성스토어 ${rN("삼성스토어")} · LG베스트샵 ${rN("LG베스트샵")} · 하이마트 ${rN("하이마트")}</li>` +
-          `</ul></div>` +
-          `<div class="fc-sec tip"><h5>현업 활용</h5><p>프로모션·신제품 출시기에 상담을 집중하고, <b>매니저 1:1 견적·‘가전 졸업’ 경험</b>을 적극 부각 — 후기 1순위 구매 사유입니다.</p></div>`,
-          ["온누리 페이백", "비스포크 신제품"]) +
+          `<div class="fc-sec tip"><h5>${lead0 === "lose" ? "회복 과제" : "유지 과제"}</h5><p>` +
+          (lead0 === "lose"
+            ? `이 기간은 <b class="warn">LG 우위</b>입니다. ` +
+              (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>에서 합산 ${fmtN(loseGap)}건을 내주고 있어, 이 품목의 대안 제시가 회복의 출발점입니다. ` : "") +
+              (cpSh > share0 ? `다만 비교 상담에서는 ${cpSh}%로 이기고 있어 <b>매장 방문·비교 견적 유도</b>가 유효합니다.` : `비교 상담에서도 밀리므로 <b>상담 스크립트·혜택 안내</b>부터 점검이 필요합니다.`)
+            : `${itWin.length ? `<b>${itWin.map((x) => x.n).join("·")}</b>의 우위를 유지하고, ` : ""}` +
+              (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>는 패키지 묶음으로 방어하세요.` : `약점 품목이 없어 후기 절대량을 늘리는 것이 다음 과제입니다.`)) +
+          `</p></div>`,
+          [lead0 === "lose" ? "열세 " + share0 + "%" : "우위 " + share0 + "%",
+           dSh !== null ? "직전 대비 " + (dSh >= 0 ? "+" : "") + dSh + "p" : ""].filter(Boolean)) +
         itemCard() +
-        winCard(notCards, smp) +
-        fcard("lg", "경쟁 방어", "이탈이 일어나는 지점", smp.lg.length, "건",
-          `<div class="ca-spl-stack">` + splCol("LG 선택", "lg", smp.lg) + `</div>` +
-          `<div class="fc-sec"><h5>LG가 이긴 지점</h5><ul class="fc-pts">` +
-          `<li><b>오브제 디자인</b> 선호 — 인테리어 매칭</li>` +
-          `<li><b>디오스·트롬</b> 성능 신뢰, <b>의류관리기</b>(스타일러)에서 우위 — 삼성 <b>에어드레서</b>로 대응</li>` +
-          `<li>강남·수원 <b>LG 베스트샵 플래그십</b> → 수도권 강세(강남본점 LG 2,978 vs 삼성 49)</li></ul></div>` +
-          `<div class="fc-sec tip"><h5>방어 포인트</h5><p>비스포크 디자인 라인업·패키지 견적 경쟁력으로 디자인 선호층 대응. 수도권 플래그십 상권은 <b>체험·상담 차별화</b>가 관건.</p></div>`,
-          ["오브제 디자인", "수도권 강세"]) +
-        `</div>` +
+        winCard() +
+        (function () {
+          const PD = perData();
+          const its = Object.keys(PD.items || {}).map((k) => {
+            const v = PD.items[k]; return { n: k, s: v.s, l: v.l, tot: v.s + v.l, sh: pct(v.s, v.l), gap: v.l - v.s };
+          }).filter((x) => x.tot >= 5 && x.l > x.s).sort((a, b) => b.gap - a.gap).slice(0, 4);
+          const totGap = its.reduce((a, x) => a + x.gap, 0);
+          // 이 기간 LG 우위 지역
+          const rg = Object.keys(PD.regions || {}).map((k) => {
+            const v = PD.regions[k]; return { rg: k, tot: v.s + v.l, sh: pct(v.s, v.l), gap: v.l - v.s };
+          }).filter((x) => x.tot >= 200 && x.sh < 50).sort((a, b) => b.gap - a.gap).slice(0, 3);
+          const mg = (CD && CD.mgr) || null;
+          const mgSh = mg ? pct(mg.s_on, mg.l_on) : null;
+          return fcard("lg", "경쟁 방어",
+            its.length ? "이탈이 일어나는 지점" : "방어가 유지되는 구간",
+            its.length ? fmtN(totGap) : "0", "LG 우위 격차(건)",
+            (its.length
+              ? `<div class="fc-sec"><h5>품목별 이탈</h5><ul class="fc-pts">` +
+                its.map((x) => `<li><b class="warn">${x.n}</b> 삼성 ${x.sh}% — LG <b class="warn">+${fmtN(x.gap)}건</b>` +
+                  ` <span style="color:#9aa7bd">(표본 ${fmtN(x.tot)})</span></li>`).join("") +
+                `</ul></div>`
+              : `<div class="fc-sec"><p class="fc-plain">이 기간에는 <b>LG가 앞선 품목이 없습니다</b>.</p></div>`) +
+            (rg.length ? `<div class="fc-sec"><h5>LG 우위 지역</h5><ul class="fc-pts">` +
+              rg.map((x) => `<li><b class="warn">${x.rg}</b> 삼성 ${x.sh}% · LG +${fmtN(x.gap)}건 (표본 ${fmtN(x.tot)})</li>`).join("") +
+              `</ul></div>` : "") +
+            (mgSh !== null ? `<div class="fc-sec"><h5>실명 후기(구조적 열세)</h5>` +
+              `<p class="fc-plain">담당자 이름이 남은 후기에서 삼성은 <b class="warn">${mgSh}%</b> — LG는 ‘명장’ 호칭으로 담당자를 브랜딩합니다.</p></div>` : "") +
+            `<div class="fc-sec tip"><h5>방어 실행</h5><p>` +
+            (its.length ? `<b class="warn">${its[0].n}</b>부터 대응 — 이 품목만 동률로 만들어도 격차의 <b>${Math.round(its[0].gap / (totGap || 1) * 100)}%</b>가 해소됩니다. 삼성 대안 모델·묶음 견적을 먼저 제시하세요. `
+                        : `현재 방어가 유지되고 있습니다. `) +
+            `계약 시 <b>담당자 이름을 넣은 후기</b>를 요청해 실명 후기 열세를 좁히세요.</p></div>`,
+            [its.length ? its[0].n + " " + its[0].sh + "%" : "이탈 없음",
+             rg.length ? rg[0].rg + " " + rg[0].sh + "%" : ""].filter(Boolean));
+        })() +
+
         `</div>`;
     } else if (st.level === "region" || st.level === "bu") {
       mid = regionView(c);
