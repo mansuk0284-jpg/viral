@@ -284,8 +284,14 @@
     if (st.level === "region") {
       const rs = R[st.region];   // 부울경 본문매칭(정확)
       if (rs) {
-        return { title: st.region, sub: "매장 본문매칭 · 2026 누적", s: rs.s, l: rs.l, trend: vsBars(rs.s, rs.l),
-          geoNote, stores: rs.stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l)) };
+        // 매장 목록은 기간 연동 집계를 우선 사용(없을 때만 본문매칭 고정본)
+        const ps = periodStores(st.region);
+        const gr0 = geoRegions()[st.region] || { s: rs.s, l: rs.l };
+        const useP = ps.length >= 2;
+        return { title: st.region, sub: useP ? `매장별 · ${perLab(st.period)}` : "매장 본문매칭 · 2026 누적",
+          s: useP ? gr0.s : rs.s, l: useP ? gr0.l : rs.l,
+          trend: vsBars(useP ? gr0.s : rs.s, useP ? gr0.l : rs.l),
+          geoNote, stores: useP ? ps : rs.stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l)) };
       }
       const gr = geoRegions()[st.region] || { s: 0, l: 0 };
       // 본문매칭 완료 지역(예: 경기)은 정밀 디렉터리 사용
@@ -301,8 +307,10 @@
     // store — 부울경은 본문매칭 STORES, 그 외는 제목기반 CD.stores
     const row = STORES.find((x) => x[0] === st.store);
     if (row) {
-      return { title: st.store, sub: `${row[1]} · 매장 본문매칭 2026 누적`, s: row[2], l: row[3],
-        trend: vsBars(row[2], row[3]), geoNote, samples: SAMPLES[st.store] };
+      const pr = periodStores(st.region).find((x) => x.name === st.store);
+      const sv = pr ? pr.s : row[2], lv = pr ? pr.l : row[3];
+      return { title: st.store, sub: `${row[1]} · ${pr ? perLab(st.period) : "매장 본문매칭 2026 누적"}`,
+        s: sv, l: lv, trend: vsBars(sv, lv), geoNote, samples: SAMPLES[st.store] };
     }
     const psList = periodStores(st.region);
     const pHit = psList.find((x) => x.name === st.store);
@@ -454,8 +462,14 @@
     const attr = isBu ? "data-region" : "data-store";
     const unit = isBu ? "지역" : "매장";
     const list = src.map((x) => ({ n: x.name || x.n || x.rg, s: x.s, l: x.l }))
-      .filter((x) => x.n && (isBu || x.s + x.l >= 20))   // 표본 20건 미만 매장은 순위에서 제외
       .sort((a, b) => (b.s + b.l) - (a.s + a.l));
+    // 표본 하한은 지역 규모에 비례(고정 20건이면 지방 소도시 매장이 통째로 사라진다)
+    if (!isBu && list.length) {
+      const big = list[0].s + list[0].l;
+      const floor = Math.max(3, Math.min(20, Math.round(big * 0.06)));
+      const kept = list.filter((x) => x.s + x.l >= floor);
+      if (kept.length) list.length = 0, kept.forEach((x) => list.push(x));
+    }
     const share = pct(c.s, c.l);
     const nat = pct((CD && CD.samsung) || 0, (CD && CD.lg) || 0);
     const diff = share - nat;

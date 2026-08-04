@@ -132,7 +132,8 @@ def dept_store_of(txt):
             i = txt.find(a)
             if i < 0:
                 continue
-            window = txt[i:i + 14]
+            # 지점명은 체인명 뒤('롯데 창원')뿐 아니라 앞('창원 롯데백화점')에도 온다
+            window = txt[max(0, i - 10):i + 14]
             for b in BRANCH_TOKENS:
                 if b in SIDO_NAMES:       # 시도명은 지점명이 아니므로 제외
                     continue
