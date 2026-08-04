@@ -108,15 +108,34 @@ def region_of(txt):
     return None
 
 
+# 시도명은 지점명이 아니다(예: '현대 서울'은 실제 지점이 아님) — 단독 사용 금지
+SIDO_NAMES = set(SIDO.keys())
+# 고유 표기 매장(체인+지점 조합으로는 안 잡히는 실제 매장)
+SPECIAL_STORES = [
+    (["더현대서울", "더 현대 서울", "더현대 서울"], "더현대 서울"),
+    (["더현대대구", "더현대 대구"], "더현대 대구"),
+    (["롯데본점", "롯백 본점", "롯데 본점", "소공동"], "롯데 본점"),
+    (["신세계본점", "신세계 본점"], "신세계 본점"),
+    (["현대본점", "현대 본점", "압구정본점"], "현대 압구정본점"),
+    (["센텀시티", "신세계센텀", "신세계 센텀"], "신세계 센텀시티"),
+    (["부산본점", "롯데부산본점"], "롯데 부산본점"),
+]
+
+
 def dept_store_of(txt):
-    """백화점 체인 + 지점 조합을 '롯데 잠실' 형태로 정규화. 없으면 None."""
-    for chain, alias in CHAINS.items():
+    """실제 지점명으로 정규화. 시도명 단독(예: 현대+서울)은 지점으로 보지 않는다."""
+    for kws, name in SPECIAL_STORES:      # 1) 고유 표기 우선
+        if any(k in txt for k in kws):
+            return name
+    for chain, alias in CHAINS.items():   # 2) 체인 + 실제 지점 토큰
         for a in alias:
             i = txt.find(a)
             if i < 0:
                 continue
-            window = txt[i:i + 14]          # 체인명 뒤 짧은 구간에서 지점 탐색
+            window = txt[i:i + 14]
             for b in BRANCH_TOKENS:
+                if b in SIDO_NAMES:       # 시도명은 지점명이 아니므로 제외
+                    continue
                 if b in window:
                     return f"{chain} {b}"
     return None
@@ -345,6 +364,7 @@ def main():
     per_out = {}
     for pk, pb in perbuk.items():
         rg = {k: v for k, v in pb["regions"].items() if v["s"] + v["l"] >= 3}
+        # 신뢰구간이 없는 소표본은 우위/열세 순위에서 제외하도록 표본수를 함께 보관
         it = {k: v for k, v in pb["items"].items() if v["s"] + v["l"] >= 5}
         bn = {k: v for k, v in pb["ben"].items() if v["s"] + v["l"] >= 3}
         if not rg and not it:

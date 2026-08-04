@@ -431,11 +431,11 @@
     const arr = Object.keys(R).map((rg) => {
       const d = R[rg], tot = d.s + d.l;
       return { rg, tot, sh: pct(d.s, d.l) };
-    }).filter((x) => x.tot >= 30);   // 표본 빈약 지역 제외
+    }).filter((x) => x.tot >= 200);   // 소표본(제주 25건 등)이 1위로 오르는 왜곡 방지
     if (arr.length < 2) return "";
     const win = arr.slice().sort((a, b) => b.sh - a.sh).slice(0, 3);
     const lose = arr.slice().sort((a, b) => a.sh - b.sh).slice(0, 3);
-    const chips = (list) => list.map((x) => `<span class="rs-chip">${x.rg} <i>${x.sh}%</i></span>`).join("");
+    const chips = (list) => list.map((x) => `<span class="rs-chip" title="표본 ${fmtN(x.tot)}건">${x.rg} <i>${x.sh}%</i><em>${fmtN(x.tot)}</em></span>`).join("");
     return `<div class="nsc-rsum">` +
       `<div class="rs-row s"><b>삼성 우위</b>${chips(win)}</div>` +
       `<div class="rs-row l"><b>열세(LG↑)</b>${chips(lose)}</div>` +
@@ -450,7 +450,8 @@
     const attr = isBu ? "data-region" : "data-store";
     const unit = isBu ? "지역" : "매장";
     const list = src.map((x) => ({ n: x.name || x.n || x.rg, s: x.s, l: x.l }))
-      .filter((x) => x.n).sort((a, b) => (b.s + b.l) - (a.s + a.l));
+      .filter((x) => x.n && (isBu || x.s + x.l >= 20))   // 표본 20건 미만 매장은 순위에서 제외
+      .sort((a, b) => (b.s + b.l) - (a.s + a.l));
     const share = pct(c.s, c.l);
     const nat = pct((CD && CD.samsung) || 0, (CD && CD.lg) || 0);
     const diff = share - nat;
@@ -500,11 +501,17 @@
         `<span class="op-sh">삼성 ${pct(x.s, x.l)}%</span></button>`;
     }).join("");
 
+    // 이 지역에서 실제로 지고 있는 품목(있으면 액션에 반영)
+    const rIt = (typeof periodItems === "function" && !isBu) ? (periodItems("region", c.title) || []) : [];
+    const rLose = rIt.filter((x) => x.l > x.s).sort((a, b) => (b.l - b.s) - (a.l - a.s)).slice(0, 2);
+    const itemLine = rLose.length
+      ? ` 이 지역은 <b class="warn">${rLose.map((x) => x.n).join("·")}</b>에서 특히 밀립니다(LG +${fmtN(rLose.reduce((a, x) => a + x.l - x.s, 0))}건) — 상담 시 이 품목의 <b>삼성 대안 모델</b>을 먼저 제시하세요.`
+      : "";
     const action = opps.length
-      ? `<b>${opps[0].n}</b>부터 공략하세요 — 이곳 한 곳만 뒤집어도 지역 격차의 ` +
-        `<b>${Math.round((opps[0].l - opps[0].s) / (oppGap || 1) * 100)}%</b>가 해소됩니다. ` +
-        `LG 우세 사유(오브제 디자인·패키지)에 대응해 <b>비스포크 견적·체감가</b>를 전면에 두고, 계약 고객에게 <b>후기 작성을 요청</b>해 표본을 늘리세요.`
-      : `현재 열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두 매장"}</b>의 성공 방식(매니저 1:1 상담·견적 만족)을 표본이 적은 ${unit}으로 확산해 <b>후기 절대량</b>을 키우는 것이 다음 단계입니다.`;
+      ? `<b>${opps[0].n}</b>부터 공략하세요 — LG가 <b class="warn">${fmtN(opps[0].l - opps[0].s)}건</b> 앞서 지역 격차의 ` +
+        `<b>${Math.round((opps[0].l - opps[0].s) / (oppGap || 1) * 100)}%</b>를 차지합니다. ` +
+        `이 ${unit} 한 곳만 동률로 만들어도 지역 삼성비중이 <b>${share}% → 약 ${pct(c.s + (opps[0].l - opps[0].s), c.l)}%</b>로 올라갑니다.` + itemLine
+      : `열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두"}</b>(삼성 ${top ? pct(top.s, top.l) : "-"}%)의 상담 방식을 표본이 적은 ${unit}으로 확산해 <b>후기 절대량</b>을 키우세요.` + itemLine;
 
     return `<div class="ca-rv">` +
       `<div class="rv-left">` +
@@ -690,11 +697,22 @@
     const card = (r) => `<a href="${r[2]}" target="_blank" rel="noopener">` +
       `<span class="ca-sm-tag ${r[1]}">${({ s: "삼성", l: "LG", b: "삼성·LG" })[r[1]] || "기타"}</span>` +
       `<span class="ca-sm-t">${r[0]}</span></a>`;
+    // 이 매장이 지는 품목 — 액션에 직접 반영
+    const sIt = (typeof periodItems === "function") ? (periodItems("store", st.store) || []) : [];
+    const sLose = sIt.filter((x) => x.l > x.s).sort((a, b) => (b.l - b.s) - (a.l - a.s)).slice(0, 2);
+    const sWin = sIt.filter((x) => x.s > x.l).sort((a, b) => (b.s - b.l) - (a.s - a.l)).slice(0, 2);
+    const loseLine = sLose.length
+      ? ` 취약 품목은 <b class="warn">${sLose.map((x) => x.n + " " + pct(x.s, x.l) + "%").join(" · ")}</b> — 이 품목 상담에서 이탈이 발생합니다.`
+      : "";
+    const winLine = sWin.length ? ` 강점은 <b>${sWin.map((x) => x.n + " " + pct(x.s, x.l) + "%").join(" · ")}</b>.` : "";
     const action = lead === "s"
-      ? `이 매장은 <b>후기 우위</b>입니다. 성공 요인(매니저 1:1 상담·견적 만족)을 <b>인근 열세 매장에 전파</b>하고 후기 작성 유도를 유지하세요.`
+      ? `삼성 <b>${share}%</b>로 우위입니다(지역평균 ${rShare}% 대비 ${diff >= 0 ? "+" : ""}${diff}p).${winLine}` +
+        (sLose.length ? loseLine + ` 강점 품목으로 상담을 열고 취약 품목은 <b>패키지 묶음</b>으로 방어하세요.`
+                      : ` 이 방식을 인근 열세 매장에 전파하고 후기 요청을 유지하세요.`)
       : lead === "l"
-        ? `LG가 <b>${fmtN(gap)}건</b> 앞섭니다. LG 선택 사유(<b>오브제 디자인·패키지</b>)를 겨냥해 비스포크 디자인 라인업·체감가 견적으로 대응하고, 계약 고객에게 <b>후기 작성을 적극 요청</b>해 격차를 좁히세요.`
-        : `삼성·LG 백중 구간입니다. <b>후기 한 건이 순위를 바꾸는</b> 상황이니 계약 시 후기 요청을 습관화하세요.`;
+        ? `LG가 <b class="warn">${fmtN(gap)}건</b> 앞섭니다. 동률까지 <b>${fmtN(gap)}건</b>의 삼성 후기가 필요합니다.${loseLine}` +
+          ` 계약 고객에게 <b>담당자 이름을 넣은 후기</b>를 요청하면 실명 후기 열세(전국 삼성 38%)까지 함께 좁힐 수 있습니다.`
+        : `삼성·LG 백중(${share}%)입니다. <b>후기 ${fmtN(Math.max(1, Math.ceil(tot * 0.02)))}건</b>이면 우위로 전환됩니다.${loseLine}`;
     return `<div class="ca-sv">` +
       `<div class="sv-left">` +
       `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
