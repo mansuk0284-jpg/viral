@@ -12,8 +12,8 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r104" />
-  <link rel="stylesheet" href="cafe-analysis.css?v=2026r78" />
+  <link rel="stylesheet" href="styles.css?v=2026r105" />
+  <link rel="stylesheet" href="cafe-analysis.css?v=2026r79" />
 </head>
 <body>
   <!-- 결과 화면 전용 플로팅 복귀 버튼 (헤더 제거 후 대체) -->
@@ -62,6 +62,8 @@
               </span>
             </span>
           </div>
+          <!-- 우리 매장 찾아보기 — 매장 × 채널 교차 대시보드 진입 -->
+          <div class="store-pick" id="storePick"></div>
           <div class="grp grp-right" id="grpRight" hidden>
             <p class="grp-eyebrow">Affiliate</p>
             <h2 class="grp-title">제휴카페 바이럴 채널</h2>
@@ -209,6 +211,7 @@
   <script src="assets/cafes-data.js?v=2026r1"></script>
   <script src="cafe-world.js?v=2026r6"></script>
   <script src="cafe-analysis.js?v=2026r80"></script>
+  <script src="store-scope.js?v=2026r1"></script>
   <!-- 소스 타일: 크기=센싱 건수 비례 + 살아있는 클러스터 연출 + 클릭 이동 -->
   <script>
     (function () {

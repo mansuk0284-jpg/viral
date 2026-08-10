@@ -1807,3 +1807,21 @@ body.portal-open .hero-art .hero-stage { flex: 1 1 auto; min-height: 0; }
 .zone-yng { --ping: rgba(234,88,12,0.45); }
 .zone-etc { --ping: rgba(124,139,161,0.45); }
 .zone-nat { --ping: rgba(109,40,217,0.45); }
+
+/* ===== 우리 매장 찾아보기 — 메인 좌측 선택바 ===== */
+.store-pick { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; align-items: center; }
+body.portal-open .store-pick { display: none; }       /* 2번 페이지에서는 숨김 */
+.sp-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800;
+  color: #45527a; letter-spacing: -0.01em; }
+.sp-ic { color: #3e6ae1; font-size: 15px; }
+.sp-row { display: flex; gap: 7px; width: 100%; max-width: 420px; }
+.sp-sel { flex: 1; min-width: 0; font: inherit; font-size: 13.5px; font-weight: 700; color: #172a42;
+  background: rgba(255,255,255,0.92); border: 1px solid rgba(23,42,66,0.16); border-radius: 11px;
+  padding: 9px 11px; cursor: pointer; box-shadow: 0 4px 14px rgba(23,42,66,0.07); }
+.sp-sel:focus { outline: none; border-color: #3e6ae1; box-shadow: 0 0 0 3px rgba(62,106,225,0.18); }
+.sp-go { flex-shrink: 0; border: 0; border-radius: 11px; padding: 9px 16px; font: inherit;
+  font-size: 13.5px; font-weight: 800; color: #fff; background: #1f5fd0; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(31,95,208,0.28); transition: background .15s ease, transform .15s ease; }
+.sp-go:hover { background: #174fb0; transform: translateY(-1px); }
+.sp-hint { margin: 0; font-size: 11.5px; font-weight: 600; color: #7d89a6; }
+.sp-hint b { color: #45527a; }
