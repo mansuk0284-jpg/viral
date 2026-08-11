@@ -102,6 +102,7 @@ RETAILERS = {
     "하이마트": ["하이마트", "롯데하이마트"],
 }
 RET_RE = {k: re.compile("|".join(v)) for k, v in RETAILERS.items()}
+RET_KEYS = list(RETAILERS)
 
 
 def text_of(r):
@@ -259,6 +260,7 @@ def main():
     fact_rows = Counter()
     fact_day = {}       # 원본 날짜 문자열 보관용(최소·최대 산출)
     fact_price = []     # 계약 금액은 언급이 드물어(수백 건) 별도 희소 목록으로 보관
+    fact_name = []      # 매니저 실명(후기 스타) — 매장 귀속 삼성 후기만
 
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
@@ -420,6 +422,16 @@ def main():
                                 m["names"][nm + " " + ttl] += 1
 
         # ── 팩트 행 적재(임의 기간 집계용) ──
+        # 삼성·LG를 함께 언급한 후기(양쪽)는 브랜드 승패에는 넣지 않지만
+        # 총건수·유통 언급에는 들어간다 — 원본 집계와 같은 기준을 맞추려면
+        # 팩트에도 실어야 한다(브랜드 코드 2 = 양쪽).
+        if (not bk) and f_day:
+            rt2 = 0
+            for _i, _nm in enumerate(RET_KEYS):
+                if RET_RE[_nm].search(txt):
+                    rt2 |= 1 << _i
+            fact_rows[(f_day, 2, "", "", "", 0, 0, 0, rt2)] += 1
+            fact_day[f_day] = 1
         if bk and f_day:
             im = 0
             for _i, _nm in enumerate(ITEM_KEYS):
@@ -432,11 +444,21 @@ def main():
             fl = (1 if COMPARE_RE.search(txt) else 0) \
                 | (2 if hasMgr else 0) \
                 | (4 if NEG_RE.search(txt) else 0)
-            fact_rows[(f_day, 0 if bk == "s" else 1, f_rg or "", f_srg or "", f_st or "", im, bnm, fl)] += 1
+            rt = 0
+            for _i, _nm in enumerate(RET_KEYS):
+                if RET_RE[_nm].search(txt):
+                    rt |= 1 << _i
+            fact_rows[(f_day, 0 if bk == "s" else 1, f_rg or "", f_srg or "", f_st or "",
+                       im, bnm, fl, rt)] += 1
             fact_day[f_day] = 1
             _pm = PRICE_RE.search(txt)
             if _pm and 200 <= int(_pm.group(1)) <= 5000:
                 fact_price.append([f_day, f_rg or "", f_srg or "", f_st or "", int(_pm.group(1))])
+            # 후기 스타 — 매장이 특정된 삼성 후기의 매니저 실명만(우리 매장 인물 지표)
+            if f_st and bk == "s" and hasMgr:
+                for _nm, _tt in MGR_NAME.findall(txt):
+                    if _nm not in NOT_NAME and len(_nm) >= 2:
+                        fact_name.append([f_day, f_rg or "", f_srg or "", f_st, _nm + " " + _tt])
 
     months_arr = [[m, v[0], v[1], v[2]] for m, v in sorted(months.items()) if m >= "2021-01"]
     stores_out = {}
@@ -589,26 +611,39 @@ def main():
     span = (date(*(int(x) for x in days[-1].split("-"))) - base).days + 1 if days else 0
 
     prepped = []
-    for (day, b, rgn, srg, stn, im, bnm, fl), cnt in fact_rows.items():
+    for (day, b, rgn, srg, stn, im, bnm, fl, rt), cnt in fact_rows.items():
         idx = (date(*(int(x) for x in day.split("-"))) - base).days
-        prepped.append((idx, b, loc_of(rgn, srg, stn), im, bnm, fl, cnt))
+        prepped.append((idx, b, loc_of(rgn, srg, stn), im, bnm, fl, rt, cnt))
     # 위치 코드는 아래 비트 폭 계산 전에 모두 확정돼야 한다(나중에 늘면 폭이 모자란다)
     pr_prepped = [[(date(*(int(x) for x in p[0].split("-"))) - base).days,
                    loc_of(p[1], p[2], p[3]), p[4]] for p in fact_price]
+    nm_list, nm_ix = [], {}
+    nm_prepped = []
+    for p in fact_name:
+        if p[4] not in nm_ix:
+            nm_ix[p[4]] = len(nm_list)
+            nm_list.append(p[4])
+        nm_prepped.append([(date(*(int(x) for x in p[0].split("-"))) - base).days,
+                           loc_of(p[1], p[2], p[3]), nm_ix[p[4]]])
 
     # 비트 폭은 사전 크기에서 계산해 데이터에 함께 싣는다.
     # (품목·혜택·매장이 늘면 폭도 같이 늘어야 한다. 고정값으로 두면 넘친 비트가
     #  옆 필드를 오염시켜 조용히 틀린 집계가 나온다 — 실제로 혜택 6종/5비트에서 발생)
+    W_BR = 2                       # 0=삼성 1=LG 2=양쪽
     W_LOC = max(1, (len(loc_list) - 1).bit_length())
-    W_IT, W_BN, W_FL = len(ITEM_KEYS), len(BEN_KEYS), 3
-    SH_LOC, SH_IT = 1, 1 + W_LOC
+    W_IT, W_BN, W_FL, W_RT = len(ITEM_KEYS), len(BEN_KEYS), 3, len(RET_KEYS)
+    SH_LOC, SH_IT = W_BR, W_BR + W_LOC
     SH_BN = SH_IT + W_IT
     SH_FL = SH_BN + W_BN
-    assert SH_FL + W_FL <= 31, "팩트 비트 폭 초과 — 인코딩 재설계 필요"
+    SH_RT = SH_FL + W_FL
+    W_DAY = max(1, max(0, span - 1).bit_length())
+    # 32비트를 넘으므로 웹에서는 나눗셈으로 푼다(JS 비트연산은 32비트까지).
+    # 2^53 안이면 안전 — 여유가 큰지 확인만 해 둔다.
+    assert SH_RT + W_RT <= 45, "팩트 비트 폭 초과 — 인코딩 재설계 필요"
 
     buckets = [[] for _ in range(span)]
-    for idx, b, loc, im, bnm, fl, cnt in prepped:
-        v = b | (loc << SH_LOC) | (im << SH_IT) | (bnm << SH_BN) | (fl << SH_FL)
+    for idx, b, loc, im, bnm, fl, rt, cnt in prepped:
+        v = b | (loc << SH_LOC) | (im << SH_IT) | (bnm << SH_BN) | (fl << SH_FL) | (rt << SH_RT)
         buckets[idx].append(v if cnt == 1 else (v, cnt))
 
     def enc(cell):
@@ -624,10 +659,16 @@ def main():
         "loc": loc_list,          # [지역idx, 매장지역idx, 매장idx] — -1은 해당 없음
         "it": ITEM_KEYS,
         "bn": BEN_KEYS,
-        "sh": {"loc": SH_LOC, "it": SH_IT, "bn": SH_BN, "fl": SH_FL},
-        "w": {"loc": W_LOC, "it": W_IT, "bn": W_BN, "fl": W_FL},
+        "rt": RET_KEYS,
+        "sh": {"br": 0, "loc": SH_LOC, "it": SH_IT, "bn": SH_BN, "fl": SH_FL, "rt": SH_RT},
+        "w": {"br": W_BR, "loc": W_LOC, "it": W_IT, "bn": W_BN, "fl": W_FL, "rt": W_RT},
         "rows": [",".join(enc(c) for c in b) for b in buckets],
-        "pr": pr_prepped,          # 계약 금액 — [일자offset, 위치코드, 금액(만원)]
+        "pr": pr_prepped,          # 계약 금액 — [일자offset, 위치코드, 금액(만원)] (329건, 그대로)
+        "nm": nm_list,             # 매니저 실명 사전
+        # 실명 태그는 6천여 건이라 [일자·위치·이름]을 한 정수로 눌러 담는다
+        "nmr": ",".join(format(p[0] | (p[1] << W_DAY) | (p[2] << (W_DAY + W_LOC)), "x")
+                        for p in nm_prepped),
+        "nmw": {"day": W_DAY, "loc": W_LOC},
     }
 
     with open(a.out, "w", encoding="utf-8") as f:

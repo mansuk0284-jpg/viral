@@ -14,8 +14,11 @@
 
   /* 화면 상태 — 매장 + 조회 기간(직접 입력). 기본은 전체 수집 구간 */
   const st = { name: null, range: null };
-  const isCus = () => !!(st.range && VF);
-  const cus = () => VF.agg(st.range.a, st.range.b);
+  const isCus = () => !!(st.range && VF);   // 라벨·해제버튼 표시용
+  const hasF = () => !!VF;
+  /* 집계는 항상 팩트 한 경로로 — 기간을 지정하든 안 하든 같은 코드가 돈다 */
+  const A = () => VF.agg(st.range ? st.range.a : VF.d0, st.range ? st.range.b : VF.d1);
+  const cus = A;
 
   /* 채널 정의 — 히어로 타일과 동일한 축. 다이렉트만 실데이터 */
   const CHANNELS = [
@@ -45,34 +48,32 @@
     return k ? src[k] : null;
   }
   function storeRow(name) {
-    const S = isCus() ? cus().stores : (CD.stores || {});
+    const S = hasF() ? A().stores : (CD.stores || {});
     for (const rg of Object.keys(S)) {
       const hit = S[rg].find((x) => x.n === name);
       if (hit) return { rg, s: hit.s, l: hit.l };
     }
-    // 지정 구간에 표본이 없으면 지역만이라도 유지해 화면이 무너지지 않게 한다
-    if (isCus()) {
-      const A = CD.stores || {};
-      for (const rg of Object.keys(A)) {
-        if (A[rg].some((x) => x.n === name)) return { rg, s: 0, l: 0 };
-      }
+    // 그 기간에 표본이 없으면 지역만이라도 유지해 화면이 무너지지 않게 한다
+    const ALL = CD.stores || {};
+    for (const rg of Object.keys(ALL)) {
+      if (ALL[rg].some((x) => x.n === name)) return { rg, s: 0, l: 0 };
     }
     return null;
   }
   /* 선택 기간의 매장 상세(품목·계약·후기 스타) — 지정 구간이면 팩트에서 계산 */
   function detailOf(name) {
-    if (!isCus()) {
+    if (!hasF()) {
       return { items: (pick(CD.storeDetail, name) || {}).items || [],
                ext: pick(CD.extStore, name), mgr: pick(CD.mgrStore, name) };
     }
-    const a = cus();
+    const a = A();
     return { items: VF.top(a.storeItems[name], 1, 3),
              ext: a.ext.store[name] || null,
              mgr: a.mgrStore[name] || null };
   }
   /* 지역 내 매장 목록 — 순위·평균 계산용 */
   function siblings(rg) {
-    const S = isCus() ? cus().stores : (CD.stores || {});
+    const S = hasF() ? A().stores : (CD.stores || {});
     return (S[rg] || []).slice().sort((a, b) => (b.s + b.l) - (a.s + a.l));
   }
 

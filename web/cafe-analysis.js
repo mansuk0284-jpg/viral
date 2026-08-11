@@ -69,8 +69,48 @@
   const st = { period: LAST_M, range: null, level: "nation", region: null, store: null };
   const VF = window.VFACT || null;
   const isCus = () => !!(st.range && VF);
-  /* 지정 구간 집계(캐시됨) */
-  function cus() { return VF.agg(st.range.a, st.range.b); }
+
+  /* 기간 키 → 날짜 구간. 버튼(전체·연도·월)도 직접 입력과 똑같이 구간으로 바꿔
+     전부 팩트 테이블 한 경로로 계산한다. 경로가 둘이면 어느 한쪽만 기간에
+     연동되는 사고가 난다(실제로 유통·후기스타·성수기가 그랬다). */
+  function curRange() {
+    if (!VF) return null;
+    const p = st.period;
+    if (p === "custom" && st.range) return [st.range.a, st.range.b];
+    if (/^\d{4}$/.test(p)) return VF.clamp(p + "-01-01", p + "-12-31");
+    if (/^\d{4}-\d\d$/.test(p)) {
+      const y = +p.slice(0, 4), m = +p.slice(5);
+      const last = new Date(Date.UTC(m === 12 ? y + 1 : y, m === 12 ? 0 : m, 0)).getUTCDate();
+      return VF.clamp(p + "-01", p + "-" + String(last).padStart(2, "0"));
+    }
+    return [VF.d0, VF.d1];                       // 전체
+  }
+  /* 선택 기간 집계(캐시됨) — 화면 전체가 이 하나를 본다 */
+  const hasF = () => !!VF;
+  function A() { const r = curRange(); return r ? VF.agg(r[0], r[1]) : null; }
+  function cus() { return A(); }
+
+  /* 직전 기간 집계 — 연/월은 한 칸 앞, 직접 입력은 같은 길이의 바로 앞 구간 */
+  function prevAgg() {
+    if (!VF) return null;
+    const r = curRange();
+    if (!r) return null;
+    const DAY = 86400000;
+    const b0 = Date.parse(r[0] + "T00:00:00Z"), b1 = Date.parse(r[1] + "T00:00:00Z");
+    const len = Math.round((b1 - b0) / DAY) + 1;
+    const pb = new Date(b0 - DAY).toISOString().slice(0, 10);
+    const pa = new Date(b0 - len * DAY).toISOString().slice(0, 10);
+    if (pb < VF.d0) return null;
+    const c = VF.clamp(pa, pb);
+    return VF.agg(c[0], c[1]);
+  }
+
+  /* 선택 기간의 전국 삼성비중 — 지역·매장 비교의 기준선 */
+  function natShare() {
+    const rows = monthsFor(st.period);
+    const s = rows.reduce((a, r) => a + r[2], 0), l = rows.reduce((a, r) => a + r[3], 0);
+    return (s + l) ? pct(s, l) : pct((CD && CD.samsung) || 0, (CD && CD.lg) || 0);
+  }
 
   function monthsFor(k) {
     if (k === "custom" && isCus()) return cus().months;
@@ -108,7 +148,7 @@
   }
   /* 선택 기간의 매장 목록(지역별). 없으면 전체 */
   function periodStores(rg) {
-    if (isCus()) return (cus().stores[rg] || []).map((x) => ({ name: x.n, s: x.s, l: x.l }));
+    if (hasF()) return (A().stores[rg] || []).map((x) => ({ name: x.n, s: x.s, l: x.l }));
     const PS = (CD && CD.periodStores) || {};
     const k = storePeriodKey();
     const m = PS[k] || PS.all || {};
@@ -116,7 +156,7 @@
   }
   /* 선택 기간의 품목 상세 */
   function periodItems(kind, key) {
-    if (isCus()) {
+    if (hasF()) {
       const src = kind === "store" ? cus().storeItems : cus().regionItems;
       const m = src[key] || src[Object.keys(src).find((x) => key.indexOf(x) === 0 || x.indexOf(key) === 0)];
       const out = VF.top(m, kind === "store" ? 3 : 5, 6);
@@ -132,8 +172,8 @@
 
   /* 선택 기간의 분석 묶음(지역·품목·혜택·비교). 없으면 전체로 폴백 */
   function perData() {
-    if (isCus()) {
-      const a = cus();
+    if (hasF()) {
+      const a = A();
       // 기간 탭과 같은 소표본 컷을 적용해 노이즈를 막는다(지역 3, 품목 5, 혜택 3)
       const cut = (src, n) => {
         const o = {};
@@ -235,7 +275,8 @@
       svg.querySelectorAll("path[data-region]").forEach((p) => {
         const name = p.getAttribute("data-region"), d = R[name];
         p.insertAdjacentHTML("afterbegin", `<title>${name}</title>`);  // 호버 시 시도명
-        const hasStores = !!(CD && CD.stores && CD.stores[name]) || !!RS[name];
+        // 드릴 가능 여부도 선택 기간 기준 — 그 기간에 매장 표본이 있어야 들어간다
+        const hasStores = periodStores(name).length > 0 || !!RS[name];
         if (d && (d.s + d.l) > 0) {
           const lead = d.s > d.l ? "s" : d.l > d.s ? "l" : "even";
           p.setAttribute("class", "on " + lead + (hasStores ? " drill" : ""));
@@ -303,10 +344,10 @@
     }
     const R = regionRoll();
     // 지정 구간은 팩트 테이블에서 지역·매장까지 그대로 분해되므로 경고가 필요 없다
-    const geoNote = (isCus() || /^2026/.test(p) || p === "all") ? ""
+    const geoNote = hasF() ? ""
       : "지역·매장 분해는 2026 누적 기준만 제공(과거 기간은 백필 통합 후)";
     if (st.level === "bu") {
-      if (isCus()) {
+      if (hasF()) {
         const rows = REGIONS.map((rg) => {
           const ps = periodStores(rg);
           return { rg, s: ps.reduce((a, x) => a + x.s, 0), l: ps.reduce((a, x) => a + x.l, 0) };
@@ -319,7 +360,7 @@
         geoNote, regions: REGIONS.map((rg) => ({ rg, s: R[rg].s, l: R[rg].l })) };
     }
     if (st.level === "region") {
-      if (isCus()) {
+      if (hasF()) {
         const ps = periodStores(st.region);
         const gr0 = geoRegions()[st.region] || { s: 0, l: 0 };
         return { title: st.region, sub: `매장별 · ${perLab(p)}`, s: gr0.s, l: gr0.l,
@@ -366,7 +407,7 @@
 
   /* 지역 내 매장 목록(정렬됨) — 순위·평균 계산 공용 */
   function storesOfRegion(rg) {
-    if (isCus()) return periodStores(rg);
+    if (hasF()) return periodStores(rg);
     const R = regionRoll()[rg];
     if (R) return R.stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l));
     const bs = (CD && CD.bodyStores && CD.bodyStores[rg]) || (CD && CD.stores && CD.stores[rg]) || [];
@@ -472,26 +513,6 @@
       `<div class="vs-side l"><b>${ls}<i>%</i></b><span>LG ${fmtN(l)}건</span></div>` +
       `</div>`;
   }
-  // 전국 후기 샘플을 우호/비판/LG선택으로 버킷팅 (실 URL)
-  function nationSamples() {
-    const fav = [], crit = [], lg = [];
-    Object.keys(SAMPLES).forEach((stn) => {
-      const o = SAMPLES[stn] || {};
-      (o.pos || []).forEach((r) => (r[1] === "l" ? lg : fav).push(r));
-      (o.neg || []).forEach((r) => (r[1] === "l" ? lg : crit).push(r));
-    });
-    return { fav: fav.slice(0, 3), crit: crit.slice(0, 3), lg: lg.slice(0, 3) };
-  }
-  // 선택 기간의 대표 후기(조회수 아님) — census notable에서. 월=해당월, 연도/전체=묶어서 상위
-  function notableFor(k) {
-    const N = (CD && CD.notable) || {};
-    if (/^\d{4}-\d\d$/.test(k)) return (N[k] || []).slice(0, 4);
-    const keys = k === "all" ? MONTHS.map((m) => m[0]).slice(-8)
-      : MONTHS.map((m) => m[0]).filter((x) => x.slice(0, 4) === k);
-    const out = [], seen = new Set();
-    keys.forEach((km) => (N[km] || []).forEach((r) => { if (!seen.has(r.t)) { seen.add(r.t); out.push(r); } }));
-    return out.slice(0, 4);
-  }
   // 전국 현황 박스 하단 — 우위/열세 지역 요약(제목기반 추정, 표본 충분 시도만)
   function regionSummary() {
     const R = geoRegions();
@@ -530,7 +551,7 @@
       if (kept.length) list.length = 0, kept.forEach((x) => list.push(x));
     }
     const share = pct(c.s, c.l);
-    const nat = pct((CD && CD.samsung) || 0, (CD && CD.lg) || 0);
+    const nat = natShare();          // 기준선도 선택 기간의 전국 비중이어야 한다
     const diff = share - nat;
     const max = Math.max(1, ...list.map((x) => x.s + x.l));
     // ── 진단: 우위/열세/기회 분류 ──
@@ -663,14 +684,14 @@
   }
 
   function regionDetailOf(rg) {
-    if (isCus()) return VF.detail(cus(), "region", rg);
+    if (hasF()) return VF.detail(A(), "region", rg);
     const RD = (CD && CD.regionDetail) || {};
     return RD[rg] || null;
   }
 
   /* ── 매장 상세 데이터 조회(표기 차 흡수) ── */
   function storeDetailOf(name) {
-    if (isCus()) return VF.detail(cus(), "store", name);
+    if (hasF()) return VF.detail(A(), "store", name);
     const SD = (CD && CD.storeDetail) || {};
     if (SD[name]) return SD[name];
     const k = Object.keys(SD).find((x) => name.indexOf(x) === 0 || x.indexOf(name) === 0);
@@ -697,8 +718,8 @@
 
   /* ── 계약 규모·리스크 카드 — 객단가 프록시(패키지 규모)와 불만 신호 ── */
   function scaleCard(kind, key, regionKey) {
-    const A = isCus() ? cus() : null;
-    const SRC = A ? A.ext[kind === "store" ? "store" : "region"]
+    const FA = hasF() ? A() : null;
+    const SRC = FA ? FA.ext[kind === "store" ? "store" : "region"]
                   : ((CD && CD[kind === "store" ? "extStore" : "extRegion"]) || {});
     let d = SRC[key];
     if (!d) {
@@ -707,7 +728,7 @@
     }
     if (!d) return "";
     // 비교 기준: 매장이면 소속 지역, 지역이면 전국 평균
-    const BASE = A ? A.ext.region : ((CD && CD.extRegion) || {});
+    const BASE = FA ? FA.ext.region : ((CD && CD.extRegion) || {});
     let base = null;
     if (kind === "store" && regionKey && BASE[regionKey]) base = BASE[regionKey];
     else {
@@ -745,8 +766,8 @@
   /* ── 매장 페이지: 매니저(프로·명장) 실명 후기 경쟁력 ── */
   function mgrBlock(storeName, c) {
     // 지정 구간이면 그 구간의 매니저 언급 집계를 쓴다(실명 TOP은 팩트에 없어 생략)
-    const MS = isCus() ? cus().mgrStore : ((CD && CD.mgrStore) || {});
-    const G = isCus() ? cus().mgr : ((CD && CD.mgr) || null);
+    const MS = hasF() ? A().mgrStore : ((CD && CD.mgrStore) || {});
+    const G = hasF() ? A().mgr : ((CD && CD.mgr) || null);
     // 매장 키 정규화(‘신세계 센텀시티’ ↔ 데이터의 ‘신세계 센텀’ 같은 표기 차 흡수)
     let key = null;
     if (MS[storeName]) key = storeName;
@@ -924,9 +945,8 @@
     const BN = PD.benefit || {};
     const bl = Object.keys(BN).map((k) => ({ n: k, sh: pct(BN[k].s, BN[k].l), tot: BN[k].s + BN[k].l }))
       .filter((x) => x.tot >= 5).sort((a, b) => b.tot - a.tot).slice(0, 4);
-    // 성수기 — 선택 기간이 연도면 그 해 월분포, 아니면 전체
-    const yr = /^\d{4}$/.test(st.period) ? st.period : null;
-    const mrows = (yr ? MONTHS.filter((m) => m[0].slice(0, 4) === yr) : MONTHS);
+    // 성수기 — 선택 기간의 월분포(구간이 짧으면 그 구간 안에서만 본다)
+    const mrows = monthsFor(st.period);
     const byM = {};
     mrows.forEach((m) => { const k = m[0].slice(5); byM[k] = (byM[k] || 0) + m[1]; });
     const mk = Object.keys(byM);
@@ -946,7 +966,7 @@
       (bl.length ? `<div class="fc-sec"><h5>② 이 기간 작동한 혜택</h5><ul class="fc-pts">` +
         bl.map((x) => `<li><b>${x.n}</b> ${fmtN(x.tot)}건 · 삼성 <b${x.sh >= 50 ? "" : ' class="warn"'}>${x.sh}%</b></li>`).join("") +
         `</ul></div>` : "") +
-      (peak ? `<div class="fc-sec"><h5>③ 성수기 ${yr ? "(" + yr + "년)" : "(전 기간)"}</h5>` +
+      (peak ? `<div class="fc-sec"><h5>③ 성수기 (${perLab(st.period)})</h5>` +
         `<p class="fc-plain">후기는 <b>${+peak}월</b> 최다, ${+low}월 최저 — 최대 <b>${ratio}배</b> 차이.</p></div>` : "") +
       `<div class="fc-sec tip"><h5>실행</h5><p>` +
       (winsCompare ? `① <b>비교 견적</b>을 먼저 제안(승률 ${cShare}%) ` : `① 비교 상담 <b class="warn">패턴 분석</b> 후 대응 논리 보강 `) +
@@ -990,32 +1010,17 @@
       mid = `<div class="ca-pend"><span class="ca-pend-n">수집 중</span>` +
         `<p><b>${perLab(st.period)}</b> 후기는 현재 백필로 수집 중입니다.<br>네이버 목록 API 한계를 우회해 과거 구간을 채우는 중 — 완료되면 이 기간도 분석됩니다.</p></div>`;
     } else if (c.geo) {
-      const etc = Math.max(0, c.total - c.s - c.l);
-      const rt = (CD && CD.retailers) || {};
-      const rN = (k) => fmtN(rt[k] || 0) + "건";
-      const smp = nationSamples();
-      const notable = notableFor(st.period);
-      const notCards = notable.length
-        ? notable.map((r) => `<a href="${r.u}" target="_blank" rel="noopener">` +
-            `<span class="ca-sm-tag ${r.b}">${({ s: "삼성", l: "LG", b: "삼성·LG" })[r.b] || "기타"}</span>` +
-            `<span class="ca-sm-t">${r.t}</span></a>`).join("")
-        : `<p class="ca-splx">이 기간 표본 없음</p>`;
-      // 이달 삼성 우위 심도 분석 (근거 ev / 가설 hy)
+      const etc = Math.max(0, c.total - c.s - c.l);   // 삼성·LG 동시언급(승패 미귀속)
       // ── 기간에서 실제로 도출하는 진단(하드코딩 금지) ──
       const PD0 = perData();
       const share0 = pct(c.s, c.l);
       const lead0 = share0 > 52 ? "win" : share0 < 48 ? "lose" : "even";
-      // 직전 기간 대비 변화
-      const prevKey = /^\d{4}$/.test(st.period) ? String(+st.period - 1)
-        : /^\d{4}-\d\d$/.test(st.period) ? (function () {
-            const y = +st.period.slice(0, 4), m = +st.period.slice(5);
-            return m > 1 ? y + "-" + String(m - 1).padStart(2, "0") : (y - 1) + "-12";
-          })() : null;
-      const prevB = prevKey && CD.byPeriod ? CD.byPeriod[prevKey] : null;
-      const prevShare = prevB && prevB.compare ? null : null;
-      const rowsP = monthsFor(prevKey || "");
-      const pS = rowsP.reduce((a, r) => a + r[2], 0), pL = rowsP.reduce((a, r) => a + r[3], 0);
-      const prevSh = (pS + pL) ? pct(pS, pL) : null;
+      // 직전 기간 대비 변화 — 직접 입력 구간은 '같은 길이의 바로 앞 구간'과 견준다
+      const prevSh = (function () {
+        const pv = prevAgg();
+        if (!pv) return null;
+        return (pv.s + pv.l) ? pct(pv.s, pv.l) : null;
+      })();
       const dSh = prevSh !== null ? share0 - prevSh : null;
       // 품목 승패
       const itAll = Object.keys(PD0.items || {}).map((k) => {

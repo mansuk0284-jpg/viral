@@ -11,9 +11,10 @@
   const F = CD.fact;
   if (!F) { window.VFACT = null; return; }
 
-  const M = (w) => (1 << w) - 1;
   const SH = F.sh, W = F.w;
-  const MASK = { loc: M(W.loc), it: M(W.it), bn: M(W.bn), fl: M(W.fl) };
+  // 패킹이 34비트라 JS 비트연산(32비트)으로는 못 푼다 → 2의 거듭제곱 나눗셈으로 뽑는다.
+  const P2 = []; for (let i = 0; i <= 53; i++) P2[i] = Math.pow(2, i);
+  const get = (v, sh, w) => Math.floor(v / P2[sh]) % P2[w];
   const DAY = 86400000;
   const base = Date.parse(F.d0 + "T00:00:00Z");
 
@@ -61,6 +62,8 @@
       storeBen: {}, regionBen: {},
       storeMon: {}, regionMon: {},        // 매장·지역별 월 추이
       storeCmp: {}, regionCmp: {},        // 매장·지역별 비교상담 승패
+      retailers: {},                      // 유통 채널 언급(백화점·삼성스토어·하이마트·베스트샵)
+      mgrNames: {},                       // 매장 → 매니저 실명 TOP(후기 스타)
       mgr: { s_on: 0, l_on: 0, s_off: 0, l_off: 0 },
       mgrStore: {},
       months: [],
@@ -79,15 +82,26 @@
       const mv = mon[ym] || (mon[ym] = [0, 0, 0]);
       for (let i = 0; i < cells.length; i++) {
         const v = cells[i][0], c = cells[i][1];
-        const br = v & 1;
-        const loc = (v >>> SH.loc) & MASK.loc;
-        const im = (v >>> SH.it) & MASK.it;
-        const bn = (v >>> SH.bn) & MASK.bn;
-        const fl = (v >>> SH.fl) & MASK.fl;
+        const br = get(v, SH.br, W.br);      // 0=삼성 1=LG 2=삼성·LG 동시언급
+        const both = br === 2;
+        const loc = get(v, SH.loc, W.loc);
+        const im = get(v, SH.it, W.it);
+        const bn = get(v, SH.bn, W.bn);
+        const fl = get(v, SH.fl, W.fl);
+        const rt = get(v, SH.rt, W.rt);
 
         R.total += c;
+        mv[0] += c;
+        // 유통 언급은 양쪽 후기도 포함(원본 retailers와 같은 기준)
+        if (rt) {
+          for (let k = 0; k < W.rt; k++) {
+            if ((rt >>> k) & 1) R.retailers[F.rt[k]] = (R.retailers[F.rt[k]] || 0) + c;
+          }
+        }
+        // 아래 브랜드 승패 축은 단독 언급만 — 양쪽 후기는 총건수·유통에만 반영
+        if (both) continue;
         if (br) R.l += c; else R.s += c;
-        mv[0] += c; mv[br ? 2 : 1] += c;
+        mv[br ? 2 : 1] += c;
 
         const L = F.loc[loc];
         const rgN = L[0] >= 0 ? F.rg[L[0]] : null;      // 지역 축(본문 추정)
@@ -138,6 +152,7 @@
           m[br ? "l" : "s"] += c;
         }
 
+
         if (rgN) {
           const e = ex(R.ext.region, rgN);
           e.tot += c;
@@ -160,6 +175,29 @@
       if (L[0] >= 0) ex(R.ext.region, F.rg[L[0]]).price.push(p[2]);
       if (L[2] >= 0) ex(R.ext.store, F.st[L[2]]).price.push(p[2]);
     });
+
+    // 후기 스타 — 매장 귀속 삼성 후기의 매니저 실명
+    if (F.nmr) {
+      const wd = F.nmw.day, wl = F.nmw.loc;
+      const cnt = {};
+      F.nmr.split(",").forEach((s) => {
+        if (!s) return;
+        const v = parseInt(s, 16);
+        const d = get(v, 0, wd);
+        if (d < lo || d > hi) return;
+        const L = F.loc[get(v, wd, wl)];
+        if (L[2] < 0) return;
+        const stn = F.st[L[2]], nm = F.nm[Math.floor(v / P2[wd + wl])];
+        const bag = cnt[stn] || (cnt[stn] = {});
+        bag[nm] = (bag[nm] || 0) + 1;
+      });
+      Object.keys(cnt).forEach((stn) => {
+        const top4 = Object.keys(cnt[stn]).map((n) => ({ n: n, c: cnt[stn][n] }))
+          .sort((a, b) => b.c - a.c).slice(0, 4);
+        R.mgrNames[stn] = top4;
+        if (R.mgrStore[stn]) R.mgrStore[stn].names = top4;   // 매장 카드가 바로 쓰도록
+      });
+    }
 
     // 매장 목록을 지역별로 정리(기간 탭의 periodStores와 같은 모양)
     Object.keys(stAcc).forEach((kk) => {
