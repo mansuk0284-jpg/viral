@@ -12,7 +12,7 @@ Data API는 영상 제목+설명+상위 댓글을 구조적으로 주므로 품�
 
 흐름:
   search.list(q, type=video, KR/ko) → 영상별 commentThreads.list(상위 댓글)
-  → 제목+설명+댓글 합쳐 brand/item/tone/ad 분류 + 12개점 매장매칭(naver_api_collect 재사용)
+  → 제목+설명+댓글 합쳐 brand/item/tone/ad 분류 + 전국 백화점 매장매칭(naver_api_collect 재사용)
   → artifacts/YYYYMMDD-01-raw-youtube.md (다이렉트결혼준비 양식)
 
 주의: 댓글은 비공개일 수 있고(commentsDisabled), 일 쿼터(기본 10,000 units) 제한.
@@ -29,7 +29,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import naver_api_collect as nac  # classify / match_store / STORE_RULES / 어휘 재사용
+import naver_api_collect as nac  # classify / match_store / 어휘 재사용(매칭 규칙은 build_web_data SSOT)
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -156,22 +156,21 @@ def write_report(rows, out_date, query_count):
     L.append("")
     L.append(f"## 톤 (광고추정 제외): 긍정 {tone_cnt.get('긍정',0)} / 부정 {tone_cnt.get('부정',0)} / 중립 {tone_cnt.get('중립',0)}")
     L.append("")
-    L.append("## 매장 매칭 — 권역 12개점 (광고추정 제외, 매장 특정분)")
+    L.append("## 매장 매칭 — 전국 백화점 (광고추정 제외, 매장 특정분)")
     if store_sl:
-        L.append("| 매장 | 권역 | 삼성 | LG | 양사 |")
+        L.append("| 매장 | 지역 | 삼성 | LG | 양사 |")
         L.append("|---|---|---|---|---|")
-        for name, _r, _rules in nac.STORE_RULES:
-            if name in store_sl:
-                d = store_sl[name]
-                L.append(f"| {name} | {d['region']} | {d['삼성']} | {d['LG']} | {d['삼성·LG']} |")
+        for name in sorted(store_sl, key=lambda n: -(store_sl[n]['삼성'] + store_sl[n]['LG'])):
+            d = store_sl[name]
+            L.append(f"| {name} | {d['region']} | {d['삼성']} | {d['LG']} | {d['삼성·LG']} |")
         L.append("")
-        L.append("**권역 합계(매장 특정분, 삼성 vs LG)**")
-        L.append("| 권역 | 삼성 | LG |")
+        L.append("**지역 합계(매장 특정분, 삼성 vs LG)**")
+        L.append("| 지역 | 삼성 | LG |")
         L.append("|---|---|---|")
-        for rg in ["부산", "울산", "경남"]:
+        for rg in sorted(region_sl, key=lambda r: -(region_sl[r]['삼성'] + region_sl[r]['LG'])):
             L.append(f"| {rg} | {region_sl[rg]['삼성']} | {region_sl[rg]['LG']} |")
     else:
-        L.append("_매장 특정 단서 없음 — 유튜브는 전국 콘텐츠라 권역 매장 매칭이 드물다. 트렌드 신호 위주._")
+        L.append("_매장 특정 단서 없음 — 유튜브는 영상 제목·설명에 매장명이 드물다. 트렌드 신호 위주._")
     if unknown_region:
         L.append("")
         L.append("매장 미상(권역만 잡힘): " + " / ".join(f"{k} {v}" for k, v in unknown_region.most_common()))

@@ -14,7 +14,7 @@
 흐름:
   scripts/naver-search.ps1 호출(블로그/카페, 여러 쿼리, date 정렬)
   → link 중복제거 → 제목+요약 기반 brand/item/tone/ad 분류
-  → 12개점 매장 매칭(target-stores.md 키워드) → 권역 합계
+  → 전국 백화점 매장 매칭(build_web_data 규칙 재사용) → 지역 합계
   → artifacts/YYYYMMDD-01-raw-<소스ID>.md (다이렉트결혼준비 양식)
 
 주의: 요약 일부만 반환 → 본문 전체 아님. 광고성 블로그 다수 → [광고추정] 표기.
@@ -46,7 +46,8 @@ ITEMS = {
     "건조기": ["건조기", "건조"],
     "TV": ["tv", "qled", "올레드", "oled", "네오"],
     "에어컨": ["에어컨", "무풍", "휘센"],
-    "스타일러": ["스타일러", "에어드레서", "의류관리"],
+    # 카테고리는 일반명 — 스타일러(LG)·에어드레서(삼성)는 각사 제품명이라 키워드로만 쓴다
+    "의류관리기": ["에어드레서", "스타일러", "의류관리"],
     "청소기": ["청소기", "제트", "코드제로", "로봇청소"],
     "식기세척기": ["식기세척", "식세기"],
 }
@@ -56,52 +57,36 @@ POS = ["만족", "좋아", "좋았", "예뻐", "예쁨", "추천", "최고", "�
 NEG = ["불만", "별로", "후회", "최악", "고장", "소음", "as", "에이에스", "지연", "환불", "실망", "하자", "불편"]
 AD = ["ader.naver", "event", "이벤트", "프로모션", "쿠폰", "특가", "최저가", "공구", "체험단", "협찬", "추천인", "적립", "원고료", "제공받", "광고"]
 
-# --- 매장 매칭 (target-stores.md 12개점) ---
-# (정규 매장명, region, [지점 단서 키워드들]) — 단, 브랜드 백화점 조합으로 추가 판정
-STORE_RULES = [
-    # 부산
-    ("롯데 부산본점(서면)", "부산", [["부산본점"], ["서면", "롯데"], ["서면", "백화점"]]),
-    ("롯데 센텀시티", "부산", [["센텀", "롯데"], ["롯데", "센텀시티"]]),
-    ("롯데 광복점", "부산", [["광복", "롯데"], ["롯데", "광복"]]),
-    ("롯데 동래점", "부산", [["동래", "롯데"], ["롯데", "동래"]]),
-    ("신세계 센텀시티", "부산", [["센텀", "신세계"], ["신세계", "센텀"]]),
-    # 울산
-    ("롯데 울산점", "울산", [["울산", "롯데"], ["롯데", "울산"]]),
-    ("현대 울산 남구(삼산)", "울산", [["삼산", "현대"], ["현대", "울산", "남구"], ["현대", "삼산"]]),
-    ("현대 울산 동구(방어진)", "울산", [["방어진", "현대"], ["현대", "동구"], ["현대", "방어진"]]),
-    # 경남
-    ("롯데 창원점", "경남", [["창원", "롯데"], ["롯데", "창원"]]),
-    ("신세계 마산점", "경남", [["마산", "신세계"], ["신세계", "마산"]]),
-    ("신세계 김해점", "경남", [["김해", "신세계"], ["신세계", "김해"]]),
-    ("갤러리아 진주점", "경남", [["진주", "갤러리아"], ["갤러리아", "진주"]]),
-]
-# 권역 단서(매장 불명이지만 권역은 잡히는 경우)
-REGION_HINTS = {
-    "부산": ["부산", "서면", "센텀", "광복", "동래", "해운대", "사상"],
-    "울산": ["울산", "삼산", "방어진"],
-    "경남": ["창원", "마산", "김해", "진주", "양산", "거제", "통영", "경남"],
-}
+# --- 매장·지역 매칭 ---
+# 매칭 규칙은 census 파이프라인(build_web_data.py)의 것을 그대로 쓴다.
+# 여기서 따로 정의하면 같은 후기가 채널마다 다른 매장명으로 잡혀 비교가 깨진다
+# (실제로 '롯데 광복점' vs '롯데 광복'처럼 갈렸다). 규칙은 한 곳에서만 고친다.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from build_web_data import (          # noqa: E402
+    SIDO, region_of, dept_store_of, STORE_EXCLUDE, STORE_REGION,
+)
 
-# 권역 외(타지역) → 집계 제외 신호
-OUT_REGION = ["서울", "강남", "압구정", "청담", "수원", "광주", "대구", "대전", "인천", "일산", "분당", "안산", "타임빌라스", "상남동"]
-
+# 전국 대상 — 대시보드가 전국 68개 매장을 다루므로 수집도 전국으로 맞춘다.
+# (예전에는 부울경 외 지역을 버렸다. 그러면 새 채널만 권역에 갇혀 범위가 어긋난다.)
 DEFAULT_QUERIES = [
     "혼수 가전 후기 삼성 LG",
     "신혼 가전 견적 후기",
-    "롯데 부산본점 혼수 가전",
-    "신세계 센텀시티 혼수 가전",
-    "롯데 센텀 혼수 가전",
-    "롯데 동래 혼수 가전",
-    "롯데 광복 혼수 가전",
-    "울산 롯데 혼수 가전",
-    "현대 울산 혼수 가전",
-    "창원 롯데 혼수 가전",
-    "마산 신세계 혼수 가전",
-    "김해 신세계 혼수 가전",
-    "진주 갤러리아 혼수 가전",
-]
+    "혼수 가전 발품 후기",
+    "가전 졸업 후기",
+    "웨딩 가전 구매 후기",
+    "신혼집 가전 패키지 후기",
+    "삼성스토어 혼수 가전 후기",
+    "LG 베스트샵 혼수 가전 후기",
+    "백화점 혼수 가전 견적",
+] + [f"{ch} {br} 혼수 가전" for ch, br in [
+    # 지역 대표 백화점 — 시도별로 고르게(전국 균등)
+    ("롯데", "잠실"), ("신세계", "강남"), ("현대", "판교"), ("더현대", "서울"),
+    ("롯데", "부산본점"), ("신세계", "센텀시티"), ("현대", "울산"), ("롯데", "창원"),
+    ("신세계", "대구"), ("롯데", "인천"), ("갤러리아", "타임월드"), ("신세계", "광주"),
+    ("롯데", "본점"), ("현대", "중동"), ("갤러리아", "광교"), ("AK", "평택"),
+]]
 
-CHANNEL_LABEL = {"naver-blog": "네이버 블로그", "busan-mom-cafe": "부울경 맘카페"}
+CHANNEL_LABEL = {"naver-blog": "네이버 블로그", "busan-mom-cafe": "맘카페"}
 PREFIX = {"naver-blog": "B", "busan-mom-cafe": "M"}
 
 PROFILE_DIR = ROOT / ".browser-profile"
@@ -141,23 +126,29 @@ def classify(text):
 
 
 def match_store(text):
-    """반환: (store_name, region) | (None, region) 권역만 | (None, None) 매칭불가
-       권역 외가 명확하면 ('__OUT__', None)."""
-    t = text.lower()
-    # 매장 직접 매칭 (단서 토큰 조합)
-    for name, region, rule_sets in STORE_RULES:
-        for toks in rule_sets:
-            if all(tok.lower() in t for tok in toks):
-                return name, region
-    # 권역 외 신호 (타지역 매장 언급) — 단, 권역 단서가 동시에 없을 때만
-    has_region = any(any(h.lower() in t for h in hints) for hints in REGION_HINTS.values())
-    if not has_region and any(o.lower() in t for o in OUT_REGION):
-        return "__OUT__", None
-    # 권역만 잡힘 → 매장 미상
-    for region, hints in REGION_HINTS.items():
-        if any(h.lower() in t for h in hints):
-            return None, region
-    return None, None
+    """반환: (store_name, region) | (None, region) 지역만 | (None, None) 매칭불가.
+    census와 같은 규칙을 쓰므로 매장명 표기가 채널 간에 일치한다.
+    전국 수집이라 '권역 외 제외(__OUT__)'는 더 이상 쓰지 않는다."""
+    region = region_of(text)
+    if not region:
+        return None, None
+    store = dept_store_of(text)
+    if store in STORE_EXCLUDE:
+        store = None
+    if store == "롯데 본점" and region == "부산":
+        store = "롯데 부산본점"          # 부산에서 '롯데 본점'은 부산본점
+    if store:
+        # 지점 토큰이 다른 시도를 가리키면 그 시도로 재배정(census와 동일)
+        br = store.split(" ")[-1]
+        rg2 = STORE_REGION.get(br)
+        if not rg2:
+            for tk, r in STORE_REGION.items():
+                if tk in br:
+                    rg2 = r
+                    break
+        if rg2:
+            region = rg2
+    return store, region
 
 
 def collect(source_id, search_type, queries, display, sort, out_date):
@@ -175,8 +166,6 @@ def collect(source_id, search_type, queries, display, sort, out_date):
                 continue
             brand, items, tone, is_ad = classify(text)
             store, region = match_store(text)
-            if store == "__OUT__":
-                continue  # 권역 외 집계 제외
             # 가전 신호 전무 + 브랜드 미상 → 잡음 제외
             if not items and brand == "기타/미상":
                 continue
@@ -216,9 +205,7 @@ def read_bodies(rows, headless, max_body):
             full = f"{r['title']} {r['desc']} {body}"
             brand, items, tone, _ad = classify(full)
             r["brand"], r["items"], r["tone"] = brand, items, tone
-            store, region = match_store(full)
-            if store != "__OUT__":
-                r["store"], r["region"] = store, region
+            r["store"], r["region"] = match_store(full)
             r["body_read"] = True
             read += 1
             page.wait_for_timeout(800)  # 완만한 속도 (개인 모니터링·ToS 준수)
@@ -300,19 +287,18 @@ def write_report(source_id, rows, out_date, query_count, body_read=0):
     L.append("")
     L.append(f"## 톤 (광고추정 제외): 긍정 {tone_cnt.get('긍정',0)} / 부정 {tone_cnt.get('부정',0)} / 중립 {tone_cnt.get('중립',0)}")
     L.append("")
-    L.append("## 매장 매칭 — 권역 12개점 (광고추정 제외, 매장 특정분)")
+    L.append("## 매장 매칭 — 전국 백화점 (광고추정 제외, 매장 특정분)")
     if store_sl:
-        L.append("| 매장 | 권역 | 삼성 | LG | 양사 |")
+        L.append("| 매장 | 지역 | 삼성 | LG | 양사 |")
         L.append("|---|---|---|---|---|")
-        for name, _r, _rules in STORE_RULES:
-            if name in store_sl:
-                d = store_sl[name]
-                L.append(f"| {name} | {d['region']} | {d['삼성']} | {d['LG']} | {d['삼성·LG']} |")
+        for name in sorted(store_sl, key=lambda n: -(store_sl[n]['삼성'] + store_sl[n]['LG'])):
+            d = store_sl[name]
+            L.append(f"| {name} | {d['region']} | {d['삼성']} | {d['LG']} | {d['삼성·LG']} |")
         L.append("")
-        L.append("**권역 합계(매장 특정분, 삼성 vs LG)**")
-        L.append("| 권역 | 삼성 | LG |")
+        L.append("**지역 합계(매장 특정분, 삼성 vs LG)**")
+        L.append("| 지역 | 삼성 | LG |")
         L.append("|---|---|---|")
-        for rg in ["부산", "울산", "경남"]:
+        for rg in sorted(region_sl, key=lambda r: -(region_sl[r]['삼성'] + region_sl[r]['LG'])):
             L.append(f"| {rg} | {region_sl[rg]['삼성']} | {region_sl[rg]['LG']} |")
     else:
         L.append("_매장 특정 단서 없음 — 전량 매장 미상._")
