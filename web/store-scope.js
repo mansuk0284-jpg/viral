@@ -7,9 +7,15 @@
   "use strict";
   const CD = window.CAFE_DATA || {};
   const MY = ["부산", "울산", "경남"];          // 우리 권역 — 항상 최상단
+  const VF = window.VFACT || null;
 
   const fmtN = (n) => (n || 0).toLocaleString("ko-KR");
   const pct = (a, b) => (a + b > 0 ? Math.round((a / (a + b)) * 100) : 0);
+
+  /* 화면 상태 — 매장 + 조회 기간(직접 입력). 기본은 전체 수집 구간 */
+  const st = { name: null, range: null };
+  const isCus = () => !!(st.range && VF);
+  const cus = () => VF.agg(st.range.a, st.range.b);
 
   /* 채널 정의 — 히어로 타일과 동일한 축. 다이렉트만 실데이터 */
   const CHANNELS = [
@@ -39,12 +45,35 @@
     return k ? src[k] : null;
   }
   function storeRow(name) {
-    const S = CD.stores || {};
+    const S = isCus() ? cus().stores : (CD.stores || {});
     for (const rg of Object.keys(S)) {
       const hit = S[rg].find((x) => x.n === name);
       if (hit) return { rg, s: hit.s, l: hit.l };
     }
+    // 지정 구간에 표본이 없으면 지역만이라도 유지해 화면이 무너지지 않게 한다
+    if (isCus()) {
+      const A = CD.stores || {};
+      for (const rg of Object.keys(A)) {
+        if (A[rg].some((x) => x.n === name)) return { rg, s: 0, l: 0 };
+      }
+    }
     return null;
+  }
+  /* 선택 기간의 매장 상세(품목·계약·후기 스타) — 지정 구간이면 팩트에서 계산 */
+  function detailOf(name) {
+    if (!isCus()) {
+      return { items: (pick(CD.storeDetail, name) || {}).items || [],
+               ext: pick(CD.extStore, name), mgr: pick(CD.mgrStore, name) };
+    }
+    const a = cus();
+    return { items: VF.top(a.storeItems[name], 1, 3),
+             ext: a.ext.store[name] || null,
+             mgr: a.mgrStore[name] || null };
+  }
+  /* 지역 내 매장 목록 — 순위·평균 계산용 */
+  function siblings(rg) {
+    const S = isCus() ? cus().stores : (CD.stores || {});
+    return (S[rg] || []).slice().sort((a, b) => (b.s + b.l) - (a.s + a.l));
   }
 
   /* ── 선택바 렌더 ── */
@@ -87,12 +116,15 @@
       return `<div class="cx-card ${ch.cls}"><div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +
         `<div class="cx-empty"><em>표본 없음</em><span>이 매장 후기가 확인되지 않았습니다</span></div></div>`;
     }
+    if (!(row.s + row.l)) {
+      return `<div class="cx-card ${ch.cls}"><div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +
+        `<div class="cx-empty"><em>표본 없음</em><span>이 기간에는 후기가 없습니다</span></div></div>`;
+    }
     const tot = row.s + row.l, sh = pct(row.s, row.l);
     const lead = row.s > row.l ? "s" : row.l > row.s ? "l" : "even";
-    const det = pick(CD.storeDetail, name);
-    const ext = pick(CD.extStore, name);
-    const mgr = pick(CD.mgrStore, name);
-    const items = (det && det.items) ? det.items.slice(0, 3) : [];
+    const D = detailOf(name);
+    const ext = D.ext, mgr = D.mgr;
+    const items = (D.items || []).slice(0, 3);
     const star = mgr && mgr.names && mgr.names.length ? mgr.names[0] : null;
     return `<div class="cx-card cx-live ${ch.cls}">` +
       `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i></div>` +
@@ -115,6 +147,21 @@
       `</div>`;
   }
 
+  /* 기간 직접 입력 — 카페 분석 화면과 같은 조작 방식 */
+  function rangeBox() {
+    if (!VF) return "";
+    const a = (st.range && st.range.a) || VF.d0;
+    const b = (st.range && st.range.b) || VF.d1;
+    return `<span class="ca-range${isCus() ? " on" : ""}">` +
+      `<span class="car-lb">기간 직접 입력</span>` +
+      `<input type="date" class="car-d" id="sxA" value="${a}" min="${VF.d0}" max="${VF.d1}" aria-label="시작일">` +
+      `<i class="car-tilde">~</i>` +
+      `<input type="date" class="car-d" id="sxB" value="${b}" min="${VF.d0}" max="${VF.d1}" aria-label="종료일">` +
+      `<button type="button" class="car-go" id="sxGo">적용</button>` +
+      (isCus() ? `<button type="button" class="car-off" id="sxOff" title="전체 기간으로">해제</button>` : "") +
+      `</span>`;
+  }
+
   /* ── 대시보드 렌더 ── */
   function render(name) {
     const row = storeRow(name);
@@ -124,8 +171,7 @@
     const tot = row ? row.s + row.l : 0;
     const sh = row ? pct(row.s, row.l) : 0;
     // 지역 내 순위
-    const S = CD.stores || {};
-    const sib = (S[rg] || []).slice().sort((a, b) => (b.s + b.l) - (a.s + a.l));
+    const sib = siblings(rg);
     const rank = sib.findIndex((x) => x.n === name) + 1;
     const agg = sib.reduce((o, x) => (o.s += x.s, o.l += x.l, o), { s: 0, l: 0 });
     const rSh = pct(agg.s, agg.l);
@@ -134,7 +180,9 @@
       `<div class="cx-top">` +
       `<button type="button" class="cx-back" id="cxBack">‹ 처음으로</button>` +
       `<div class="cx-title"><h2>${name}</h2>` +
-      `<span>${rg}${isMine ? " · <b>우리 권역</b>" : ""} · 채널 ${CHANNELS.length}개 중 <b>${live}개</b> 수집 완료</span></div>` +
+      `<span>${rg}${isMine ? " · <b>우리 권역</b>" : ""} · 채널 ${CHANNELS.length}개 중 <b>${live}개</b> 수집 완료` +
+      `${isCus() ? ` · <b>${VF.label(st.range.a, st.range.b)}</b>` : ""}</span></div>` +
+      rangeBox() +
       `</div>` +
       `<div class="cx-body">` +
       `<div class="cx-left">` +
@@ -149,25 +197,44 @@
       `<div class="${diff >= 0 ? "up" : "down"}"><b>${diff >= 0 ? "+" : ""}${diff}<i>p</i></b><span>지역평균 대비</span></div>` +
       `<div><b>${sib.length}<i>곳</i></b><span>${rg} 매장</span></div>` +
       `</div>` +
-      `<p class="cx-note">⚠ 현재는 <b>다이렉트결혼준비</b> 채널만 수집 완료 — 나머지 채널은 수집 후 자동 반영됩니다.</p>` +
+      `<p class="cx-note">⚠ 현재는 <b>다이렉트결혼준비</b> 채널만 수집 완료 — 나머지 채널은 수집 후 자동 반영됩니다.` +
+      `${isCus() ? "<br>표시 수치는 지정하신 기간만 잘라 집계한 값입니다." : ""}</p>` +
       `</div></div>` +
       `<div class="cx-grid">${CHANNELS.map((c) => channelCard(c, name)).join("")}</div>` +
       `</div></div>`;
+  }
+
+  function paint(host) {
+    host.innerHTML = render(st.name);
+    const back = host.querySelector("#cxBack");
+    if (back) back.addEventListener("click", () => {
+      document.body.classList.remove("view-cx");
+      st.range = null;
+      if (window.showIntro) window.showIntro();
+    });
+    const go = host.querySelector("#sxGo");
+    if (go) go.addEventListener("click", () => {
+      const A = host.querySelector("#sxA"), B = host.querySelector("#sxB");
+      const r = VF.clamp(A && A.value, B && B.value);
+      st.range = { a: r[0], b: r[1] };
+      paint(host);
+    });
+    const off = host.querySelector("#sxOff");
+    if (off) off.addEventListener("click", () => { st.range = null; paint(host); });
+    host.querySelectorAll(".car-d").forEach((el) => el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); const g = host.querySelector("#sxGo"); if (g) g.click(); }
+    }));
   }
 
   function openStoreScope(name) {
     const host = document.getElementById("channelPanel");
     const sec = document.getElementById("channel");
     if (!host || !sec) return;
-    host.innerHTML = render(name);
+    st.name = name; st.range = null;
+    paint(host);
     sec.hidden = false;
     document.body.classList.add("mode-results", "view-channel", "view-cx");
     window.scrollTo({ top: 0, behavior: "auto" });
-    const back = document.getElementById("cxBack");
-    if (back) back.addEventListener("click", () => {
-      document.body.classList.remove("view-cx");
-      if (window.showIntro) window.showIntro();
-    });
   }
 
   window.openStoreScope = openStoreScope;

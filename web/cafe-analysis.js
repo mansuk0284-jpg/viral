@@ -64,16 +64,24 @@
 
   // 상태: 기간 + 드릴 레벨 — 기본은 데이터의 마지막(당월)
   const LAST_M = MONTHS.length ? MONTHS[MONTHS.length - 1][0] : "2026-05";
-  const st = { period: LAST_M, level: "nation", region: null, store: null };
+  // range: 사용자가 날짜를 직접 지정한 구간 {a,b}. 지정되면 period는 "custom"이 되고
+  //        모든 집계가 팩트 테이블(VFACT)에서 그 구간만 잘라 계산된다.
+  const st = { period: LAST_M, range: null, level: "nation", region: null, store: null };
+  const VF = window.VFACT || null;
+  const isCus = () => !!(st.range && VF);
+  /* 지정 구간 집계(캐시됨) */
+  function cus() { return VF.agg(st.range.a, st.range.b); }
 
   function monthsFor(k) {
+    if (k === "custom" && isCus()) return cus().months;
     if (k === "all") return MONTHS;
     if (/^\d{4}$/.test(k)) return MONTHS.filter((r) => r[0].slice(0, 4) === k);
     if (/^\d{4}-\d\d$/.test(k)) return MONTHS.filter((r) => r[0] === k);
     return [];
   }
   const isPend = () => false;   // census 전구간 확보 — 수집중 구간 없음
-  const perLab = (k) => (PERIODS.find((p) => p.k === k) || {}).lab || k;
+  const perLab = (k) => (k === "custom" && isCus()) ? VF.label(st.range.a, st.range.b)
+    : ((PERIODS.find((p) => p.k === k) || {}).lab || k);
 
   function regionRoll() {
     const R = {};
@@ -93,12 +101,14 @@
   /* 매장 단위 기간 키 — 월(YYYY-MM)은 표본이 희박해 해당 연도로 폴백 */
   function storePeriodKey() {
     const p = st.period;
+    if (p === "custom") return "custom";
     if (p === "all") return "all";
     if (/^\d{4}-\d\d$/.test(p)) return p.slice(0, 4);
     return p;
   }
   /* 선택 기간의 매장 목록(지역별). 없으면 전체 */
   function periodStores(rg) {
+    if (isCus()) return (cus().stores[rg] || []).map((x) => ({ name: x.n, s: x.s, l: x.l }));
     const PS = (CD && CD.periodStores) || {};
     const k = storePeriodKey();
     const m = PS[k] || PS.all || {};
@@ -106,6 +116,12 @@
   }
   /* 선택 기간의 품목 상세 */
   function periodItems(kind, key) {
+    if (isCus()) {
+      const src = kind === "store" ? cus().storeItems : cus().regionItems;
+      const m = src[key] || src[Object.keys(src).find((x) => key.indexOf(x) === 0 || x.indexOf(key) === 0)];
+      const out = VF.top(m, kind === "store" ? 3 : 5, 6);
+      return out.length ? out : null;
+    }
     const SRC = (CD && CD[kind === "store" ? "periodStoreItems" : "periodRegionItems"]) || {};
     const k = storePeriodKey();
     const m = SRC[k] || SRC.all || {};
@@ -116,6 +132,17 @@
 
   /* 선택 기간의 분석 묶음(지역·품목·혜택·비교). 없으면 전체로 폴백 */
   function perData() {
+    if (isCus()) {
+      const a = cus();
+      // 기간 탭과 같은 소표본 컷을 적용해 노이즈를 막는다(지역 3, 품목 5, 혜택 3)
+      const cut = (src, n) => {
+        const o = {};
+        Object.keys(src).forEach((k) => { if (src[k].s + src[k].l >= n) o[k] = src[k]; });
+        return o;
+      };
+      return { regions: cut(a.regions, 3), items: cut(a.items, 5),
+               benefit: cut(a.benefit, 3), compare: a.compare };
+    }
     const BP = (CD && CD.byPeriod) || {};
     return BP[st.period] || BP.all || {};
   }
@@ -275,13 +302,29 @@
         part: p === "2024", geo: true };
     }
     const R = regionRoll();
-    const geoNote = /^2026/.test(p) || p === "all" ? "" : "지역·매장 분해는 2026 누적 기준만 제공(과거 기간은 백필 통합 후)";
+    // 지정 구간은 팩트 테이블에서 지역·매장까지 그대로 분해되므로 경고가 필요 없다
+    const geoNote = (isCus() || /^2026/.test(p) || p === "all") ? ""
+      : "지역·매장 분해는 2026 누적 기준만 제공(과거 기간은 백필 통합 후)";
     if (st.level === "bu") {
+      if (isCus()) {
+        const rows = REGIONS.map((rg) => {
+          const ps = periodStores(rg);
+          return { rg, s: ps.reduce((a, x) => a + x.s, 0), l: ps.reduce((a, x) => a + x.l, 0) };
+        });
+        const s = rows.reduce((a, x) => a + x.s, 0), l = rows.reduce((a, x) => a + x.l, 0);
+        return { title: "부울경", sub: perLab(p), s, l, trend: vsBars(s, l), geoNote, regions: rows };
+      }
       const s = STORES.reduce((a, x) => a + x[2], 0), l = STORES.reduce((a, x) => a + x[3], 0);
       return { title: "부울경", sub: "2026 누적", s, l, trend: vsBars(s, l),
         geoNote, regions: REGIONS.map((rg) => ({ rg, s: R[rg].s, l: R[rg].l })) };
     }
     if (st.level === "region") {
+      if (isCus()) {
+        const ps = periodStores(st.region);
+        const gr0 = geoRegions()[st.region] || { s: 0, l: 0 };
+        return { title: st.region, sub: `매장별 · ${perLab(p)}`, s: gr0.s, l: gr0.l,
+          trend: vsBars(gr0.s, gr0.l), geoNote: "", stores: ps };
+      }
       const rs = R[st.region];   // 부울경 본문매칭(정확)
       if (rs) {
         // 매장 목록은 기간 연동 집계를 우선 사용(없을 때만 본문매칭 고정본)
@@ -323,6 +366,7 @@
 
   /* 지역 내 매장 목록(정렬됨) — 순위·평균 계산 공용 */
   function storesOfRegion(rg) {
+    if (isCus()) return periodStores(rg);
     const R = regionRoll()[rg];
     if (R) return R.stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l));
     const bs = (CD && CD.bodyStores && CD.bodyStores[rg]) || (CD && CD.stores && CD.stores[rg]) || [];
@@ -336,6 +380,21 @@
       PERIODS.map((p) => `<button type="button" data-per="${p.k}" class="${st.period === p.k ? "on" : ""}${p.pend ? " pend" : ""}"` +
         `${p.pend ? ' title="2021~2023 후기는 현재 백필 수집 중 — 통합되면 활성화됩니다"' : ""}>${p.lab}${p.pend ? " ·수집중" : ""}</button>`).join("") +
       `</div>`;
+  }
+
+  /* 기간 직접 입력 — 버튼(전체/연도/월)과 나란히. 하루 단위로 잘라 집계한다 */
+  function rangeBox() {
+    if (!VF) return "";
+    const a = (st.range && st.range.a) || VF.d0;
+    const b = (st.range && st.range.b) || VF.d1;
+    return `<span class="ca-range${isCus() ? " on" : ""}">` +
+      `<span class="car-lb">기간 직접 입력</span>` +
+      `<input type="date" class="car-d" id="carA" value="${a}" min="${VF.d0}" max="${VF.d1}" aria-label="시작일">` +
+      `<i class="car-tilde">~</i>` +
+      `<input type="date" class="car-d" id="carB" value="${b}" min="${VF.d0}" max="${VF.d1}" aria-label="종료일">` +
+      `<button type="button" class="car-go" id="carGo">적용</button>` +
+      (isCus() ? `<button type="button" class="car-off" id="carOff" title="기간 버튼으로 되돌리기">해제</button>` : "") +
+      `</span>`;
   }
   function crumb() {
     if (st.level === "nation") return "";   // 전사 단일 항목은 숨김(중복)
@@ -604,12 +663,14 @@
   }
 
   function regionDetailOf(rg) {
+    if (isCus()) return VF.detail(cus(), "region", rg);
     const RD = (CD && CD.regionDetail) || {};
     return RD[rg] || null;
   }
 
   /* ── 매장 상세 데이터 조회(표기 차 흡수) ── */
   function storeDetailOf(name) {
+    if (isCus()) return VF.detail(cus(), "store", name);
     const SD = (CD && CD.storeDetail) || {};
     if (SD[name]) return SD[name];
     const k = Object.keys(SD).find((x) => name.indexOf(x) === 0 || x.indexOf(name) === 0);
@@ -636,7 +697,9 @@
 
   /* ── 계약 규모·리스크 카드 — 객단가 프록시(패키지 규모)와 불만 신호 ── */
   function scaleCard(kind, key, regionKey) {
-    const SRC = (CD && CD[kind === "store" ? "extStore" : "extRegion"]) || {};
+    const A = isCus() ? cus() : null;
+    const SRC = A ? A.ext[kind === "store" ? "store" : "region"]
+                  : ((CD && CD[kind === "store" ? "extStore" : "extRegion"]) || {});
     let d = SRC[key];
     if (!d) {
       const hit = Object.keys(SRC).find((x) => key.indexOf(x) === 0 || x.indexOf(key) === 0);
@@ -644,7 +707,7 @@
     }
     if (!d) return "";
     // 비교 기준: 매장이면 소속 지역, 지역이면 전국 평균
-    const BASE = (CD && CD.extRegion) || {};
+    const BASE = A ? A.ext.region : ((CD && CD.extRegion) || {});
     let base = null;
     if (kind === "store" && regionKey && BASE[regionKey]) base = BASE[regionKey];
     else {
@@ -681,8 +744,9 @@
 
   /* ── 매장 페이지: 매니저(프로·명장) 실명 후기 경쟁력 ── */
   function mgrBlock(storeName, c) {
-    const MS = (CD && CD.mgrStore) || {};
-    const G = (CD && CD.mgr) || null;
+    // 지정 구간이면 그 구간의 매니저 언급 집계를 쓴다(실명 TOP은 팩트에 없어 생략)
+    const MS = isCus() ? cus().mgrStore : ((CD && CD.mgrStore) || {});
+    const G = isCus() ? cus().mgr : ((CD && CD.mgr) || null);
     // 매장 키 정규화(‘신세계 센텀시티’ ↔ 데이터의 ‘신세계 센텀’ 같은 표기 차 흡수)
     let key = null;
     if (MS[storeName]) key = storeName;
@@ -1101,6 +1165,7 @@
       `<span class="cpn-cur">${perLab(st.period)}<i>기간 ▸</i></span>` +
       nav() +
       `</div>` +
+      rangeBox() +          // 직접 입력은 접히지 않고 항상 보이는 자리에
       `</div>` +
       crumb() + mid +
       `<div class="ca-botrow ca-botrow-r">` +
@@ -1112,6 +1177,14 @@
   function rerender(host) { host.innerHTML = render(); if (st.level === "nation") paintGeo(host); }
 
   function bind(host) {
+    // 날짜 칸에서 Enter → 적용 (버튼까지 옮겨가지 않아도 되도록)
+    host.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.target.classList.contains("car-d")) {
+        e.preventDefault();
+        const go = host.querySelector("#carGo");
+        if (go) go.click();
+      }
+    });
     host.addEventListener("click", (e) => {
       // 분석 카드 열기/닫기 (상세가 영역 전체를 덮음)
       if (e.target.closest(".fc-open")) {
@@ -1125,10 +1198,21 @@
         if (card) card.classList.remove("is-open");
         return;
       }
+      if (e.target.closest("#carGo")) {
+        const A = host.querySelector("#carA"), B = host.querySelector("#carB");
+        const r = VF.clamp(A && A.value, B && B.value);
+        st.range = { a: r[0], b: r[1] };
+        st.period = "custom";
+        rerender(host); return;
+      }
+      if (e.target.closest("#carOff")) {
+        st.range = null; st.period = LAST_M;
+        rerender(host); return;
+      }
       const per = e.target.closest("button[data-per]");
       if (per) {
-        if (per.classList.contains("pend")) { st.period = per.getAttribute("data-per"); }
-        else st.period = per.getAttribute("data-per");
+        st.range = null;                       // 기간 버튼을 누르면 직접 입력은 해제
+        st.period = per.getAttribute("data-per");
         rerender(host); return;
       }
       const lv = e.target.closest("button[data-lv]");
@@ -1178,7 +1262,7 @@
   function openCafeAnalysis() {
     const host = document.getElementById("channelPanel");
     if (!host) return;
-    st.period = LAST_M; st.level = "nation"; st.region = null; st.store = null;
+    st.period = LAST_M; st.range = null; st.level = "nation"; st.region = null; st.store = null;
     host.innerHTML = render();
     if (st.level === "nation") paintGeo(host);
     const sec = document.getElementById("channel");

@@ -413,7 +413,7 @@ body.view-cafe #channel .container { padding: 0 18px; max-width: min(1560px, 96v
 .ca2 .ca-htext h2 { font-size: clamp(21px, 2.4vw, 27px); }
 .ca2 .ca-sub { font-size: 13px; }
 /* 아이콘 — 기간 버튼 한 줄 배치 */
-.ca-head-row { align-items: center; }
+.ca-head-row { display: flex; align-items: center; }
 /* 아이콘 hover → 기간이 우측으로 펼쳐짐 */
 .ca-periodnav { display: inline-flex; align-items: center; gap: 0; }
 .ca-periodnav .ca-ic { cursor: pointer; transition: transform .2s ease; }
@@ -425,7 +425,10 @@ body.view-cafe #channel .container { padding: 0 18px; max-width: min(1560px, 96v
 /* 기간 네비: 기본 접힘(폭 0), hover/focus 시 우측으로 슬라이드 펼침 */
 .ca-head-row .ca-nav { margin: 0 0 0 11px; max-width: 0; opacity: 0; overflow: hidden;
   transition: max-width .45s cubic-bezier(.22,1,.36,1), opacity .3s ease; flex-wrap: nowrap; }
-.ca-periodnav:hover .ca-nav, .ca-periodnav:focus-within .ca-nav { max-width: min(1100px, 80vw); opacity: 1; }
+/* 펼침 폭은 '직접 입력' 자리를 뺀 만큼만 — 입력칸이 화면 밖으로 밀리지 않게 한다.
+   폭이 모자라면 버튼이 두 줄로 접힌다(잘라내지 않는다). */
+.ca-periodnav:hover .ca-nav, .ca-periodnav:focus-within .ca-nav {
+  max-width: min(1100px, calc(96vw - 500px)); opacity: 1; flex-wrap: wrap; }
 .ca-periodnav:hover .cpn-cur, .ca-periodnav:focus-within .cpn-cur { opacity: 0; max-width: 0; margin: 0; overflow: hidden; }
 /* 하단 페이저(작게, 우측) + 각주 한 줄 배치 */
 .ca-botrow { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-top: 2px; }
@@ -453,6 +456,27 @@ body.view-cafe .back-float { display: none !important; }
 .ca-nav button.on { background: #1f5fd0; border-color: #1f5fd0; color: #fff; box-shadow: 0 6px 16px rgba(31,95,208,0.28); }
 .ca-nav button.pend { color: #b0bacb; border-style: dashed; cursor: help; }
 .ca-nav button.pend.on { background: #9aa7bd; border-color: #9aa7bd; color: #fff; }
+/* 기간 직접 입력 — 기간 네비 바깥(접히지 않는 자리)에 항상 노출 */
+.ca-head-row > .ca-range { margin-left: auto; flex-shrink: 0; }
+.ca-range { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px;
+  padding: 5px 10px 5px 12px; border-radius: 999px; white-space: nowrap;
+  border: 1px dashed rgba(31,95,208,0.34); background: rgba(31,95,208,0.045); }
+.ca-range.on { border-style: solid; border-color: #1f5fd0; background: rgba(31,95,208,0.1); }
+.car-lb { font-size: 12px; font-weight: 800; color: #1f5fd0; letter-spacing: -.2px; }
+.car-d { font: inherit; font-size: 13px; font-weight: 700; color: var(--text);
+  border: 1px solid rgba(23,42,66,0.14); background: #fff; border-radius: 8px;
+  padding: 5px 8px; line-height: 1.1; }
+.car-d:focus { outline: 2px solid rgba(31,95,208,0.35); outline-offset: 1px; }
+.car-tilde { font-style: normal; font-weight: 800; color: var(--muted); }
+.car-go, .car-off {
+  border: 1px solid rgba(23,42,66,0.12); border-radius: 9px; padding: 6px 12px;
+  font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; white-space: nowrap;
+  transition: all .15s ease;
+}
+.car-go { background: #1f5fd0; border-color: #1f5fd0; color: #fff; }
+.car-go:hover { background: #1850b0; }
+.car-off { background: #fff; color: var(--text); }
+.car-off:hover { background: #f2f5fa; }
 /* 브레드크럼 */
 .ca-crumb { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .ca-crumb button { border: 0; background: none; font: inherit; font-size: 14.5px; font-weight: 700; color: var(--muted); cursor: pointer; padding: 3px 6px; border-radius: 8px; }
@@ -1196,6 +1220,14 @@ body.view-cafe .sc-kpis { gap: 5px; }
 body.view-cx #channel.section { padding: 20px 0 14px; }
 .cx-wrap { display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0; }
 .cx-top { display: flex; align-items: center; gap: 14px; }
+.cx-top .ca-range { margin-left: auto; }   /* 기간 입력은 헤더 우측 끝에 */
+.cx-top .car-go, .cx-top .car-off {
+  border: 1px solid rgba(23,42,66,0.12); border-radius: 9px; padding: 6px 12px;
+  font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+.cx-top .car-go { background: #1f5fd0; border-color: #1f5fd0; color: #fff; }
+.cx-top .car-go:hover { background: #1850b0; }
+.cx-top .car-off { background: #fff; color: var(--text); }
 .cx-back { flex-shrink: 0; border: 1px solid rgba(23,42,66,0.14); background: rgba(255,255,255,0.8);
   border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 800;
   color: var(--text); cursor: pointer; }

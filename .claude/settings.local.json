@@ -217,7 +217,11 @@
       "Bash(timeout 500 python scripts/build_web_data.py)",
       "WebFetch(domain:www.apple.com)",
       "Bash(git -C .. show HEAD~1:web/index.html)",
-      "Bash(git -C .. show HEAD~1:web/styles.css)"
+      "Bash(git -C .. show HEAD~1:web/styles.css)",
+      "Bash(python scripts/build_web_data.py)",
+      "Bash(python -c *)",
+      "Bash(sed -i 's/store-scope.js?v=2026r1\"/store-scope.js?v=2026r2\"/; s/cafe-analysis.css?v=2026r80/cafe-analysis.css?v=2026r81/' index.html)",
+      "Bash(node -e \"['fact.js','cafe-analysis.js','store-scope.js'].forEach\\(f=>{new Function\\(require\\('fs'\\).readFileSync\\(f,'utf8'\\)\\);console.log\\('OK',f\\)}\\)\")"
     ]
   }
 }

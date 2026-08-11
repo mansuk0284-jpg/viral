@@ -91,6 +91,10 @@ BENEFITS = {
     "임직원가": ["임직원", "직원가"], "전시품": ["전시품", "전시상품"],
 }
 
+# 팩트 테이블 비트 순서 — 웹에서 그대로 쓰므로 순서를 바꾸면 재생성 필요
+ITEM_KEYS = list(ITEMS)
+BEN_KEYS = list(BENEFITS)
+
 RETAILERS = {
     "삼성스토어": ["삼성스토어", "디지털프라자", "디지탈프라자", "삼성전자판매"],
     "LG베스트샵": ["베스트샵", "베스트샾", "하이프라자", "LG전자베스트"],
@@ -247,6 +251,15 @@ def main():
     ext_store = defaultdict(lambda: {"pkg": [], "neg": 0, "tot": 0, "price": []})
     ext_region = defaultdict(lambda: {"pkg": [], "neg": 0, "tot": 0, "price": []})
 
+    # ── 일(日) 단위 팩트 테이블 ──
+    # 기간 탭(전체/연도/월)은 미리 집계해 두면 되지만, 사용자가 날짜를 직접 지정하는
+    # 임의 구간(예: 2025-03-15 ~ 2026-02-20)은 미리 만들 수 없다. 그래서 후기 1건을
+    # (일자, 브랜드, 위치, 품목비트, 혜택비트, 플래그) 튜플로 압축해 두고
+    # 화면에서 구간을 잘라 그때그때 합산한다. 같은 튜플은 건수로 접어 크기를 줄인다.
+    fact_rows = Counter()
+    fact_day = {}       # 원본 날짜 문자열 보관용(최소·최대 산출)
+    fact_price = []     # 계약 금액은 언급이 드물어(수백 건) 별도 희소 목록으로 보관
+
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
         if not (s or l):
@@ -257,6 +270,9 @@ def main():
         if ym and ym < "2021-01":
             continue
         single_s, single_l = (s and not l), (l and not s)
+        # 팩트 테이블용 — 이 후기의 위치(지역/매장)는 아래 매칭 블록에서 확정된다
+        f_day = (r.get("addDate") or "")[:10]
+        f_rg = f_srg = f_st = None
 
         tot += 1
         if ym:
@@ -317,6 +333,7 @@ def main():
 
         rg = region_of(txt)
         if rg and (single_s or single_l):
+            f_rg = rg
             regions[rg]["s" if single_s else "l"] += 1
             # 지역 상세 — 품목·혜택·월별·비교상담 (매장 유무와 무관하게 지역 전체)
             rd = rdet[rg]
@@ -365,6 +382,9 @@ def main():
                             break
                 if _rg2 and _rg2 != rg:
                     rg = _rg2
+                # 지역 축(regions/byPeriod)은 본문 추정 지역을, 매장 축(stores)은
+                # 지점 토큰으로 재배정한 지역을 쓴다 — 기존 집계와 같은 기준을 유지한다
+                f_srg, f_st = rg, st
                 es = ext_store[st]
                 es["tot"] += 1
                 if nItem:
@@ -398,6 +418,25 @@ def main():
                         for nm, ttl in MGR_NAME.findall(txt):
                             if nm not in NOT_NAME and len(nm) >= 2:
                                 m["names"][nm + " " + ttl] += 1
+
+        # ── 팩트 행 적재(임의 기간 집계용) ──
+        if bk and f_day:
+            im = 0
+            for _i, _nm in enumerate(ITEM_KEYS):
+                if any(w in txt for w in ITEMS[_nm]):
+                    im |= 1 << _i
+            bnm = 0
+            for _i, _nm in enumerate(BEN_KEYS):
+                if any(w in txt for w in BENEFITS[_nm]):
+                    bnm |= 1 << _i
+            fl = (1 if COMPARE_RE.search(txt) else 0) \
+                | (2 if hasMgr else 0) \
+                | (4 if NEG_RE.search(txt) else 0)
+            fact_rows[(f_day, 0 if bk == "s" else 1, f_rg or "", f_srg or "", f_st or "", im, bnm, fl)] += 1
+            fact_day[f_day] = 1
+            _pm = PRICE_RE.search(txt)
+            if _pm and 200 <= int(_pm.group(1)) <= 5000:
+                fact_price.append([f_day, f_rg or "", f_srg or "", f_st or "", int(_pm.group(1))])
 
     months_arr = [[m, v[0], v[1], v[2]] for m, v in sorted(months.items()) if m >= "2021-01"]
     stores_out = {}
@@ -513,6 +552,83 @@ def main():
                                 for pk, m in per_sdet.items()}
     data["periodRegionItems"] = {pk: {rg: top_items(d, 5) for rg, d in m.items() if top_items(d, 5)}
                                  for pk, m in per_rdet.items()}
+
+    # ── 일 단위 팩트 테이블 직렬화 ──
+    # 매장은 화면에 쓰는 매장(표본 기준 통과분)만 싣는다. 그 외는 지역까지만 인정.
+    # 화면에 이름이 뜨는 매장 = 전역 목록 ∪ 기간별 목록(기간을 좁히면 전역 최소표본에
+    # 못 미치는 매장도 그 기간에는 유효한 표본이 된다)
+    ok_stores = sorted({x["n"] for lst in stores_out.values() for x in lst}
+                       | {x["n"] for m in ps_out.values() for lst in m.values() for x in lst})
+    rg_list = sorted({k for k in regions})
+    rg_ix = {n: i for i, n in enumerate(rg_list)}
+    st_ix = {n: i for i, n in enumerate(ok_stores)}
+
+    # 위치 코드 = 실제로 나타난 (지역, 매장지역, 매장) 조합의 목록 인덱스.
+    # 매장에서 지역을 역산하면 안 된다 — '롯데 본점'처럼 서울·경기 양쪽에
+    # 걸친 표기가 있어 한쪽으로 몰리면 지역 집계가 어긋난다.
+    loc_ix = {(-1, -1, -1): 0}
+    loc_list = [[-1, -1, -1]]
+
+    def loc_of(rgn, srg, stn):
+        ri = rg_ix.get(rgn, -1) if rgn else -1
+        si = st_ix.get(stn, -1) if stn else -1
+        sr = rg_ix.get(srg, -1) if (srg and si >= 0) else -1
+        if si < 0:
+            sr = -1
+        key = (ri, sr, si)
+        if key not in loc_ix:
+            loc_ix[key] = len(loc_list)
+            loc_list.append([ri, sr, si])
+        return loc_ix[key]
+
+    days = sorted(fact_day)
+    d0 = days[0] if days else "2021-01-01"
+    from datetime import date, timedelta
+    y0, m0, dd0 = (int(x) for x in d0.split("-"))
+    base = date(y0, m0, dd0)
+    span = (date(*(int(x) for x in days[-1].split("-"))) - base).days + 1 if days else 0
+
+    prepped = []
+    for (day, b, rgn, srg, stn, im, bnm, fl), cnt in fact_rows.items():
+        idx = (date(*(int(x) for x in day.split("-"))) - base).days
+        prepped.append((idx, b, loc_of(rgn, srg, stn), im, bnm, fl, cnt))
+    # 위치 코드는 아래 비트 폭 계산 전에 모두 확정돼야 한다(나중에 늘면 폭이 모자란다)
+    pr_prepped = [[(date(*(int(x) for x in p[0].split("-"))) - base).days,
+                   loc_of(p[1], p[2], p[3]), p[4]] for p in fact_price]
+
+    # 비트 폭은 사전 크기에서 계산해 데이터에 함께 싣는다.
+    # (품목·혜택·매장이 늘면 폭도 같이 늘어야 한다. 고정값으로 두면 넘친 비트가
+    #  옆 필드를 오염시켜 조용히 틀린 집계가 나온다 — 실제로 혜택 6종/5비트에서 발생)
+    W_LOC = max(1, (len(loc_list) - 1).bit_length())
+    W_IT, W_BN, W_FL = len(ITEM_KEYS), len(BEN_KEYS), 3
+    SH_LOC, SH_IT = 1, 1 + W_LOC
+    SH_BN = SH_IT + W_IT
+    SH_FL = SH_BN + W_BN
+    assert SH_FL + W_FL <= 31, "팩트 비트 폭 초과 — 인코딩 재설계 필요"
+
+    buckets = [[] for _ in range(span)]
+    for idx, b, loc, im, bnm, fl, cnt in prepped:
+        v = b | (loc << SH_LOC) | (im << SH_IT) | (bnm << SH_BN) | (fl << SH_FL)
+        buckets[idx].append(v if cnt == 1 else (v, cnt))
+
+    def enc(cell):
+        if isinstance(cell, tuple):
+            return format(cell[0], "x") + "*" + format(cell[1], "x")
+        return format(cell, "x")
+
+    data["fact"] = {
+        "d0": d0,
+        "d1": days[-1] if days else d0,
+        "rg": rg_list,
+        "st": ok_stores,
+        "loc": loc_list,          # [지역idx, 매장지역idx, 매장idx] — -1은 해당 없음
+        "it": ITEM_KEYS,
+        "bn": BEN_KEYS,
+        "sh": {"loc": SH_LOC, "it": SH_IT, "bn": SH_BN, "fl": SH_FL},
+        "w": {"loc": W_LOC, "it": W_IT, "bn": W_BN, "fl": W_FL},
+        "rows": [",".join(enc(c) for c in b) for b in buckets],
+        "pr": pr_prepped,          # 계약 금액 — [일자offset, 위치코드, 금액(만원)]
+    }
 
     with open(a.out, "w", encoding="utf-8") as f:
         f.write("/* build_web_data.py 자동생성 — 수정 금지. census 갱신 후 재실행할 것 */\n")
