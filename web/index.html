@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r106" />
+  <link rel="stylesheet" href="styles.css?v=2026r108" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r79" />
 </head>
 <body>
@@ -53,42 +53,71 @@
         </div>
 
         <div class="hero-art">
-          <!-- 온라인 누적 센싱 후기 — 이미지(온라인 후기세상) 위에 "이만큼 센싱 중" -->
-          <div class="hero-topcard">
-          <div class="hero-sense">
-            <span class="hs-label">온라인 누적 센싱 후기</span>
-            <span class="hs-figure"><b class="hs-num" data-count-to="14804">0</b><span class="hs-unit">건</span>
-              <span class="hk-delta hk-up" title="어제 대비 오늘 새로 센싱된 후기 수">
-                <span class="hkd-cap">전일비</span><span class="hkd-val">+0</span><span class="hkd-unit">건</span>
-              </span>
-            </span>
+          <!-- 애플 스토어식 2카드 — 상단: 매장 진입 / 하단: 채널 진입 -->
+          <div class="ap-cards">
+
+            <!-- 카드 1: 매장을 골라 채널별 바이럴 보기 -->
+            <article class="ap-card ap-store">
+              <div class="ap-media">
+                <svg class="ap-illust" viewBox="0 0 320 150" fill="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="apg1" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#5b8def"/><stop offset="1" stop-color="#1f5fd0"/>
+                    </linearGradient>
+                    <linearGradient id="apg2" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#dbe6fb"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- 백화점 건물 -->
+                  <rect x="104" y="40" width="112" height="86" rx="9" fill="url(#apg2)"/>
+                  <rect x="104" y="40" width="112" height="20" rx="9" fill="url(#apg1)"/>
+                  <rect x="117" y="72" width="26" height="20" rx="4" fill="#c9d9f5"/>
+                  <rect x="149" y="72" width="26" height="20" rx="4" fill="#c9d9f5"/>
+                  <rect x="181" y="72" width="22" height="20" rx="4" fill="#c9d9f5"/>
+                  <rect x="146" y="100" width="30" height="26" rx="4" fill="#9db8ea"/>
+                  <!-- 채널 신호 -->
+                  <circle cx="52" cy="52" r="15" fill="#03C75A"/><circle cx="52" cy="52" r="24" stroke="#03C75A" stroke-opacity=".28" stroke-width="2"/>
+                  <circle cx="40" cy="106" r="12" fill="#FF0000" opacity=".9"/>
+                  <circle cx="272" cy="48" r="13" fill="#7c3aed" opacity=".9"/>
+                  <circle cx="282" cy="104" r="11" fill="#f59e0b" opacity=".9"/>
+                  <path d="M67 56 100 74M52 94 122 82M259 54 218 70M271 98 214 88" stroke="#9db8ea" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 5"/>
+                </svg>
+              </div>
+              <div class="ap-body">
+                <p class="ap-eyebrow">매장 단위</p>
+                <h3 class="ap-title">우리 매장, 어디서 회자되나</h3>
+                <p class="ap-sub">매장을 고르면 채널별 바이럴 현황을 한눈에</p>
+                <div class="store-pick" id="storePick"></div>
+              </div>
+            </article>
+
+            <!-- 카드 2: 채널을 골라 전체 현황 보기 -->
+            <article class="ap-card ap-channel" id="apChannelCard">
+              <div class="ap-media ap-media-portal">
+                <img src="assets/portal-hero.jpg?v=3" alt="온라인 후기가 모이는 바이럴 세상" draggable="false" />
+                <button type="button" class="portal-hole" id="portalHole" aria-label="채널별 바이럴 현황 보기">
+                  <span class="portal-swirl" aria-hidden="true"></span>
+                  <span class="portal-suck" aria-hidden="true"></span>
+                </button>
+                <span class="ap-cue" aria-hidden="true">
+                  <span class="pc-ring"></span>
+                  <span class="pc-core">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5h6v6H4zM14 5.5h6v6h-6zM4 12.5h6v6H4zM14 12.5h6v6h-6z" fill="#fff" opacity=".95"/></svg>
+                  </span>
+                </span>
+              </div>
+              <div class="ap-body">
+                <p class="ap-eyebrow">채널 단위</p>
+                <h3 class="ap-title">채널별 바이럴 현황</h3>
+                <p class="ap-sub">누적 <b class="hs-num" data-count-to="14804">0</b>건 센싱 · 채널을 눌러 매장까지 확인</p>
+                <span class="ap-cta">이미지를 눌러 보기 <i>›</i></span>
+              </div>
+            </article>
+
           </div>
-          <!-- 우리 매장 찾아보기 — 매장 × 채널 교차 대시보드 진입 -->
-          <div class="store-pick" id="storePick"></div>
-          </div>
-          <div class="grp grp-right" id="grpRight" hidden>
-            <p class="grp-eyebrow">Affiliate</p>
-            <h2 class="grp-title">제휴카페 바이럴 채널</h2>
-            <p class="grp-sub">우리 회사 제휴카페 84곳 · 회원 1,136만명</p>
-          </div>
+
           <div class="hero-stage">
-          <div class="hero-portal" id="heroPortal">
-            <img src="assets/portal-hero.jpg?v=3" alt="삼성·LG 혼수 구매후기가 빨려드는 바이럴 포털" draggable="false" />
-            <button type="button" class="portal-hole" id="portalHole" aria-label="블랙홀을 눌러 채널 타일 불러오기">
-              <span class="portal-swirl" aria-hidden="true"></span>
-              <span class="portal-suck" aria-hidden="true"></span>
-              <span class="portal-cue" aria-hidden="true">
-                <span class="pc-ring"></span>
-                <span class="pc-core">
-                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5h6v6H4zM14 5.5h6v6h-6zM4 12.5h6v6H4zM14 12.5h6v6h-6z" fill="#fff" opacity=".95"/></svg>
-                </span>
-                <span class="pc-text">채널별 바이럴 보기</span>
-                <span class="pc-hand">
-                  <svg viewBox="0 0 24 24" fill="none"><path d="M9 11V5.6a1.6 1.6 0 0 1 3.2 0V11m0-1.2a1.5 1.5 0 0 1 3 0V12m0-1a1.5 1.5 0 0 1 3 0v4.6c0 3-2.2 5.4-5.4 5.4h-1.2c-2 0-3.3-.8-4.3-2.3l-2.4-3.6a1.6 1.6 0 0 1 2.5-2l1.6 1.7V7.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
-              </span>
-            </button>
-          </div>
+          <div class="hero-portal" id="heroPortal" hidden></div>
           <div class="source-mosaic" id="cafeMosaic" aria-label="제휴카페 — 타일 크기는 카페 회원수에 비례" hidden></div>
           <div class="source-mosaic" id="sourceMosaic" aria-label="채널별 바이럴 센싱 — 타일 크기는 센싱 건수에 비례">
             <!-- 다이렉트결혼준비 (네이버 카페) — 메인 소스: 내부 분석 결과로 이동 -->

@@ -1886,3 +1886,66 @@ body.portal-open .portal-cue { opacity: 0; transition: opacity .3s ease; }
 @media (prefers-reduced-motion: reduce) {
   .pc-ring, .pc-core, .pc-hand { animation: none; }
 }
+
+/* ===== 애플 스토어식 2카드 (우측) ===== */
+.ap-cards { display: flex; flex-direction: column; gap: clamp(12px, 1.6vh, 20px);
+  height: 100%; min-height: 0; flex: 1 1 auto; }
+body.portal-open .ap-cards { display: none; }
+.ap-card {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+  background: #fbfbfd;                       /* 애플 라이트 그레이 */
+  border: 1px solid rgba(23,42,66,0.07);
+  border-radius: clamp(18px, 1.8vw, 26px);
+  box-shadow: 0 10px 30px rgba(23,42,66,0.07);
+  transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease;
+}
+.ap-card:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(23,42,66,0.13); }
+/* 이미지 영역 — 배경과 자연스럽게 이어지도록 그라데이션 위에 얹음 */
+.ap-media {
+  position: relative; flex: 1; min-height: 0;
+  display: grid; place-items: center; overflow: hidden;
+  background: radial-gradient(120% 100% at 50% 0%, #eef3fc 0%, #f7f9fd 55%, #fbfbfd 100%);
+}
+.ap-illust { width: 88%; max-height: 100%; display: block; }
+.ap-media-portal img {
+  width: auto; height: 100%; max-width: 100%; max-height: 100%;
+  aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 50%;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, rgba(0,0,0,.55) 62%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 52%, rgba(0,0,0,.55) 62%, transparent 72%);
+}
+/* 본문 — 애플식 타이포 리듬 */
+.ap-body { padding: clamp(12px, 1.5vw, 20px) clamp(14px, 1.7vw, 24px) clamp(14px, 1.7vw, 22px); }
+.ap-eyebrow { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #1f5fd0; }
+.ap-title { margin: 0; font-size: clamp(18px, 1.9vw, 26px); font-weight: 900; letter-spacing: -0.03em; color: #1d1d1f; line-height: 1.18; }
+.ap-sub { margin: 5px 0 0; font-size: clamp(12px, 1vw, 14px); font-weight: 600; color: #6e6e73; word-break: keep-all; }
+.ap-sub b { color: #1f5fd0; font-weight: 900; }
+.ap-cta { display: inline-block; margin-top: 9px; font-size: 13.5px; font-weight: 800; color: #0071e3; }
+.ap-cta i { font-style: normal; }
+.ap-card:hover .ap-cta { text-decoration: underline; }
+/* 카드 안 선택바 — 애플식으로 단정하게 */
+.ap-store .store-pick { margin-top: 10px; align-items: stretch; gap: 6px; }
+.ap-store .sp-label, .ap-store .sp-hint { display: none; }
+.ap-store .sp-row { max-width: none; }
+.ap-store .sp-sel { border-radius: 12px; background: #fff; }
+.ap-store .sp-go { border-radius: 12px; background: #0071e3; box-shadow: none; }
+.ap-store .sp-go:hover { background: #0062c4; }
+/* 채널 카드 클릭존 */
+.ap-media-portal { cursor: pointer; }
+.ap-media-portal .portal-hole { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 46%; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
+.ap-cue { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: grid; place-items: center; pointer-events: none; z-index: 4; }
+.ap-cue .pc-ring { position: absolute; width: 74px; height: 74px; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,.75); border-radius: 50%;
+  animation: pcRing 2.2s ease-out infinite; }
+.ap-cue .pc-core { width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.85); display: grid; place-items: center;
+  box-shadow: 0 8px 22px rgba(0,0,0,.34); animation: pcPulse 2.2s ease-in-out infinite; }
+.ap-cue .pc-core svg { width: 23px; height: 23px; }
+@media (prefers-reduced-motion: reduce) { .ap-cue .pc-ring, .ap-cue .pc-core { animation: none; } }
+
+/* 우측 컬럼 전체를 카드가 채우도록(영상과 같은 높이) */
+.hero-art > .ap-cards { flex: 1 1 auto; }
+.hero-art { justify-content: stretch; }
+body:not(.portal-open) .hero-art > .hero-stage { display: none; }   /* 1번 페이지에선 무대 숨김 */
+body.portal-open .hero-art > .hero-stage { display: block; }

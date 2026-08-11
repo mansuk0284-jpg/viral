@@ -214,7 +214,8 @@
       "Bash(gh pr *)",
       "Bash(python scripts/build_cafes_data.py)",
       "Bash(grep -n 'class=\"hero-art\"\\\\|hero-sense\\\\|hero-stage\\\\|source-mosaic\\\\|</div>$' index.html)",
-      "Bash(timeout 500 python scripts/build_web_data.py)"
+      "Bash(timeout 500 python scripts/build_web_data.py)",
+      "WebFetch(domain:www.apple.com)"
     ]
   }
 }
