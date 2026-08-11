@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r105" />
+  <link rel="stylesheet" href="styles.css?v=2026r106" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r79" />
 </head>
 <body>
@@ -54,6 +54,7 @@
 
         <div class="hero-art">
           <!-- 온라인 누적 센싱 후기 — 이미지(온라인 후기세상) 위에 "이만큼 센싱 중" -->
+          <div class="hero-topcard">
           <div class="hero-sense">
             <span class="hs-label">온라인 누적 센싱 후기</span>
             <span class="hs-figure"><b class="hs-num" data-count-to="14804">0</b><span class="hs-unit">건</span>
@@ -64,6 +65,7 @@
           </div>
           <!-- 우리 매장 찾아보기 — 매장 × 채널 교차 대시보드 진입 -->
           <div class="store-pick" id="storePick"></div>
+          </div>
           <div class="grp grp-right" id="grpRight" hidden>
             <p class="grp-eyebrow">Affiliate</p>
             <h2 class="grp-title">제휴카페 바이럴 채널</h2>
@@ -75,6 +77,16 @@
             <button type="button" class="portal-hole" id="portalHole" aria-label="블랙홀을 눌러 채널 타일 불러오기">
               <span class="portal-swirl" aria-hidden="true"></span>
               <span class="portal-suck" aria-hidden="true"></span>
+              <span class="portal-cue" aria-hidden="true">
+                <span class="pc-ring"></span>
+                <span class="pc-core">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5h6v6H4zM14 5.5h6v6h-6zM4 12.5h6v6H4zM14 12.5h6v6h-6z" fill="#fff" opacity=".95"/></svg>
+                </span>
+                <span class="pc-text">채널별 바이럴 보기</span>
+                <span class="pc-hand">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M9 11V5.6a1.6 1.6 0 0 1 3.2 0V11m0-1.2a1.5 1.5 0 0 1 3 0V12m0-1a1.5 1.5 0 0 1 3 0v4.6c0 3-2.2 5.4-5.4 5.4h-1.2c-2 0-3.3-.8-4.3-2.3l-2.4-3.6a1.6 1.6 0 0 1 2.5-2l1.6 1.7V7.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+              </span>
             </button>
           </div>
           <div class="source-mosaic" id="cafeMosaic" aria-label="제휴카페 — 타일 크기는 카페 회원수에 비례" hidden></div>
