@@ -284,6 +284,30 @@ def main():
         L.append("_수집 표본에서 삼성스토어 홍보글이 확인되지 않음._")
         L.append("")
 
+    # 공백 지도 — 수요 대비 우리 노출
+    L.append("## 공백 지도 — 수요는 큰데 우리가 없는 곳")
+    L.append("")
+    L.append("`수요`=구매상담+교체이사+구독렌탈, `우리`=삼성스토어 홍보 노출, `경쟁`=하이마트+전자랜드+베스트샵.")
+    L.append("**수요가 큰 순으로 정렬**했다. 우리 노출이 0~1인 상단이 곧 우선 배치 후보다.")
+    L.append("")
+    L.append("| 카페 | 지역 | 회원수 | 수요 | 우리 | 경쟁 | 진단 |")
+    L.append("|---|---|---|---|---|---|---|")
+    gap = []
+    for slug, (m, o) in per.items():
+        demand = o["axis"].get("③구매상담", 0) + o["axis"].get("①교체·이사", 0) + o["axis"].get("⑥구독·렌탈", 0)
+        ours = o["promo_by_ret"].get("삼성스토어", 0)
+        comp = sum(o["promo_by_ret"].get(k, 0) for k in ("하이마트", "전자랜드", "LG베스트샵"))
+        gap.append((demand, ours, comp, m))
+    for demand, ours, comp, m in sorted(gap, key=lambda x: -x[0]):
+        if ours == 0:
+            dx = "🔴 **공백** — 우리 노출 없음"
+        elif comp >= ours * 5:
+            dx = f"🟠 열세 — 경쟁이 {comp // max(1, ours)}배"
+        else:
+            dx = "🟢 활동 중"
+        L.append(f"| {m['name'][:22]} | {m.get('rg','')[-6:]} | {m.get('mem',0):,} | {demand} | {ours} | {comp} | {dx} |")
+    L.append("")
+
     # ⑥ 구독·렌탈
     L.append("## ⑥ 구독·렌탈 수요 — 삼성 AI구독클럽 대응 지점")
     L.append("")

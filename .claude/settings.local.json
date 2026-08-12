@@ -241,7 +241,8 @@
       "Bash(sed -n '/구독·렌탈 수요/,/^## ⑧/p' artifacts/20260812-affiliate-cafe-insight.md)",
       "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'feat: 제휴카페 전담 에이전트 신설 — 혼수와 다른 잣대로 인사이트 도출 *)",
       "Bash(cd \"C:/Users/admin/Desktop/viral\"; sed -n '/## ③ 구매·추천 상담/,/## ④/p' /tmp/ins6.md | head -30; echo; echo \"=====④ 제휴활동=====\"; sed -n '/## ④ 우리 제휴/,/## ⑥/p' /tmp/ins6.md | head -24)",
-      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 부산 2곳·울산 1곳 추가 수집 — 부울경 6곳 2,082건 *)"
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 부산 2곳·울산 1곳 추가 수집 — 부울경 6곳 2,082건 *)",
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 부울경 14곳 전량 수집·분석 완료 — 4,880건 *)"
     ]
   }
 }
