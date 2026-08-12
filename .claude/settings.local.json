@@ -228,7 +228,18 @@
       "WebFetch(domain:developers.naver.com)",
       "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 네이버 검색 API 신규 발급 중단 확인 — 대체 경로 명시 *)",
       "Bash(VIRAL_CLUBID=10120511 VIRAL_CAFE_URL=\"https://cafe.naver.com/glove\" python scripts/naver_cafe_scraper.py login --seconds 300)",
-      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 84곳 목록 추출 + clubId 전량 해결 *)"
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 84곳 목록 추출 + clubId 전량 해결 *)",
+      "Bash(VIRAL_CLUBID=10120511 VIRAL_CAFE_URL=\"https://cafe.naver.com/glove\" python scripts/naver_cafe_scraper.py menus --headless)",
+      "Read(//tmp/**)",
+      "Bash(VIRAL_CLUBID=10120511 VIRAL_CAFE_URL=\"https://cafe.naver.com/glove\" timeout 600 python scripts/naver_cafe_scraper.py scrape --query \"혼수가전||신혼가전||가전 후기||냉장고 구매||세탁기 구매||삼성스토어||엘지 베스트샵\" --pages 2 --max-articles 25 --no-read-body --headless)",
+      "Bash(VIRAL_CLUBID=11454576 VIRAL_CAFE_URL=\"https://cafe.naver.com/ailovely\" timeout 700 python scripts/naver_cafe_scraper.py scrape --query \"혼수가전||신혼가전||웨딩가전||가전 견적||롯데백화점 가전||삼성스토어||베스트샵||가전 후기\" --pages 2 --max-articles 25 --no-read-body --headless)",
+      "Bash(grep -E \"^\\\\[|수집|건$\")",
+      "Bash(VIRAL_CLUBID=11649519 VIRAL_CAFE_URL=\"https://cafe.naver.com/wedding\" timeout 700 python scripts/naver_cafe_scraper.py scrape --query \"혼수가전||신혼가전||웨딩가전||가전 견적||롯데백화점 가전||삼성스토어||베스트샵||가전 후기\" --pages 2 --max-articles 25 --no-read-body --headless)",
+      "Bash(python scripts/affiliate_insight.py)",
+      "Bash(python -c \"import ast,io;ast.parse\\(io.open\\('scripts/affiliate_insight.py',encoding='utf-8'\\).read\\(\\)\\);print\\('구문 OK'\\)\")",
+      "Bash(rm -f artifacts/_ins.txt artifacts/20260812-cafe-raw.json artifacts/20260812-cafe-counts.md artifacts/test-makemywedding.json)",
+      "Bash(sed -n '/구독·렌탈 수요/,/^## ⑧/p' artifacts/20260812-affiliate-cafe-insight.md)",
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'feat: 제휴카페 전담 에이전트 신설 — 혼수와 다른 잣대로 인사이트 도출 *)"
     ]
   }
 }
