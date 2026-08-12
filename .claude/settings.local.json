@@ -224,7 +224,9 @@
       "Bash(node -e \"['fact.js','cafe-analysis.js','store-scope.js'].forEach\\(f=>{new Function\\(require\\('fs'\\).readFileSync\\(f,'utf8'\\)\\);console.log\\('OK',f\\)}\\)\")",
       "Bash(python -c \"import ast,io;ast.parse\\(io.open\\('naver_api_collect.py',encoding='utf-8'\\).read\\(\\)\\);print\\('구문 OK'\\)\")",
       "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'feat: 채널 수집기를 전국 범위로 확장 + 매장 매칭을 census 규칙으로 통일 *)",
-      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 네이버 API 키 발급 가이드를 화면 순서대로 상세화 *)"
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 네이버 API 키 발급 가이드를 화면 순서대로 상세화 *)",
+      "WebFetch(domain:developers.naver.com)",
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 네이버 검색 API 신규 발급 중단 확인 — 대체 경로 명시 *)"
     ]
   }
 }
