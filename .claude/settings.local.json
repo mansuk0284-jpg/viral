@@ -243,7 +243,8 @@
       "Bash(cd \"C:/Users/admin/Desktop/viral\"; sed -n '/## ③ 구매·추천 상담/,/## ④/p' /tmp/ins6.md | head -30; echo; echo \"=====④ 제휴활동=====\"; sed -n '/## ④ 우리 제휴/,/## ⑥/p' /tmp/ins6.md | head -24)",
       "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 부산 2곳·울산 1곳 추가 수집 — 부울경 6곳 2,082건 *)",
       "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 부울경 14곳 전량 수집·분석 완료 — 4,880건 *)",
-      "Bash(python scripts/build_affiliate_web.py)"
+      "Bash(python scripts/build_affiliate_web.py)",
+      "Bash(cp /tmp/af_head.css cafe-analysis.css)"
     ]
   }
 }
