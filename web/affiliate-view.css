@@ -4,7 +4,7 @@
    한 화면 원칙: 페이지는 스크롤하지 않고 넘치는 내용은 각 pane 안에서만 스크롤. */
 body.view-af #channel .container { padding: 0 18px; max-width: min(1560px, 96vw); }
 
-.af-wrap { height: 100%; min-height: 0; }
+.af-wrap { height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
 
 /* ── 헤더 ── */
 .af-top { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
@@ -23,6 +23,40 @@ body.view-af #channel .container { padding: 0 18px; max-width: min(1560px, 96vw)
 .af-hk span { font-size: 15px; font-weight: 800; color: var(--muted); }
 .af-hk.zero b { color: #d23b54; }
 .af-hvs { font-size: 17px; font-weight: 900; color: #b0bacb; }
+
+
+/* ── 기간 선택 ──
+   월 단위로 본다. 방식 셋을 겹쳐 뒀다:
+     ① ‹ › 스테퍼  한 달씩 정확히 이동(표본 있는 달만 밟는다)
+     ② 월 스트립    최근 24개월 막대. 어느 달에 글이 몰렸는지 보고 바로 점프
+     ③ 전체 기간    누적으로 되돌리기 */
+.af-period { flex-shrink: 0; display: flex; align-items: center; gap: 14px;
+  background: #fff; border: 1px solid rgba(23,42,66,0.12); border-radius: 14px; padding: 8px 14px; }
+.af-step { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.af-nav { width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(23,42,66,0.14);
+  background: #fff; font-size: 20px; font-weight: 900; color: var(--text); cursor: pointer; line-height: 1;
+  transition: all .15s ease; }
+.af-nav:hover:not(:disabled) { background: #1f5fd0; border-color: #1f5fd0; color: #fff; }
+.af-nav:disabled { opacity: .3; cursor: default; }
+.af-cur { min-width: 152px; text-align: center; }
+.af-cur b { display: block; font-size: 20px; font-weight: 900; color: var(--text); letter-spacing: -.02em; }
+.af-cur em { font-style: normal; font-size: 14px; font-weight: 700; color: #1f5fd0; }
+.af-strip { flex: 1 1 auto; min-width: 0; display: flex; align-items: flex-end; gap: 3px; height: 46px; }
+.af-sb { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end; gap: 2px; border: 0; background: none;
+  padding: 0; cursor: pointer; }
+.af-sb i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: #c9d3e2;
+  transition: background .15s ease; }
+.af-sb em { font-style: normal; font-size: 10px; font-weight: 800; color: #b0bacb; }
+.af-sb:hover i { background: #9db8ea; }
+.af-sb.on i { background: #1f5fd0; }
+.af-sb.on em { color: #1f5fd0; }
+.af-all-btn { flex-shrink: 0; border: 1px solid rgba(23,42,66,0.14); background: #fff;
+  border-radius: 999px; padding: 8px 16px; font: inherit; font-size: 15px; font-weight: 800;
+  color: var(--text); cursor: pointer; transition: all .15s ease; white-space: nowrap; }
+.af-all-btn:hover { background: #f2f5fa; }
+.af-all-btn.on { background: #1f5fd0; border-color: #1f5fd0; color: #fff; }
+.af-none { margin: 30px 0; font-size: 19px; font-weight: 700; color: var(--muted); text-align: center; }
 
 /* ── 좌우 2단 ── */
 .af-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
