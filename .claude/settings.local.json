@@ -226,7 +226,9 @@
       "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'feat: 채널 수집기를 전국 범위로 확장 + 매장 매칭을 census 규칙으로 통일 *)",
       "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 네이버 API 키 발급 가이드를 화면 순서대로 상세화 *)",
       "WebFetch(domain:developers.naver.com)",
-      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 네이버 검색 API 신규 발급 중단 확인 — 대체 경로 명시 *)"
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 네이버 검색 API 신규 발급 중단 확인 — 대체 경로 명시 *)",
+      "Bash(VIRAL_CLUBID=10120511 VIRAL_CAFE_URL=\"https://cafe.naver.com/glove\" python scripts/naver_cafe_scraper.py login --seconds 300)",
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 84곳 목록 추출 + clubId 전량 해결 *)"
     ]
   }
 }
