@@ -84,14 +84,25 @@
       const zone = ZONES.find((z) => z.key === st.zone) || {};
       const arr = list.filter((c) => zoneOf(c) === st.zone).sort((a, b) => b.m - a.m);
       const top = arr.length ? arr[0].m : 0;
-      mosaic.innerHTML = head(`‹ ${cat.label} · ${zone.label}`, `${arr.length}곳 · 클릭해 분석`, true) +
-        arr.map((c, i) => tile({
-          cls: "src-cafe2" + (zone.mine ? " zone-mine" : "") + (c.m === top ? " src-hot" : ""),
-          attr: `data-cafe="${list.indexOf(c)}" data-key="${st.cat}"`, v: c.m,
-          name: c.n, sub: [c.r3, c.r2].filter(Boolean).filter((v, j, a) => a.indexOf(v) === j)[0] || c.t,
-          disp: man(c.m), unit: "명", badge: c.m === top ? "최대" : "",
-          title: `${c.n} · 회원 ${fmt(c.m)}명 — 클릭하면 삼성·LG 후기 분석`,
-        })).join("");
+      // 분석 데이터가 있는 카페는 '분석완료'로 구분 — 클릭해봐야 아는 상황을 없앤다
+      const AI = window.AFFILIATE_INSIGHT;
+      const slugOf = (c) => (c.u || c.url || "").replace(/\/+$/, "").split("/").pop();
+      const has = (c) => !!(AI && (AI.cafes[slugOf(c)]
+        || Object.values(AI.cafes).some((x) => x.name === c.n)));
+      const done = arr.filter(has).length;
+      mosaic.innerHTML = head(`‹ ${cat.label} · ${zone.label}`,
+        `${arr.length}곳` + (done ? ` · 분석 ${done}곳` : " · 수집 대기"), true) +
+        arr.map((c) => {
+          const ok = has(c);
+          return tile({
+            cls: "src-cafe2" + (zone.mine ? " zone-mine" : "") + (ok ? " src-hot" : " src-quiet"),
+            attr: `data-cafe="${list.indexOf(c)}" data-key="${st.cat}"`, v: c.m,
+            name: c.n, sub: [c.r3, c.r2].filter(Boolean).filter((v, j, a) => a.indexOf(v) === j)[0] || c.t,
+            disp: man(c.m), unit: "명", badge: ok ? "분석" : "",
+            title: ok ? `${c.n} · 회원 ${fmt(c.m)}명 — 클릭하면 가전 전반 vs 당사 분석`
+                      : `${c.n} · 회원 ${fmt(c.m)}명 — 아직 수집 전`,
+          });
+        }).join("");
     }
     layout();
   }
