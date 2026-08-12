@@ -5,14 +5,29 @@ WebSearch로는 네이버 색인이 안 되므로([[project-websearch-limit]]) �
 
 ## 1. Client ID / Secret 발급 (무료)
 
-1. https://developers.naver.com 접속 → 네이버 계정 로그인
-2. 상단 **Application → 애플리케이션 등록**
-3. 항목 입력:
-   - 애플리케이션 이름: 예) `viral-monitor`
-   - 사용 API: **검색** 체크
-   - 환경 추가: **WEB 설정** → 서비스 URL `http://localhost` (로컬 사용)
-4. 등록하면 **Client ID**와 **Client Secret** 발급됨
-5. 검색 API는 비로그인 오픈 API — **일 25,000회** 무료 호출
+심사 없이 즉시 발급된다. 화면에 보이는 순서 그대로:
+
+1. https://developers.naver.com → 오른쪽 위 **로그인** (평소 쓰는 네이버 계정, 별도 가입 없음)
+2. 상단 **Application → 애플리케이션 등록** (바로가기: https://developers.naver.com/apps/#/register)
+3. 폼 3칸:
+   - **애플리케이션 이름**: `viral-monitor` (아무 이름이나 가능)
+   - **사용 API**: 드롭다운에서 **검색** 선택. 다른 API는 고르지 않는다.
+   - **비로그인 오픈 API 서비스 환경**: `환경 추가` → **WEB 설정** →
+     웹 서비스 URL `http://localhost` (실제 사이트 없어도 형식만 맞으면 통과)
+4. 맨 아래 **등록하기**
+5. **내 애플리케이션 → 개요**에 Client ID가 바로 보이고,
+   **Client Secret은 옆 `보기` 버튼을 눌러야** 나타난다.
+
+한도: 검색 API는 비로그인 오픈 API — **일 25,000회** 무료.
+(현재 수집 설정은 25개 검색어 x 2채널이라 한도에 한참 못 미친다.)
+
+### 자주 막히는 곳
+
+| 증상 | 원인 |
+|---|---|
+| `등록하기`가 안 눌림 | 3번의 서비스 환경 미입력. `WEB 설정` + `http://localhost` |
+| Client Secret이 안 보임 | 옆의 `보기` 버튼을 눌러야 표시됨 |
+| setx 했는데 인식 안 됨 | setx는 **새 터미널**부터 적용됨 |
 
 ## 2. 키 등록 (환경변수)
 
@@ -54,7 +69,7 @@ powershell -ExecutionPolicy Bypass -File ./scripts/naver-search.ps1 -Query "신�
 ## 5. 수집 흐름 내 위치
 
 블로그·맘카페 채널은 저수준 `naver-search.ps1`을 직접 부르지 않고 **`scripts/naver_api_collect.py`**를 쓴다.
-이 수집기가 검색 API를 다회 호출 → 제목+요약 기반 brand/item/tone/ad 분류 + 12개점 매장매칭 → 권역 합계 →
+이 수집기가 검색 API를 다회 호출 → 제목+요약 기반 brand/item/tone/ad 분류 + 전국 백화점 매장매칭 → 권역 합계 →
 `artifacts/YYYYMMDD-01-raw-<소스ID>.md`(다이렉트결혼준비 양식)까지 한 번에 만든다.
 
 ```powershell
