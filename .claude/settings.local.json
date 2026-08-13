@@ -245,7 +245,8 @@
       "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'data: 제휴카페 부울경 14곳 전량 수집·분석 완료 — 4,880건 *)",
       "Bash(python scripts/build_affiliate_web.py)",
       "Bash(cp /tmp/af_head.css cafe-analysis.css)",
-      "Bash(python -c \"print\\('구문검사 생략'\\)\")"
+      "Bash(python -c \"print\\('구문검사 생략'\\)\")",
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 작업 내용을 하네스에 되돌려 적기 — 코드와 문서의 어긋남 해소 *)"
     ]
   }
 }
