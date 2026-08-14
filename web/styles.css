@@ -1907,92 +1907,116 @@ body.portal-open .ap-cards { display: none; }
   background: radial-gradient(120% 100% at 50% 0%, #eef3fc 0%, #f7f9fd 55%, #fbfbfd 100%);
 }
 .ap-illust { width: 88%; max-height: 100%; display: block; }
-
-/* 매장 카드 영상 — 이미지 영역만 채우고 아래 본문은 건드리지 않는다.
-   16:9 소재를 넓은 영역에 cover로 깔고, 가장자리를 페이드시켜 카드 배경에 스며들게 한다
-   (사각형 그대로 두면 카드 안에 '창'이 하나 뚫린 것처럼 겉돈다). */
-/* 부모가 grid+place-items:center 라 height:100%가 자동높이로 풀린다(영상이 영역 밖으로 넘침).
-   블록+절대배치로 바꿔 영역에 정확히 맞춘다. */
-.ap-media-film { display: block; padding: 0;
-  background: radial-gradient(120% 100% at 50% 30%, #eaf1fb 0%, #f5f8fd 60%, #fbfbfd 100%); }
-.ap-film {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%; object-fit: cover; display: block;
-  /* 아래로 갈수록 옅어져 본문 타이포와 경계가 지지 않게 */
-  -webkit-mask-image:
-    linear-gradient(to bottom, #000 0%, #000 62%, rgba(0,0,0,.55) 84%, transparent 100%),
-    linear-gradient(to right, transparent 0%, #000 9%, #000 91%, transparent 100%);
-  mask-image:
-    linear-gradient(to bottom, #000 0%, #000 62%, rgba(0,0,0,.55) 84%, transparent 100%),
-    linear-gradient(to right, transparent 0%, #000 9%, #000 91%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  transform: scale(1.02);                     /* 마스크 가장자리 잘림 방지 */
-  transition: transform .5s cubic-bezier(.22,1,.36,1);
-}
-.ap-store:hover .ap-film { transform: scale(1.05); }
-/* 매장 카드는 본문에 선택바가 더 있다 — 두 카드를 1:1로 두면 영상이 눌린다.
-   합계 높이는 그대로라 좌측 영상과의 상·하단 정렬은 유지된다. */
-.ap-store { flex: 1.18; }
-.ap-channel { flex: 0.82; }
-
-/* ── 카드 마감 ──
-   애플 카드의 무게감은 '그림자 한 겹'이 아니라 가까운 윤곽 + 먼 확산 두 겹에서 나온다.
-   여기에 상단 1px 하이라이트를 얹어 유리판 같은 느낌을 준다. */
-.ap-card {
-  box-shadow: 0 1px 2px rgba(23,42,66,0.06), 0 12px 34px rgba(23,42,66,0.08);
-  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 42%);
-}
-.ap-card::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5;
-  border-radius: inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
-}
-.ap-card { position: relative; }
-.ap-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 2px 4px rgba(23,42,66,0.07), 0 24px 56px rgba(23,42,66,0.15);
-}
-/* 아이브로우 앞 점 — 두 카드가 서로 다른 축임을 색으로 구분 */
-.ap-eyebrow { display: inline-flex; align-items: center; gap: 6px; }
-.ap-eyebrow::before {
-  content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
-  flex-shrink: 0;
-}
-.ap-channel .ap-eyebrow { color: #7c3aed; }
-/* CTA 화살표가 호버에 반응 — 누를 수 있다는 신호 */
-.ap-cta i { display: inline-block; transition: transform .22s cubic-bezier(.22,1,.36,1); }
-.ap-card:hover .ap-cta i { transform: translateX(3px); }
-/* 영상 위 옅은 브랜드 톤 — 카드 전체 색감을 하나로 묶는다 */
-.ap-film-veil { position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(31,95,208,0.05) 0%, rgba(251,251,253,0) 55%,
-    rgba(251,251,253,.65) 88%, #fbfbfd 100%); }
-@media (prefers-reduced-motion: reduce) { .ap-film { transform: none; } }
+/* 채널 카드 원형 이미지 — 매장 카드와 같은 여백 규칙으로 리듬을 맞춘다.
+   부모가 grid+place-items:center 라 height:100%가 자동높이로 풀려 영역 밖으로 크게 넘친다
+   (실측 245px 초과 → 아래가 잘림). 영상과 같이 절대배치로 중앙에 고정한다. */
+.ap-media-portal { padding: 0; }
 .ap-media-portal img {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: auto; height: 100%; max-width: 100%; max-height: 100%;
   aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 50%;
   -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, rgba(0,0,0,.55) 62%, transparent 72%);
   mask-image: radial-gradient(circle at 50% 50%, #000 52%, rgba(0,0,0,.55) 62%, transparent 72%);
 }
-/* 본문 — 애플식 타이포 리듬 */
-.ap-body { padding: clamp(12px, 1.5vw, 20px) clamp(14px, 1.7vw, 24px) clamp(14px, 1.7vw, 22px); }
-.ap-eyebrow { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .02em; color: #1f5fd0; }
-.ap-title { margin: 0; font-size: clamp(18px, 1.9vw, 26px); font-weight: 900; letter-spacing: -0.03em; color: #1d1d1f; line-height: 1.18; }
-.ap-sub { margin: 5px 0 0; font-size: clamp(12px, 1vw, 14px); font-weight: 600; color: #6e6e73; word-break: keep-all; }
-.ap-sub b { color: #1f5fd0; font-weight: 900; }
-.ap-cta { display: inline-block; margin-top: 9px; font-size: 13.5px; font-weight: 800; color: #0071e3; }
+
+
+/* ── 매장 카드 영상 ──
+   애플 제품 카드처럼 **카드 안쪽에 여백을 두고** 라운드 박스에 담는다.
+   가장자리까지 꽉 채우면 카드가 답답해지고, 영상이 '창'처럼 겉돈다.
+   여백 + 라운드 + 또렷한 모서리가 오히려 더 정돈돼 보인다(마스크 페이드 불필요). */
+.ap-media-film { display: block; position: relative; padding: 0; background: none; }
+/* 영상은 단색 배경이 아니라 화면을 꽉 채운 장면이라 잘리면 내용이 사라진다.
+   **높이 기준으로 16:9를 지켜** 크롭을 0으로 만든다.
+   화면이 낮아지면 박스가 좁아지며 좌우에 여백이 생기는데, 이게 오히려 더 정돈돼 보인다. */
+/* 박스는 미디어 영역을 그대로 채우고(라운드), 영상은 contain 으로 넣는다.
+   - height:100% 를 흐름 안에서 쓰면 부모(flex:1) 높이와 순환 참조가 생겨 카드가 컬럼을 못 채운다
+     → 절대배치로 참조를 끊는다.
+   - 박스에 aspect-ratio 를 주면 화면 비율에 따라 max-width/max-height 중 하나에 막혀
+     비율이 깨지고(실측 1.505) cover 가 좌우를 잘라낸다 → 영상 쪽에서 contain 으로 해결.
+   영상이 단색 배경이 아니라 잘리면 내용이 사라지므로, 잘림 0 을 우선한다. */
+.ap-film-box {
+  position: absolute; inset: 0; overflow: hidden;
+  border-radius: clamp(14px, 1.3vw, 20px);
+  background: #eef2f8;
+  box-shadow: inset 0 0 0 1px rgba(23,42,66,0.06);
+}
+.ap-film {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  transform: scale(1.005);
+  transition: transform .6s cubic-bezier(.22,1,.36,1);
+}
+.ap-store:hover .ap-film { transform: scale(1.045); }
+@media (prefers-reduced-motion: reduce) { .ap-film { transform: none; } }
+
+/* 매장 카드는 본문에 선택바가 더 있다 — 두 카드를 1:1로 두면 영상이 눌린다.
+   합계 높이는 그대로라 좌측 영상과의 상·하단 정렬은 유지된다. */
+/* 영상 박스가 16:9(1.78)에 가깝게 떨어지도록 잡은 비율 — 좌우 크롭을 최소화한다 */
+.ap-store { flex: 1.18; }
+.ap-channel { flex: 0.82; }
+
+/* ── 채널 카드는 가로 배치 ──
+   카드가 넓고 낮아서 원형 이미지를 세로로 넣으면 122px까지 쪼그라들어 허전하다.
+   원을 왼쪽에 두고 글을 오른쪽에 놓으면 폭을 제대로 쓰고, 남는 높이는 매장 영상에 돌아간다. */
+.ap-channel { flex-direction: row; align-items: center; gap: clamp(14px, 1.5vw, 22px); }
+.ap-channel .ap-media {
+  flex: 0 0 clamp(104px, 11vw, 148px); width: clamp(104px, 11vw, 148px);
+  aspect-ratio: 1 / 1; height: auto; align-self: center;
+}
+.ap-channel .ap-body { flex: 1 1 auto; min-width: 0; padding: 0; }
+
+/* ── 카드 마감 ──
+   애플 카드의 무게감은 '그림자 한 겹'이 아니라 가까운 윤곽 + 먼 확산 두 겹에서 나온다. */
+/* 주의: .ap-card 는 '대기채널 카드'(.ap-grid)와 이름이 겹쳐 padding:14px 16px 를 상속한다.
+   여백은 여기 한 곳에서만 정하고 미디어·본문은 좌우 패딩을 두지 않는다 → 영상과 글씨 좌측선이 맞는다. */
+.ap-card {
+  position: relative;
+  padding: clamp(16px, 1.8vh, 24px) clamp(18px, 1.9vw, 28px) clamp(16px, 1.8vh, 24px);
+  border-radius: clamp(22px, 2.2vw, 30px);
+  box-shadow: 0 1px 2px rgba(23,42,66,0.05), 0 14px 38px rgba(23,42,66,0.07);
+  background: #fff;
+  border-color: rgba(23,42,66,0.06);
+}
+.ap-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 2px 5px rgba(23,42,66,0.06), 0 26px 60px rgba(23,42,66,0.13);
+}
+/* 아이브로우 앞 점 — 두 카드가 서로 다른 축임을 색으로 구분 */
+.ap-eyebrow { display: inline-flex; align-items: center; gap: 6px; }
+.ap-eyebrow::before {
+  content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0;
+}
+.ap-channel .ap-eyebrow { color: #7c3aed; }
+/* CTA 화살표가 호버에 반응 */
+.ap-cta i { display: inline-block; transition: transform .22s cubic-bezier(.22,1,.36,1); }
+.ap-card:hover .ap-cta i { transform: translateX(3px); }
+
+/* ── 본문 — 애플식 타이포 리듬 ──
+   요소를 늘리지 말고 사이를 벌린다. 여백이 곧 정돈된 느낌을 만든다. */
+.ap-body { padding: clamp(14px, 1.7vh, 20px) 0 0; display: flex; flex-direction: column; }
+.ap-eyebrow { margin: 0 0 7px; font-size: 11.5px; font-weight: 800; letter-spacing: .04em; color: #1f5fd0; }
+.ap-title { margin: 0; font-size: clamp(19px, 2.05vw, 28px); font-weight: 900;
+  letter-spacing: -0.035em; color: #1d1d1f; line-height: 1.16; }
+.ap-sub { margin: 8px 0 0; font-size: clamp(12.5px, 1.02vw, 14.5px); font-weight: 600;
+  color: #86868b; word-break: keep-all; letter-spacing: -.01em; }
+.ap-sub b { color: #1f5fd0; font-weight: 800; }
+.ap-cta { display: inline-block; margin-top: 12px; font-size: 13.5px; font-weight: 700; color: #0071e3; }
 .ap-cta i { font-style: normal; }
 .ap-card:hover .ap-cta { text-decoration: underline; }
-/* 카드 안 선택바 — 애플식으로 단정하게 */
-.ap-store .store-pick { margin-top: 10px; align-items: stretch; gap: 6px; }
+/* 카드 안 선택바 — 애플식으로 단정하게. 위쪽에 넉넉히 띄운다 */
+.ap-store .store-pick { margin-top: auto; padding-top: clamp(12px, 1.7vh, 20px);
+  align-items: stretch; gap: 7px; }
 .ap-store .sp-label, .ap-store .sp-hint { display: none; }
-.ap-store .sp-row { max-width: none; }
-.ap-store .sp-sel { border-radius: 12px; background: #fff; }
-.ap-store .sp-go { border-radius: 12px; background: #0071e3; box-shadow: none; }
+.ap-store .sp-row { max-width: none; gap: 7px; }
+.ap-store .sp-sel { border-radius: 12px; background: #fff; border-color: rgba(23,42,66,0.14);
+  font-size: 14px; padding: 10px 12px; }
+.ap-store .sp-go { border-radius: 12px; background: #0071e3; box-shadow: none;
+  font-size: 14px; padding: 10px 18px; }
 .ap-store .sp-go:hover { background: #0062c4; }
 /* 채널 카드 클릭존 */
 .ap-media-portal { cursor: pointer; }
 .ap-media-portal .portal-hole { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: 46%; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
+  width: 66%; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
 .ap-cue { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: grid; place-items: center; pointer-events: none; z-index: 4; }
 .ap-cue .pc-ring { position: absolute; width: 74px; height: 74px; top: 50%; left: 50%;

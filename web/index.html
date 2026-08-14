@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r112" />
+  <link rel="stylesheet" href="styles.css?v=2026r120" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r85" />
   <link rel="stylesheet" href="affiliate-view.css?v=2026r3" />
 </head>
@@ -59,16 +59,18 @@
 
             <!-- 카드 1: 매장을 골라 채널별 바이럴 보기 -->
             <article class="ap-card ap-store">
-              <!-- 영상은 이미지 영역에만 — 아래 텍스트·선택바 영역은 덮지 않는다 -->
+              <!-- 영상은 이미지 영역에만 — 아래 텍스트·선택바 영역은 덮지 않는다.
+                   카드 안쪽에 여백을 두고 라운드 박스에 담아 '꽉 찬' 느낌을 없앤다 -->
               <div class="ap-media ap-media-film">
-                <video class="ap-film" src="assets/store-icons.mp4"
-                       muted loop autoplay playsinline preload="metadata"></video>
-                <span class="ap-film-veil" aria-hidden="true"></span>
+                <div class="ap-film-box">
+                  <video class="ap-film" src="assets/store-brand.mp4"
+                         muted loop autoplay playsinline preload="metadata"></video>
+                </div>
               </div>
               <div class="ap-body">
                 <p class="ap-eyebrow">매장 단위</p>
                 <h3 class="ap-title">우리 매장 온라인 바이럴</h3>
-                <p class="ap-sub">매장을 고르면 <b>건수 · 삼성 vs LG · 지역 내 순위</b>까지</p>
+                <p class="ap-sub">건수 · 삼성 vs LG · 지역 내 순위</p>
                 <div class="store-pick" id="storePick"></div>
               </div>
             </article>
