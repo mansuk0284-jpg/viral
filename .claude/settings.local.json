@@ -246,7 +246,9 @@
       "Bash(python scripts/build_affiliate_web.py)",
       "Bash(cp /tmp/af_head.css cafe-analysis.css)",
       "Bash(python -c \"print\\('구문검사 생략'\\)\")",
-      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 작업 내용을 하네스에 되돌려 적기 — 코드와 문서의 어긋남 해소 *)"
+      "Bash(git -c user.name=viral-monitor -c user.email=noreply@local commit -q -m 'docs: 작업 내용을 하네스에 되돌려 적기 — 코드와 문서의 어긋남 해소 *)",
+      "Bash(cp \"C:/Users/admin/Downloads/삼성_로고_주변으로_아이콘들이_더_다이나믹하게_움직이도 \\(2\\).mp4\" web/assets/store-icons.mp4)",
+      "Bash(ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration,r_frame_rate -of default=noprint_wrappers=1 web/assets/store-icons.mp4)"
     ]
   }
 }

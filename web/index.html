@@ -12,7 +12,7 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r109" />
+  <link rel="stylesheet" href="styles.css?v=2026r112" />
   <link rel="stylesheet" href="cafe-analysis.css?v=2026r85" />
   <link rel="stylesheet" href="affiliate-view.css?v=2026r3" />
 </head>
@@ -59,30 +59,11 @@
 
             <!-- 카드 1: 매장을 골라 채널별 바이럴 보기 -->
             <article class="ap-card ap-store">
-              <div class="ap-media">
-                <svg class="ap-illust" viewBox="0 0 320 150" fill="none" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="apg1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0" stop-color="#5b8def"/><stop offset="1" stop-color="#1f5fd0"/>
-                    </linearGradient>
-                    <linearGradient id="apg2" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#dbe6fb"/>
-                    </linearGradient>
-                  </defs>
-                  <!-- 백화점 건물 -->
-                  <rect x="104" y="40" width="112" height="86" rx="9" fill="url(#apg2)"/>
-                  <rect x="104" y="40" width="112" height="20" rx="9" fill="url(#apg1)"/>
-                  <rect x="117" y="72" width="26" height="20" rx="4" fill="#c9d9f5"/>
-                  <rect x="149" y="72" width="26" height="20" rx="4" fill="#c9d9f5"/>
-                  <rect x="181" y="72" width="22" height="20" rx="4" fill="#c9d9f5"/>
-                  <rect x="146" y="100" width="30" height="26" rx="4" fill="#9db8ea"/>
-                  <!-- 채널 신호 -->
-                  <circle cx="52" cy="52" r="15" fill="#03C75A"/><circle cx="52" cy="52" r="24" stroke="#03C75A" stroke-opacity=".28" stroke-width="2"/>
-                  <circle cx="40" cy="106" r="12" fill="#FF0000" opacity=".9"/>
-                  <circle cx="272" cy="48" r="13" fill="#7c3aed" opacity=".9"/>
-                  <circle cx="282" cy="104" r="11" fill="#f59e0b" opacity=".9"/>
-                  <path d="M67 56 100 74M52 94 122 82M259 54 218 70M271 98 214 88" stroke="#9db8ea" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 5"/>
-                </svg>
+              <!-- 영상은 이미지 영역에만 — 아래 텍스트·선택바 영역은 덮지 않는다 -->
+              <div class="ap-media ap-media-film">
+                <video class="ap-film" src="assets/store-icons.mp4"
+                       muted loop autoplay playsinline preload="metadata"></video>
+                <span class="ap-film-veil" aria-hidden="true"></span>
               </div>
               <div class="ap-body">
                 <p class="ap-eyebrow">매장 단위</p>

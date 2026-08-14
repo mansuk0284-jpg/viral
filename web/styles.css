@@ -1907,6 +1907,66 @@ body.portal-open .ap-cards { display: none; }
   background: radial-gradient(120% 100% at 50% 0%, #eef3fc 0%, #f7f9fd 55%, #fbfbfd 100%);
 }
 .ap-illust { width: 88%; max-height: 100%; display: block; }
+
+/* 매장 카드 영상 — 이미지 영역만 채우고 아래 본문은 건드리지 않는다.
+   16:9 소재를 넓은 영역에 cover로 깔고, 가장자리를 페이드시켜 카드 배경에 스며들게 한다
+   (사각형 그대로 두면 카드 안에 '창'이 하나 뚫린 것처럼 겉돈다). */
+/* 부모가 grid+place-items:center 라 height:100%가 자동높이로 풀린다(영상이 영역 밖으로 넘침).
+   블록+절대배치로 바꿔 영역에 정확히 맞춘다. */
+.ap-media-film { display: block; padding: 0;
+  background: radial-gradient(120% 100% at 50% 30%, #eaf1fb 0%, #f5f8fd 60%, #fbfbfd 100%); }
+.ap-film {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  /* 아래로 갈수록 옅어져 본문 타이포와 경계가 지지 않게 */
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 0%, #000 62%, rgba(0,0,0,.55) 84%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 9%, #000 91%, transparent 100%);
+  mask-image:
+    linear-gradient(to bottom, #000 0%, #000 62%, rgba(0,0,0,.55) 84%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 9%, #000 91%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  transform: scale(1.02);                     /* 마스크 가장자리 잘림 방지 */
+  transition: transform .5s cubic-bezier(.22,1,.36,1);
+}
+.ap-store:hover .ap-film { transform: scale(1.05); }
+/* 매장 카드는 본문에 선택바가 더 있다 — 두 카드를 1:1로 두면 영상이 눌린다.
+   합계 높이는 그대로라 좌측 영상과의 상·하단 정렬은 유지된다. */
+.ap-store { flex: 1.18; }
+.ap-channel { flex: 0.82; }
+
+/* ── 카드 마감 ──
+   애플 카드의 무게감은 '그림자 한 겹'이 아니라 가까운 윤곽 + 먼 확산 두 겹에서 나온다.
+   여기에 상단 1px 하이라이트를 얹어 유리판 같은 느낌을 준다. */
+.ap-card {
+  box-shadow: 0 1px 2px rgba(23,42,66,0.06), 0 12px 34px rgba(23,42,66,0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 42%);
+}
+.ap-card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  border-radius: inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+}
+.ap-card { position: relative; }
+.ap-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 2px 4px rgba(23,42,66,0.07), 0 24px 56px rgba(23,42,66,0.15);
+}
+/* 아이브로우 앞 점 — 두 카드가 서로 다른 축임을 색으로 구분 */
+.ap-eyebrow { display: inline-flex; align-items: center; gap: 6px; }
+.ap-eyebrow::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+  flex-shrink: 0;
+}
+.ap-channel .ap-eyebrow { color: #7c3aed; }
+/* CTA 화살표가 호버에 반응 — 누를 수 있다는 신호 */
+.ap-cta i { display: inline-block; transition: transform .22s cubic-bezier(.22,1,.36,1); }
+.ap-card:hover .ap-cta i { transform: translateX(3px); }
+/* 영상 위 옅은 브랜드 톤 — 카드 전체 색감을 하나로 묶는다 */
+.ap-film-veil { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(31,95,208,0.05) 0%, rgba(251,251,253,0) 55%,
+    rgba(251,251,253,.65) 88%, #fbfbfd 100%); }
+@media (prefers-reduced-motion: reduce) { .ap-film { transform: none; } }
 .ap-media-portal img {
   width: auto; height: 100%; max-width: 100%; max-height: 100%;
   aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 50%;
