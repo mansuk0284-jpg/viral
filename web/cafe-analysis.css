@@ -424,13 +424,15 @@ body.view-af #channel .container { padding: 0 18px; max-width: min(1560px, 96vw)
   transition: opacity .2s ease; }
 .cpn-cur i { font-style: normal; font-size: 12px; font-weight: 800; color: #1f5fd0; }
 /* 기간 네비: 기본 접힘(폭 0), hover/focus 시 우측으로 슬라이드 펼침 */
-.ca-head-row .ca-nav { margin: 0 0 0 11px; max-width: 0; opacity: 0; overflow: hidden;
-  transition: max-width .45s cubic-bezier(.22,1,.36,1), opacity .3s ease; flex-wrap: nowrap; }
+/* 기간 버튼은 항상 보인다.
+   전에는 아이콘에 마우스를 올려야 펼쳐졌는데(접힘폭 0 · 실제폭 977 실측),
+   버튼이 어디 있는지 알 수 없어 '기간 설정·확인이 어렵다'는 문제의 원인이었다. */
+.ca-head-row .ca-nav { margin: 0 0 0 11px; max-width: none; opacity: 1; overflow: visible;
+  flex-wrap: wrap; }
 /* 펼침 폭은 '직접 입력' 자리를 뺀 만큼만 — 입력칸이 화면 밖으로 밀리지 않게 한다.
    폭이 모자라면 버튼이 두 줄로 접힌다(잘라내지 않는다). */
-.ca-periodnav:hover .ca-nav, .ca-periodnav:focus-within .ca-nav {
-  max-width: min(1100px, calc(96vw - 500px)); opacity: 1; flex-wrap: wrap; }
-.ca-periodnav:hover .cpn-cur, .ca-periodnav:focus-within .cpn-cur { opacity: 0; max-width: 0; margin: 0; overflow: hidden; }
+
+
 /* 하단 페이저(작게, 우측) + 각주 한 줄 배치 */
 .ca-botrow { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-top: 2px; }
 .ca-botrow .ca-foot { flex: 1; margin: 0; padding-top: 12px; }

@@ -1165,6 +1165,7 @@
     }
     return `<div class="ca2">` +
       `<div class="ca-head ca-head-row">` +
+      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="ca-periodnav" tabindex="0">` +
       `<span class="ca-ic" title="다이렉트결혼준비 — 마우스를 올리면 기간 선택"><svg viewBox="0 0 40 40" fill="none"><text x="20" y="18.5" text-anchor="middle" fill="#fff" font-family="Arial Black,Arial,sans-serif" font-size="10.5" font-weight="900" letter-spacing="-0.6">DIRECT</text><text x="21" y="29.5" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-style="italic" font-size="9.5">Wedding</text></svg></span>` +
       `<span class="cpn-cur">${perLab(st.period)}<i>기간 ▸</i></span>` +
@@ -1179,7 +1180,8 @@
       `</div>`;
   }
 
-  function rerender(host) { host.innerHTML = render(); if (st.level === "nation") paintGeo(host); }
+  function rerender(host) { host.innerHTML = render(); if (st.level === "nation") paintGeo(host);
+    if (window.VNAV) VNAV.sync(); }
 
   function bind(host) {
     // 날짜 칸에서 Enter → 적용 (버튼까지 옮겨가지 않아도 되도록)
@@ -1276,6 +1278,8 @@
     window.scrollTo({ top: 0, behavior: "auto" });
     // 리스너는 1회만 등록 — 재진입 시 중복 등록되면 클릭 1회에 핸들러가 여러 번 실행된다
     if (!host.dataset.caBound) { bind(host); host.dataset.caBound = "1"; }
+    if (window.VNAV) VNAV.push({ id: "cafe-analysis", label: "다이렉트웨딩 분석",
+      open: () => window.openCafeAnalysis() });
   }
   window.openCafeAnalysis = openCafeAnalysis;
 })();

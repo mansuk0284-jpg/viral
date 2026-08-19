@@ -179,7 +179,7 @@
     const diff = sh - rSh;
     return `<div class="ca2 cx-wrap">` +
       `<div class="cx-top">` +
-      `<button type="button" class="cx-back" id="cxBack">‹ 처음으로</button>` +
+      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="cx-title"><h2>${name}</h2>` +
       `<span>${rg}${isMine ? " · <b>우리 권역</b>" : ""} · 채널 ${CHANNELS.length}개 중 <b>${live}개</b> 수집 완료` +
       `${isCus() ? ` · <b>${VF.label(st.range.a, st.range.b)}</b>` : ""}</span></div>` +
@@ -207,12 +207,7 @@
 
   function paint(host) {
     host.innerHTML = render(st.name);
-    const back = host.querySelector("#cxBack");
-    if (back) back.addEventListener("click", () => {
-      document.body.classList.remove("view-cx");
-      st.range = null;
-      if (window.showIntro) window.showIntro();
-    });
+    if (window.VNAV) VNAV.sync();
     const go = host.querySelector("#sxGo");
     if (go) go.addEventListener("click", () => {
       const A = host.querySelector("#sxA"), B = host.querySelector("#sxB");
@@ -232,6 +227,7 @@
     const sec = document.getElementById("channel");
     if (!host || !sec) return;
     st.name = name; st.range = null;
+    if (window.VNAV) VNAV.push({ id: "store:" + name, label: name, open: () => openStoreScope(name) });
     paint(host);
     sec.hidden = false;
     document.body.classList.add("mode-results", "view-channel", "view-cx");

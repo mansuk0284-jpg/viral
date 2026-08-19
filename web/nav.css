@@ -1,0 +1,21 @@
+/* 화면 이동 공용 스타일 (nav.js)
+   어느 화면이든 헤더 맨 왼쪽에 같은 모양으로 놓인다.
+   플로팅 '← 처음으로'와 겹치던 문제를 없애기 위해, 결과 화면에서는 플로팅을 쓰지 않는다. */
+.vnav { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+  background: rgba(23,42,66,0.05); border-radius: 999px; padding: 4px; }
+.vnav-b {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 14px; border: 0; border-radius: 999px;
+  background: #fff; color: var(--text);
+  font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(23,42,66,0.08);
+  transition: background .15s ease, color .15s ease, opacity .15s ease;
+}
+.vnav-b.ic { width: 34px; padding: 0; justify-content: center; }
+.vnav-b svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+.vnav-b:hover:not(:disabled) { background: #1f5fd0; color: #fff; }
+.vnav-b:disabled { opacity: .32; cursor: default; box-shadow: none; background: transparent; }
+
+/* 결과 화면에서는 헤더 내비가 대신하므로 플로팅 버튼을 띄우지 않는다
+   (제휴카페에서 헤더 버튼과 실제로 겹쳤다 — 실측 확인) */
+body.mode-results .back-float { display: none !important; }

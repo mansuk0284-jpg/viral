@@ -227,7 +227,7 @@
     const c = st.cafe, A = agg(c, st.ym);
     return `<div class="ca2 af-wrap">` +
       `<div class="af-top">` +
-      `<button type="button" class="cx-back" id="afBack">‹ 카페 목록</button>` +
+      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="af-title"><h2>${c.name}</h2>` +
       `<span>${c.type} · ${c.rg.replace(/^지역구\s*/, "")} · 회원 ${man(c.mem)}명` +
       (c.url ? ` · <a href="${c.url}" target="_blank" rel="noopener">카페 열기 ›</a>` : "") + `</span></div>` +
@@ -245,11 +245,7 @@
 
   function paint(host) {
     host.innerHTML = render();
-    const back = host.querySelector("#afBack");
-    if (back) back.addEventListener("click", () => {
-      document.body.classList.remove("view-af");
-      if (window.showIntro) window.showIntro();
-    });
+    if (window.VNAV) VNAV.sync();
     host.querySelectorAll("[data-ym]").forEach((b) => b.addEventListener("click", () => {
       if (b.disabled) return;
       st.ym = b.getAttribute("data-ym") || null;
@@ -264,17 +260,15 @@
     const c = findCafe(cafe);
     if (!c) {
       host.innerHTML = `<div class="ca2 af-wrap"><div class="af-top">` +
-        `<button type="button" class="cx-back" id="afBack">‹ 카페 목록</button>` +
+        `${window.VNAV ? VNAV.bar() : ""}` +
         `<div class="af-title"><h2>${cafe.n || cafe.name || "카페"}</h2><span>미수집</span></div></div>` +
         `<div class="af-nodata"><b>아직 수집하지 않은 카페입니다</b>` +
         `<p>현재 부울경 14곳을 수집했습니다. 이 카페는 수집 후 자동으로 채워집니다.</p></div></div>`;
-      const b = host.querySelector("#afBack");
-      if (b) b.addEventListener("click", () => {
-        document.body.classList.remove("view-af");
-        if (window.showIntro) window.showIntro();
-      });
+      if (window.VNAV) VNAV.sync();
     } else {
       st.cafe = c;
+      if (window.VNAV) VNAV.push({ id: "cafe:" + c.slug, label: c.name,
+        open: () => window.openAffiliateCafe(cafe) });
       // 첫 진입은 현재 월. 그 달에 표본이 없으면 표본이 있는 가장 최근 달로 내려간다.
       const have = {};
       c.rows.forEach((r) => { have[r[R_YM]] = 1; });
