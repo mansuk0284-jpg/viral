@@ -1268,7 +1268,7 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
 
 /* 채널 카드 그리드 */
 .cx-grid { min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 11px; }
+  grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .cx-card { min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 7px;
   padding: 13px 14px; border-radius: 16px; background: rgba(255,255,255,0.78);
   border: 1px solid rgba(23,42,66,0.09); box-shadow: 0 6px 18px rgba(23,42,66,0.05); }
@@ -1299,3 +1299,10 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
   .cx-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); }
 }
 
+
+/* 네이버 리뷰 채널 카드 — 네이버 그린으로 다른 채널과 구분 */
+.cx-nrev { border-color: rgba(3,199,90,0.34); background: linear-gradient(168deg,#ffffff,#f4fbf6); }
+.cx-nrev .cx-head b { color: #08a04b; }
+.cx-nrev[data-nrgo] { cursor: pointer; }
+.cx-nrev[data-nrgo]:hover { border-color: #03C75A; box-shadow: 0 8px 22px rgba(3,199,90,0.18); }
+.cx-chip.s em { font-style: normal; font-size: 9.5px; color: var(--muted); margin-left: 3px; }

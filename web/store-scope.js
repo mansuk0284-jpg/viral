@@ -23,6 +23,7 @@
   /* 채널 정의 — 히어로 타일과 동일한 축. 다이렉트만 실데이터 */
   const CHANNELS = [
     { key: "dagyeolun", name: "다이렉트결혼준비", sub: "네이버 카페 · 메인", cls: "cx-cafe", live: true },
+    { key: "naver-review", name: "네이버 리뷰·예약", sub: "플레이스 방문자 평가", cls: "cx-nrev", live: true },
     { key: "naver-blog", name: "네이버 블로그", sub: "구매 후기글", cls: "cx-blog" },
     { key: "busan-mom-cafe", name: "맘카페", sub: "지역 커뮤니티", cls: "cx-mom" },
     { key: "youtube", name: "유튜브", sub: "혼수 브이로그", cls: "cx-youtube" },
@@ -104,8 +105,57 @@
     document.getElementById("storeSel").addEventListener("change", go);
   }
 
+  /* 네이버 플레이스 리뷰 — 매장명으로 찾아 카드에 요약을 싣는다 */
+  function nrFind(name) {
+    const NR = window.NAVER_REVIEW;
+    if (!NR) return null;
+    // 대시보드는 백화점 기준('신세계 센텀시티'), 플레이스는 상호 기준('삼성스토어 센텀')이라
+    // 부분 일치로는 못 잇는다. 매핑표(deptMap)를 먼저 본다.
+    const ks = Object.keys(NR.stores);
+    const k = (NR.deptMap && NR.deptMap[name])
+      || ks.find((x) => x === name)
+      || ks.find((x) => NR.stores[x].query === name)
+      || ks.find((x) => x.indexOf(name) >= 0 || name.indexOf(x) >= 0);
+    return (k && NR.stores[k]) ? Object.assign({ key: k }, NR.stores[k]) : null;
+  }
+  function nrCard(ch, name) {
+    const NR = window.NAVER_REVIEW, S = nrFind(name);
+    if (!S) {
+      return `<div class="cx-card ${ch.cls}"><div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +
+        `<div class="cx-empty"><em>미수집</em><span>이 매장은 아직 수집 전입니다</span></div></div>`;
+    }
+    // 같은 상권 경쟁 매장
+    let vs = null;
+    (NR.pairs || []).forEach((p) => {
+      if (p[0] === S.key && NR.stores[p[1]]) vs = NR.stores[p[1]];
+      else if (p[1] === S.key && NR.stores[p[0]]) vs = NR.stores[p[0]];
+    });
+    const book = S.rows.filter((r) => r[1] === "예약").length;
+    const rate = S.rows.length ? Math.round(book / S.rows.length * 100) : 0;
+    const tot = S.total + (vs ? vs.total : 0);
+    const w = tot ? (S.total / tot * 100).toFixed(1) : 50;
+    const win = vs && S.total > vs.total;
+    return `<div class="cx-card cx-live ${ch.cls}" data-nrgo="${S.key}" title="눌러서 리뷰·예약 분석 보기">` +
+      `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i></div>` +
+      `<div class="cx-main">` +
+      `<div class="cx-big"><b>${fmtN(S.total)}</b><span>리뷰</span></div>` +
+      (vs ? `<div class="cx-vs"><span class="s">삼성 ${fmtN(S.total)}</span><span class="l">LG ${fmtN(vs.total)}</span></div>` +
+            `<div class="cx-bar"><i class="s" style="width:${w}%"></i><i class="l" style="width:${100 - w}%"></i></div>` +
+            `<div class="cx-sh ${win ? "s" : "l"}">${win ? "삼성 우위" : "LG 우위"}</div>`
+          : `<div class="cx-sh">비교 매장 없음</div>`) +
+      `</div>` +
+      `<div class="cx-sub"><span class="cx-lb">예약경유</span>` +
+      `<span class="cx-chip s">${fmtN(book)}건 · ${rate}% <em>추정</em></span></div>` +
+      (S.keywords && S.keywords.length
+        ? `<div class="cx-sub"><span class="cx-lb">칭찬</span>` +
+          S.keywords.slice(0, 2).map((k) => `<span class="cx-chip">${k.k} ${fmtN(k.n)}</span>`).join("") + `</div>`
+        : "") +
+      `</div>`;
+  }
+
   /* ── 채널 카드 ── */
   function channelCard(ch, name) {
+    if (ch.key === "naver-review") return nrCard(ch, name);
     if (!ch.live) {
       return `<div class="cx-card cx-wait ${ch.cls}">` +
         `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +
@@ -217,6 +267,10 @@
     });
     const off = host.querySelector("#sxOff");
     if (off) off.addEventListener("click", () => { st.range = null; paint(host); });
+    host.querySelectorAll("[data-nrgo]").forEach((el) => el.addEventListener("click", () => {
+      const k = el.getAttribute("data-nrgo");
+      if (k && typeof window.openNaverReview === "function") window.openNaverReview(k);
+    }));
     host.querySelectorAll(".car-d").forEach((el) => el.addEventListener("keydown", (e) => {
       if (e.key === "Enter") { e.preventDefault(); const g = host.querySelector("#sxGo"); if (g) g.click(); }
     }));
