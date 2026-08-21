@@ -620,7 +620,7 @@ body.view-cafe .back-float { display: none !important; }
 .rv-leg i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; margin: 0 2px 0 6px; }
 .rv-leg i.s { background: #1f5fd0; } .rv-leg i.l { background: #d23b54; }
 .rv-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 4px; }
-.rv-row { display: grid; grid-template-columns: 20px minmax(78px, 1.4fr) 74px minmax(0, 2.2fr) 44px 42px 44px;
+.rv-row { display: grid; grid-template-columns: 18px minmax(64px, 1.25fr) 66px minmax(0, 1.7fr) 46px 56px 44px 48px;
   align-items: center; gap: 9px; width: 100%; text-align: left; border: 0; background: transparent;
   font: inherit; cursor: pointer; padding: 6px 8px; border-radius: 9px; transition: background .15s ease; }
 .rv-row:hover { background: rgba(31,95,208,0.07); }
@@ -1586,3 +1586,31 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .nsc-win.up .nw-p { background: rgba(31,95,208,.12); color: #1f5fd0; }
 .nw-sub { flex: 1 1 100%; font-size: 11px; font-weight: 600; color: var(--muted);
   word-break: keep-all; }
+
+/* ===== 조회수(히트) — 후기가 몇 명에게 읽혔나 (2026-08-21) =====
+   건수와 조회수는 다른 이야기를 한다. 후기가 적어도 많이 읽혔으면 노출은 큰 것이다. */
+.nsc-hits { margin-top: 9px; padding: 8px 11px; border-radius: 11px;
+  border: 1px solid rgba(23,42,66,0.1); background: #fff; }
+.nh-top { display: flex; align-items: baseline; gap: 5px; }
+.nh-top > b { font-size: 21px; font-weight: 900; letter-spacing: -.03em; line-height: 1;
+  color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nh-top > i { font-style: normal; font-size: 12px; font-weight: 800; color: var(--muted);
+  white-space: nowrap; }
+.nh-per { margin-left: auto; font-size: 11px; font-weight: 800; color: #1f5fd0;
+  background: rgba(31,95,208,.09); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.nh-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 7px 0 5px;
+  background: rgba(23,42,66,.06); }
+.nh-bar i.s { background: linear-gradient(90deg, #1f5fd0, #4f86e6); }
+.nh-bar i.l { background: linear-gradient(90deg, #e87186, #d23b54); }
+.nh-vs { display: flex; justify-content: space-between; gap: 8px; }
+.nh-vs span { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.nh-vs span b { font-weight: 900; }
+.nh-vs .s b { color: #1f5fd0; } .nh-vs .l b { color: #d23b54; }
+
+
+/* 조회수 칸 — 건수 옆에서 '몇 명이 읽었나'를 말한다 */
+.rv-hit { font-size: 12px; font-weight: 800; text-align: right;
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rv-hit u { text-decoration: none; font-size: 9.5px; font-weight: 700; opacity: .65; margin-left: 1px; }
+.rv-hit.s { color: #1f5fd0; } .rv-hit.l { color: #d23b54; }
+.rv-hit.off { color: #c3cbd8; font-weight: 600; }

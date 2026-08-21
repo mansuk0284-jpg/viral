@@ -30,9 +30,16 @@
       const cells = row.split(",");
       const out = new Array(cells.length);
       for (let i = 0; i < cells.length; i++) {
-        const s = cells[i], k = s.indexOf("*");
-        out[i] = k < 0 ? [parseInt(s, 16), 1]
-                       : [parseInt(s.slice(0, k), 16), parseInt(s.slice(k + 1), 16)];
+        /* 셀 형식: v[*건수][~조회수]. 건수 1이면 *가 없고, 조회수 0이면 ~가 없다.
+           조회수(히트)는 후기 건수만큼 중요하다 — 한 건이 몇 명에게 읽혔는지가
+           실제 노출량이라 건수만 세면 영향력을 놓친다(사용자 지시 2026-08-21). */
+        const s = cells[i];
+        const h = s.indexOf("~");
+        const body = h < 0 ? s : s.slice(0, h);
+        const hits = h < 0 ? 0 : parseInt(s.slice(h + 1), 16);
+        const k = body.indexOf("*");
+        out[i] = k < 0 ? [parseInt(body, 16), 1, hits]
+                       : [parseInt(body.slice(0, k), 16), parseInt(body.slice(k + 1), 16), hits];
       }
       return out;
     });
@@ -41,6 +48,7 @@
 
   const popcount = (n) => { let c = 0; while (n) { n &= n - 1; c++; } return c; };
   const pair = () => ({ s: 0, l: 0 });
+  const pairH = () => ({ s: 0, l: 0, hs: 0, hl: 0 });   // 건수 + 조회수
   const bump = (o, k, br, c) => { (o[k] || (o[k] = pair()))[br ? "l" : "s"] += c; };
 
   const cache = new Map();
@@ -56,6 +64,8 @@
     const R = {
       from: a, to: b, days: Math.max(0, hi - lo + 1),
       total: 0, s: 0, l: 0,
+      hits: 0, hitsS: 0, hitsL: 0,        // 조회수(히트) — 전체 / 삼성 / LG
+      regionHits: {},                     // 지역 → {s,l} 조회수
       regions: {}, items: {}, benefit: {}, compare: pair(),
       stores: {},            // 지역 → [{n,s,l}]
       storeItems: {}, regionItems: {},
@@ -72,6 +82,7 @@
     if (hi < lo) { cache.set(key, R); return R; }
 
     const stAcc = {};        // "지역|매장" → {s,l}
+    const stHits = {};       // "지역|매장" → {s,l} 조회수
     const mon = {};          // YYYY-MM → [tot,s,l]
     const ex = (bag, k) => (bag[k] || (bag[k] = { tot: 0, pkg: 0, pkgN: 0, pkgBig: 0, neg: 0, price: [] }));
 
@@ -81,7 +92,7 @@
       const ym = toYmd(d).slice(0, 7);
       const mv = mon[ym] || (mon[ym] = [0, 0, 0]);
       for (let i = 0; i < cells.length; i++) {
-        const v = cells[i][0], c = cells[i][1];
+        const v = cells[i][0], c = cells[i][1], hv = cells[i][2] || 0;
         const br = get(v, SH.br, W.br);      // 0=삼성 1=LG 2=삼성·LG 동시언급
         const both = br === 2;
         const loc = get(v, SH.loc, W.loc);
@@ -91,6 +102,7 @@
         const rt = get(v, SH.rt, W.rt);
 
         R.total += c;
+        R.hits += hv;
         mv[0] += c;
         // 유통 언급은 양쪽 후기도 포함(원본 retailers와 같은 기준)
         if (rt) {
@@ -100,7 +112,7 @@
         }
         // 아래 브랜드 승패 축은 단독 언급만 — 양쪽 후기는 총건수·유통에만 반영
         if (both) continue;
-        if (br) R.l += c; else R.s += c;
+        if (br) { R.l += c; R.hitsL += hv; } else { R.s += c; R.hitsS += hv; }
         mv[br ? 2 : 1] += c;
 
         const L = F.loc[loc];
@@ -110,11 +122,15 @@
 
         if (rgN) {
           bump(R.regions, rgN, br, c);
+          const rh = R.regionHits[rgN] || (R.regionHits[rgN] = { s: 0, l: 0 });
+          rh[br ? "l" : "s"] += hv;
           const rm = R.regionMon[rgN] || (R.regionMon[rgN] = {});
           rm[ym] = (rm[ym] || 0) + c;
         }
         if (stN) {
           bump(stAcc, srgN + "|" + stN, br, c);
+          const sh = stHits[srgN + "|" + stN] || (stHits[srgN + "|" + stN] = { s: 0, l: 0 });
+          sh[br ? "l" : "s"] += hv;
           const sm = R.storeMon[stN] || (R.storeMon[stN] = {});
           sm[ym] = (sm[ym] || 0) + c;
         }
@@ -202,7 +218,8 @@
     // 매장 목록을 지역별로 정리(기간 탭의 periodStores와 같은 모양)
     Object.keys(stAcc).forEach((kk) => {
       const p = kk.split("|"), rg = p[0], n = p[1], v = stAcc[kk];
-      (R.stores[rg] || (R.stores[rg] = [])).push({ n: n, s: v.s, l: v.l });
+      const _h = stHits[kk] || { s: 0, l: 0 };
+      (R.stores[rg] || (R.stores[rg] = [])).push({ n: n, s: v.s, l: v.l, hs: _h.s, hl: _h.l });
     });
     Object.keys(R.stores).forEach((rg) => R.stores[rg].sort((x, y) => (y.s + y.l) - (x.s + x.l)));
 

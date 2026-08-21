@@ -96,6 +96,7 @@ def main():
     if os.path.exists(donepath):
         done = set(open(donepath, encoding="utf-8").read().split())
     seen = load_master(args.out)
+    filled = [0]          # 기존 글에 조회수를 채운 건수
     print(f"재개: master {len(seen)}건 · 완료월 {len(done)}개", flush=True)
 
     with sync_playwright() as p:
@@ -115,7 +116,17 @@ def main():
                     for a in items:
                         it = a.get("item", a)
                         aid = it.get("articleId")
-                        if not aid or aid in seen:
+                        if not aid:
+                            continue
+                        if aid in seen:
+                            # 이미 있는 글이라도 **조회수가 비어 있으면 채운다**.
+                            # 그냥 건너뛰면 예전에 모은 10만 건은 영영 조회수가 없다(실측).
+                            old = seen[aid]
+                            if "readCount" not in old:
+                                old["readCount"] = int(it.get("readCount") or 0)
+                                old["likeCount"] = int(it.get("likeItCount") or it.get("likeCount") or 0)
+                                old["commentCount"] = int(it.get("commentCount") or 0)
+                                filled[0] += 1
                             continue
                         title = it.get("subject", "") or it.get("title", "")
                         summary = it.get("summary", "")
@@ -126,6 +137,11 @@ def main():
                             "writeMonth": label, "menu": MENU,
                             "url": f"https://cafe.naver.com/f-e/cafes/{CLUBID}/articles/{aid}",
                             "samsung": s, "lg": l, "retailers": rs,
+                            # 조회수 — 후기 '건수'만큼 중요하다. 한 건이 몇 명에게 읽혔는지가
+                            # 실제 노출량이다(사용자 지시 2026-08-21). API 가 주는데 그동안 버렸다.
+                            "readCount": int(it.get("readCount") or 0),
+                            "likeCount": int(it.get("likeItCount") or it.get("likeCount") or 0),
+                            "commentCount": int(it.get("commentCount") or 0),
                             "bodyRead": False,   # 2단계 enrich 대상 표시
                         }
             # 월 단위 체크포인트
@@ -133,13 +149,18 @@ def main():
             done.add(label)
             with open(donepath, "w", encoding="utf-8") as f:
                 f.write(" ".join(sorted(done)))
-            print(f"[{label}] 누적 {len(seen)} (+{len(seen)-mstart})", flush=True)
+            print(f"[{label}] 누적 {len(seen)} (+{len(seen)-mstart}) · 조회수 채움 {filled[0]}", flush=True)
         ctx.close()
 
     recs = list(seen.values())
     ns = sum(1 for r in recs if r["samsung"]); nl = sum(1 for r in recs if r["lg"])
     print(f"\n완료 저장 {len(recs)}건 → {args.out}", flush=True)
     print(f"삼성 {ns} / LG {nl} / 삼성비중 {ns/(ns+nl)*100:.1f}%" if ns + nl else "브랜드 0", flush=True)
+    have = [r for r in recs if r.get("readCount") is not None and "readCount" in r]
+    if have:
+        tot = sum(r["readCount"] for r in have)
+        print(f"조회수 보유 {len(have):,}건 / 전체 {len(recs):,}건 · 합계 {tot:,}회 "
+              f"(평균 {tot/max(1,len(have)):.0f}회)", flush=True)
 
 
 if __name__ == "__main__":

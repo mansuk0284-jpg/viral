@@ -258,7 +258,12 @@ def main():
     # (일자, 브랜드, 위치, 품목비트, 혜택비트, 플래그) 튜플로 압축해 두고
     # 화면에서 구간을 잘라 그때그때 합산한다. 같은 튜플은 건수로 접어 크기를 줄인다.
     fact_rows = Counter()
+    # 조회수(히트) — 후기 '건수'만큼 중요하다. 한 건이 몇 명에게 읽혔는지가 실제 노출량이다
+    # (사용자 지시 2026-08-21). 같은 팩트 키에 조회수를 함께 쌓아 기간·매장별로 자를 수 있게 한다.
+    fact_hits = Counter()
     fact_day = {}       # 원본 날짜 문자열 보관용(최소·최대 산출)
+    hit_tot = hit_s = hit_l = 0     # 조회수(히트) — 전체 / 삼성 / LG
+    hit_have = 0                    # 조회수를 가진 레코드 수(보강 진행률 표시용)
     fact_price = []     # 계약 금액은 언급이 드물어(수백 건) 별도 희소 목록으로 보관
     fact_name = []      # 매니저 실명(후기 스타) — 매장 귀속 삼성 후기만
 
@@ -277,6 +282,15 @@ def main():
         f_rg = f_srg = f_st = None
 
         tot += 1
+        # 조회수 — 아직 보강 안 된 과거 레코드는 필드가 없다(0으로 센다)
+        _h = int(r.get("readCount") or 0)
+        if "readCount" in r:
+            hit_have += 1
+        hit_tot += _h
+        if single_s:
+            hit_s += _h
+        elif single_l:
+            hit_l += _h
         if ym:
             months[ym][0] += 1
             if single_s:
@@ -425,12 +439,15 @@ def main():
         # 삼성·LG를 함께 언급한 후기(양쪽)는 브랜드 승패에는 넣지 않지만
         # 총건수·유통 언급에는 들어간다 — 원본 집계와 같은 기준을 맞추려면
         # 팩트에도 실어야 한다(브랜드 코드 2 = 양쪽).
+        hits = int(r.get("readCount") or 0)     # 없던 시절 레코드는 0
         if (not bk) and f_day:
             rt2 = 0
             for _i, _nm in enumerate(RET_KEYS):
                 if RET_RE[_nm].search(txt):
                     rt2 |= 1 << _i
-            fact_rows[(f_day, 2, "", "", "", 0, 0, 0, rt2)] += 1
+            _k2 = (f_day, 2, "", "", "", 0, 0, 0, rt2)
+            fact_rows[_k2] += 1
+            fact_hits[_k2] += hits
             fact_day[f_day] = 1
         if bk and f_day:
             im = 0
@@ -448,8 +465,10 @@ def main():
             for _i, _nm in enumerate(RET_KEYS):
                 if RET_RE[_nm].search(txt):
                     rt |= 1 << _i
-            fact_rows[(f_day, 0 if bk == "s" else 1, f_rg or "", f_srg or "", f_st or "",
-                       im, bnm, fl, rt)] += 1
+            _k = (f_day, 0 if bk == "s" else 1, f_rg or "", f_srg or "", f_st or "",
+                  im, bnm, fl, rt)
+            fact_rows[_k] += 1
+            fact_hits[_k] += hits
             fact_day[f_day] = 1
             _pm = PRICE_RE.search(txt)
             if _pm and 200 <= int(_pm.group(1)) <= 5000:
@@ -478,6 +497,10 @@ def main():
         "total": tot,
         "samsung": s_tot,
         "lg": l_tot,
+        # 조회수(히트) — 후기가 몇 명에게 읽혔나. 건수만으로는 노출량을 알 수 없다.
+        # have 는 조회수를 가진 레코드 수 — 보강이 진행 중이면 total 보다 작다.
+        "hits": {"total": hit_tot, "s": hit_s, "l": hit_l,
+                 "have": hit_have, "of": tot},
         "retailers": dict(retail),
         "mgr": mgr_all,          # 매니저 언급 유무 × 브랜드(전국)
         "mgrStore": mgr_out,     # 매장별 매니저 언급 + 실명 TOP
@@ -611,9 +634,11 @@ def main():
     span = (date(*(int(x) for x in days[-1].split("-"))) - base).days + 1 if days else 0
 
     prepped = []
-    for (day, b, rgn, srg, stn, im, bnm, fl, rt), cnt in fact_rows.items():
+    for _key, cnt in fact_rows.items():
+        (day, b, rgn, srg, stn, im, bnm, fl, rt) = _key
         idx = (date(*(int(x) for x in day.split("-"))) - base).days
-        prepped.append((idx, b, loc_of(rgn, srg, stn), im, bnm, fl, rt, cnt))
+        prepped.append((idx, b, loc_of(rgn, srg, stn), im, bnm, fl, rt, cnt,
+                        fact_hits.get(_key, 0)))
     # 위치 코드는 아래 비트 폭 계산 전에 모두 확정돼야 한다(나중에 늘면 폭이 모자란다)
     pr_prepped = [[(date(*(int(x) for x in p[0].split("-"))) - base).days,
                    loc_of(p[1], p[2], p[3]), p[4]] for p in fact_price]
@@ -642,14 +667,20 @@ def main():
     assert SH_RT + W_RT <= 45, "팩트 비트 폭 초과 — 인코딩 재설계 필요"
 
     buckets = [[] for _ in range(span)]
-    for idx, b, loc, im, bnm, fl, rt, cnt in prepped:
+    for idx, b, loc, im, bnm, fl, rt, cnt, hits in prepped:
         v = b | (loc << SH_LOC) | (im << SH_IT) | (bnm << SH_BN) | (fl << SH_FL) | (rt << SH_RT)
-        buckets[idx].append(v if cnt == 1 else (v, cnt))
+        buckets[idx].append((v, cnt, hits))
 
     def enc(cell):
-        if isinstance(cell, tuple):
-            return format(cell[0], "x") + "*" + format(cell[1], "x")
-        return format(cell, "x")
+        """v[*cnt][~hits] — 건수 1이면 *cnt 생략, 조회수 0이면 ~hits 생략.
+        예전 형식(v, v*cnt)과 그대로 호환되므로 웹 디코더만 ~ 를 알면 된다."""
+        v, cnt, hits = cell
+        out = format(v, "x")
+        if cnt != 1:
+            out += "*" + format(cnt, "x")
+        if hits:
+            out += "~" + format(hits, "x")
+        return out
 
     data["fact"] = {
         "d0": d0,

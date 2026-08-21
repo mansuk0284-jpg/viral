@@ -163,11 +163,12 @@
   }
   /* 선택 기간의 매장 목록(지역별). 없으면 전체 */
   function periodStores(rg) {
-    if (hasF()) return (A().stores[rg] || []).map((x) => ({ name: x.n, s: x.s, l: x.l }));
+    // hs/hl(조회수)까지 그대로 넘긴다 — 여기서 떨어뜨리면 매장 행에 읽힘이 안 뜬다
+    if (hasF()) return (A().stores[rg] || []).map((x) => ({ name: x.n, s: x.s, l: x.l, hs: x.hs || 0, hl: x.hl || 0 }));
     const PS = (CD && CD.periodStores) || {};
     const k = storePeriodKey();
     const m = PS[k] || PS.all || {};
-    return (m[rg] || []).map((x) => ({ name: x.n, s: x.s, l: x.l }));
+    return (m[rg] || []).map((x) => ({ name: x.n, s: x.s, l: x.l, hs: x.hs || 0, hl: x.hl || 0 }));
   }
   /* 선택 기간의 품목 상세 */
   function periodItems(kind, key) {
@@ -384,7 +385,7 @@
       const bs = CD && CD.bodyStores && CD.bodyStores[st.region];
       if (bs) {
         return { title: st.region, sub: "매장 본문매칭 · 전체기간", s: gr.s, l: gr.l, trend: vsBars(gr.s, gr.l),
-          geoNote: "", stores: bs.map((x) => ({ name: x.n, s: x.s, l: x.l })) };
+          geoNote: "", stores: bs.map((x) => ({ name: x.n, s: x.s, l: x.l, hs: x.hs || 0, hl: x.hl || 0 })) };
       }
       const cd = periodStores(st.region);
       return { title: st.region, sub: `제목기반 점별 추정 · ${perLab(st.period)}`, s: gr.s, l: gr.l, trend: vsBars(gr.s, gr.l),
@@ -555,6 +556,30 @@
       `<div class="vs-side l"><b>${ls}<i>%</i></b><span>LG ${fmtN(l)}건</span></div>` +
       `</div>`;
   }
+  /* 조회수(히트) — 후기가 몇 명에게 읽혔나.
+     사용자 지시(2026-08-21): "후기의 개수도 중요하지만 히트 수도 정말 중요해 …
+     실제 우리 후기를 읽은 고객도 많았다는 것을 표현할 수 있었으면".
+
+     건수와 조회수는 다른 이야기를 한다. 후기가 적어도 많이 읽혔으면 노출은 큰 것이다.
+     보강이 진행 중인 구간(과거)은 조회수가 0이라 표본을 함께 밝힌다. */
+  function hitsBlock() {
+    const A0 = hasF() ? A() : null;
+    const h = A0 ? A0.hits : (CD && CD.hits ? CD.hits.total : 0);
+    const hs = A0 ? A0.hitsS : (CD && CD.hits ? CD.hits.s : 0);
+    const hl = A0 ? A0.hitsL : (CD && CD.hits ? CD.hits.l : 0);
+    if (!h) return "";
+    const sh = hs + hl ? Math.round(hs / (hs + hl) * 100) : 0;
+    const per = A0 && A0.total ? Math.round(h / A0.total) : 0;
+    return `<div class="nsc-hits">` +
+      `<div class="nh-top"><b>${fmtN(h)}</b><i>회 읽힘</i>` +
+      (per ? `<span class="nh-per">후기당 ${per}회</span>` : "") + `</div>` +
+      (hs + hl ? `<div class="nh-bar"><i class="s" style="width:${sh}%"></i>` +
+        `<i class="l" style="width:${100 - sh}%"></i></div>` +
+        `<div class="nh-vs"><span class="s">삼성 ${fmtN(hs)}회 <b>${sh}%</b></span>` +
+        `<span class="l">LG ${fmtN(hl)}회 <b>${100 - sh}%</b></span></div>` : "") +
+      `</div>`;
+  }
+
   /* 몇 개 점에서 이기고 있나 — 전체 매장 수 가운데 우위 매장 수.
      사용자 지시(2026-08-21): "전체 매장 수 가운데 몇개점이 우위인지를 나타내줘".
      비교가 성립하려면 양쪽 후기가 있어야 하므로, 후기가 아예 없는 매장은 '표본 없음'으로 뺀다.
@@ -632,7 +657,9 @@
     const src = isBu ? c.regions.map((r) => ({ name: r.rg, s: r.s, l: r.l })) : (c.stores || []);
     const attr = isBu ? "data-region" : "data-store";
     const unit = isBu ? "지역" : "매장";
-    const list = src.map((x) => ({ n: x.name || x.n || x.rg, s: x.s, l: x.l }))
+    // hs/hl(조회수)까지 그대로 실어 보낸다 — 여기서 떨어뜨리면 행에 '읽힘'이 안 뜬다
+    const list = src.map((x) => ({ n: x.name || x.n || x.rg, s: x.s, l: x.l,
+                                   hs: x.hs || 0, hl: x.hl || 0 }))
       .sort((a, b) => (b.s + b.l) - (a.s + a.l));
     // 표본 하한은 지역 규모에 비례(고정 20건이면 지방 소도시 매장이 통째로 사라진다)
     if (!isBu && list.length) {
@@ -660,13 +687,21 @@
     const rowOf = (x, i) => {
       const tot = x.s + x.l, sh = pct(x.s, x.l), gap = x.s - x.l;
       const lead = x.s > x.l ? "s" : x.l > x.s ? "l" : "even";
-      return `<button type="button" class="rv-row ${lead}" ${attr}="${x.n}" title="${x.n} · 삼성 ${x.s} vs LG ${x.l}">` +
+      /* 조회수 — 건수 옆에 '몇 명이 읽었나'를 함께 둔다.
+         후기가 적어도 많이 읽힌 매장이 있다(사용자 지시 2026-08-21).
+         조회수 보강이 안 끝난 과거 구간은 0이라 칸을 비운다. */
+      const hs = x.hs || 0, hl = x.hl || 0, ht = hs + hl;
+      const hsh = ht ? Math.round(hs / ht * 100) : 0;
+      const hTip = ht ? ` · 읽힘 ${fmtN(ht)}회(삼성 ${fmtN(hs)} : LG ${fmtN(hl)})` : "";
+      return `<button type="button" class="rv-row ${lead}" ${attr}="${x.n}" title="${x.n} · 삼성 ${x.s} vs LG ${x.l}${hTip}">` +
         `<span class="rv-rank">${i}</span>` +
         `<span class="rv-name">${x.n}</span>` +
         `<span class="rv-cnt"><i class="s">${fmtN(x.s)}</i><em>:</em><i class="l">${fmtN(x.l)}</i></span>` +
         `<span class="rv-bar"><i class="s" style="width:${(x.s / max * 100).toFixed(1)}%"></i>` +
         `<i class="l" style="width:${(x.l / max * 100).toFixed(1)}%"></i></span>` +
         `<span class="rv-num">${fmtN(tot)}</span>` +
+        (ht ? `<span class="rv-hit ${hsh >= 50 ? "s" : "l"}" title="읽힘 ${fmtN(ht)}회 · 삼성 ${hsh}%">` +
+              `${fmtN(ht)}<u>회</u></span>` : `<span class="rv-hit off">-</span>`) +
         `<span class="rv-sh ${lead}">${sh}%</span>` +
         `<span class="rv-gap ${gap >= 0 ? "s" : "l"}">${gap >= 0 ? "+" : ""}${fmtN(gap)}</span></button>`;
     };
@@ -1166,6 +1201,7 @@
         `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` +
         `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b></span><span class="nv l">LG <b>${ls}%</b></span></div>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
+        hitsBlock() +
         winCount() +
         regionSummary() +
         `</div>`;

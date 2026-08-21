@@ -38,8 +38,10 @@ button.ca-b, .ca-pill, .nr-b { white-space: nowrap; }
 .sc-k span, .sc-k em, .nk-s, .ch-note, .card-sub { word-break: keep-all; }
 
 /* 5) 좁은 수치 칸은 칸을 넓힌다 — 글자를 줄이는 건 마지막 수단 ------------ */
-.rv-row { grid-template-columns: 20px minmax(72px, 1.4fr) 74px minmax(0, 2.2fr)
-          52px 50px 52px !important; }
+/* 순위 · 매장명 · 건수(삼:엘) · 막대 · 합계 · 읽힘 · 점유 · 갭 — 여덟 칸.
+   조회수 칸이 늘면서 다시 잡았다(2026-08-21). */
+.rv-row { grid-template-columns: 18px minmax(64px, 1.25fr) 66px minmax(0, 1.7fr)
+          46px 56px 44px 48px !important; }
 body.view-cafe .rv-sh { font-size: 16px; }        /* 18 → 16, 50px 칸에 "100%" 가 들어간다 */
 
 /* 6) 좁은 칸의 보조 라벨은 확대 상한을 둔다 ------------------------------
