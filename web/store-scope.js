@@ -234,7 +234,7 @@
     })[row.quad] : "";
     return `<div class="cx-comp ${g[0]}">` +
       `<span class="cxc-lb">경쟁력</span>` +
-      `<b class="cxc-v">${v.toFixed(2)}<u>배</u></b>` +
+      `<b class="cxc-v">${window.CMP_PCT ? CMP_PCT(v) : Math.round(v * 100) + "%"}</b>` +
       `<i class="cxc-g">${g[1]}</i>` +
       (row ? `<span class="cxc-q">${row.quad}</span>` : "") +
       (tip ? `<span class="cxc-tip">${tip}</span>` : "") +

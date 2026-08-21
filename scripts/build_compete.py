@@ -101,6 +101,13 @@ def main():
         if not nm:
             continue
         nm = str(nm).strip()
+        # 매장명 칸에 숫자만 든 행은 매장이 아니라 구분/합계 행이다.
+        # (실제로 '9' 라는 유령 매장이 명부에 끼어 72곳으로 세어졌다)
+        if not nm or re.fullmatch(r"[\d.\s]+", nm):
+            continue
+        # 소속팀이 비면 명부 행이 아니다 — 같은 이유로 걸러낸다
+        if not str(ws.cell(r, COL_TEAM).value or "").strip():
+            continue
         # 모바일 매장 제외 — LG에는 모바일 매장이 없어 비교 자체가 성립하지 않는다
         if nm.endswith("MX") or "MX" in nm:
             skipped_mx += 1

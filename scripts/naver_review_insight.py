@@ -16,6 +16,8 @@
 사용: python scripts/naver_review_insight.py
 """
 import io, json, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from place_gate import sift, roster_name, load_roster   # 화면과 같은 관문을 쓴다 — 안 그러면 수가 갈라진다
 from collections import Counter, defaultdict
 from datetime import datetime
 
@@ -168,6 +170,8 @@ def main():
     recs = load()
     if not recs:
         raise SystemExit("수집 파일 없음 — artifacts/naver-place/*.json")
+    raw_n = len(recs)
+    recs, dropped, dup_n = sift(recs)   # 화면(build_naver_review_web.py)과 똑같이 거른다
     date = datetime.now().strftime("%Y%m%d")
     A = [(r, analyze(r)) for r in recs]
 
@@ -175,6 +179,23 @@ def main():
     L.append(f"# 네이버 리뷰 인사이트 — {date[:4]}-{date[4:6]}-{date[6:]}")
     L.append("")
     L.append(f"> 대상 **{len(recs)}개 매장** · 수집 리뷰 **{sum(a['n'] for _, a in A):,}건**")
+    L.append("> ")
+    L.append(f"> 수집 {raw_n}곳에서 중복 {dup_n}곳을 합치고 {len(dropped)}곳을 뺐다 — "
+             "백화점 밖 단독점과 모바일(MX) 매장은 삼성 vs LG 비교가 성립하지 않는다.")
+    if dropped:
+        L.append("> 뺀 곳: " + ", ".join(f"{n}({w.split(' — ')[0]})" for n, _, w in dropped))
+    # 명부(data/백화점 리스트.xlsx) 대비 현황 — 회사 사람들이 먼저 숫자를 대조한다
+    ROOT_ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    roster = load_roster(ROOT_)
+    if roster:
+        got = {roster_name(r.get("dept", "")) for r in recs if r.get("dept")}
+        miss = sorted(roster - got)
+        L.append("> ")
+        L.append(f"> **명부 대조 — 양사 입점 {len(roster)}곳 중 {len(roster & got)}곳 수집.** "
+                 "명부는 `data/백화점 리스트.xlsx`(삼성·LG 모두 입점한 백화점)가 정본이다.")
+        if miss:
+            L.append(f"> 미수집 {len(miss)}곳: {', '.join(miss)} — "
+                     "네이버 플레이스에서 찾지 못했다. 명부상 26년 실적이 없는 곳은 폐점으로 본다.")
     L.append("> ")
     L.append("> ⚠ **네이버 예약 '건수'는 외부에서 볼 수 없다**(스마트플레이스 관리자 전용).")
     L.append("> 아래 '예약 경유'는 리뷰의 `인증 수단 = 예약` 비율로 낸 **추정치**다.")

@@ -48,6 +48,7 @@
 | `affiliate_insight.py` / `build_affiliate_web.py` | 제휴카페 리포트 / 웹 데이터 |
 | `naver_place_collect.py` / `naver_review_insight.py` / `build_naver_review_web.py` | 네이버 리뷰 수집 / 리포트 / 웹 |
 | `build_compete.py` / `compete_viral_link.py` | 경쟁력 자료 / 바이럴 교차 |
+| **`place_gate.py`** | **네이버 플레이스 수집분을 거르는 공용 SSOT.** 모바일(MX)·백화점 밖 단독점·이름표≠상호 오매칭·중복 플레이스를 걸러내고, 명부(`백화점 리스트.xlsx`) 이름으로 맞춘다. **화면과 리포트가 반드시 이걸 같이 쓴다** — 각자 거르다 119곳/130곳으로 갈라진 적이 있다 |
 | `brand_lexicon.py` | 브랜드 분류 공용 SSOT |
 | `channel_session.py` / `channel_analyze.py` | 채널 로그인 세션 / 세션캡처 분석 |
 | `naver_api_collect.py` / `naver-search.ps1` | ⚠ 네이버 검색 API 경로 — **신규 발급 중단**으로 동작 불가([[naver-search-api-discontinued]]) |

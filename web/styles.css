@@ -1900,11 +1900,13 @@ body.portal-open .ap-cards { display: none; }
   transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease;
 }
 .ap-card:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(23,42,66,0.13); }
-/* 이미지 영역 — 배경과 자연스럽게 이어지도록 그라데이션 위에 얹음 */
+/* 이미지 영역 — 배경을 깔지 않는다.
+   그라데이션을 깔면 미디어가 '판' 위에 얹힌 것처럼 보여 영상 주변에 틀이 생긴다.
+   카드 바탕(흰색)이 그대로 비쳐야 영상·이미지가 카드에 녹아든다. */
 .ap-media {
-  position: relative; flex: 1; min-height: 0;
+  position: relative; flex: 1 1 auto; min-height: 0;
   display: grid; place-items: center; overflow: hidden;
-  background: radial-gradient(120% 100% at 50% 0%, #eef3fc 0%, #f7f9fd 55%, #fbfbfd 100%);
+  background: transparent;
 }
 .ap-illust { width: 88%; max-height: 100%; display: block; }
 /* 채널 카드 원형 이미지 — 매장 카드와 같은 여백 규칙으로 리듬을 맞춘다.
@@ -1921,49 +1923,42 @@ body.portal-open .ap-cards { display: none; }
 
 
 /* ── 매장 카드 영상 ──
-   애플 제품 카드처럼 **카드 안쪽에 여백을 두고** 라운드 박스에 담는다.
-   가장자리까지 꽉 채우면 카드가 답답해지고, 영상이 '창'처럼 겉돈다.
-   여백 + 라운드 + 또렷한 모서리가 오히려 더 정돈돼 보인다(마스크 페이드 불필요). */
+   틀(회색 판·안쪽 테두리·레터박스 띠)을 전부 걷어낸다.
+   contain 은 박스 비율(1.81)과 영상 비율(1.78)이 어긋나 좌우에 3px 씩 빈 띠를 만들고,
+   그 띠 뒤로 회색 판이 보여 '영상 주변 틀'로 읽혔다(실측). cover 로 띠를 0 으로 만든다.
+   이 영상은 로고 한 장이 아니라 장면이고, 화면 에너지가 가운데에 몰려 있어
+   (프레임 6장 행 밴드 측정: 중앙 밴드가 최고치) 상하 중앙 크롭이 안전하다. */
 .ap-media-film { display: block; position: relative; padding: 0; background: none; }
-/* 영상은 단색 배경이 아니라 화면을 꽉 채운 장면이라 잘리면 내용이 사라진다.
-   **높이 기준으로 16:9를 지켜** 크롭을 0으로 만든다.
-   화면이 낮아지면 박스가 좁아지며 좌우에 여백이 생기는데, 이게 오히려 더 정돈돼 보인다. */
-/* 박스는 미디어 영역을 그대로 채우고(라운드), 영상은 contain 으로 넣는다.
-   - height:100% 를 흐름 안에서 쓰면 부모(flex:1) 높이와 순환 참조가 생겨 카드가 컬럼을 못 채운다
-     → 절대배치로 참조를 끊는다.
-   - 박스에 aspect-ratio 를 주면 화면 비율에 따라 max-width/max-height 중 하나에 막혀
-     비율이 깨지고(실측 1.505) cover 가 좌우를 잘라낸다 → 영상 쪽에서 contain 으로 해결.
-   영상이 단색 배경이 아니라 잘리면 내용이 사라지므로, 잘림 0 을 우선한다. */
+/* 박스는 미디어 영역을 그대로 채우고 라운드만 남긴다 — 배경·테두리 없음.
+   height:100% 를 흐름 안에서 쓰면 부모(flex) 높이와 순환 참조가 생기므로 절대배치로 끊는다. */
 .ap-film-box {
   position: absolute; inset: 0; overflow: hidden;
   border-radius: clamp(14px, 1.3vw, 20px);
-  background: #eef2f8;
-  box-shadow: inset 0 0 0 1px rgba(23,42,66,0.06);
+  background: none;
 }
 .ap-film {
   position: absolute; inset: 0;
-  width: 100%; height: 100%; object-fit: contain; display: block;
-  transform: scale(1.005);
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%;
+  display: block;
+  transform: scale(1.001);
   transition: transform .6s cubic-bezier(.22,1,.36,1);
 }
-.ap-store:hover .ap-film { transform: scale(1.045); }
+.ap-store:hover .ap-film { transform: scale(1.04); }
 @media (prefers-reduced-motion: reduce) { .ap-film { transform: none; } }
 
-/* 매장 카드는 본문에 선택바가 더 있다 — 두 카드를 1:1로 두면 영상이 눌린다.
-   합계 높이는 그대로라 좌측 영상과의 상·하단 정렬은 유지된다. */
-/* 영상 박스가 16:9(1.78)에 가깝게 떨어지도록 잡은 비율 — 좌우 크롭을 최소화한다 */
-.ap-store { flex: 1.18; }
-.ap-channel { flex: 0.82; }
+/* 두 카드는 **정확히 같은 크기**로 둔다.
+   예전엔 1.18 : 0.82 로 나눠 매장 영상을 키웠지만, 카드 두 장의 높이가 399 vs 288 로 달라져
+   짝이 어긋나 보였다. 같은 폭·같은 높이일 때가 가장 정돈돼 보인다. */
+.ap-store, .ap-channel { flex: 1 1 0; }
 
-/* ── 채널 카드는 가로 배치 ──
-   카드가 넓고 낮아서 원형 이미지를 세로로 넣으면 122px까지 쪼그라들어 허전하다.
-   원을 왼쪽에 두고 글을 오른쪽에 놓으면 폭을 제대로 쓰고, 남는 높이는 매장 영상에 돌아간다. */
-.ap-channel { flex-direction: row; align-items: center; gap: clamp(14px, 1.5vw, 22px); }
+/* ── 채널 카드도 매장 카드와 같은 세로 구성 ──
+   카드 높이를 맞추자 가로 배치는 오른쪽 글줄이 좁아지고 위아래로 빈 공간이 남았다.
+   두 카드가 같은 구조(위 미디어 · 아래 본문)여야 한 쌍으로 읽힌다. */
+.ap-channel { flex-direction: column; }
 .ap-channel .ap-media {
-  flex: 0 0 clamp(104px, 11vw, 148px); width: clamp(104px, 11vw, 148px);
-  aspect-ratio: 1 / 1; height: auto; align-self: center;
+  flex: 1 1 auto; width: auto; height: auto; aspect-ratio: auto; align-self: stretch;
 }
-.ap-channel .ap-body { flex: 1 1 auto; min-width: 0; padding: 0; }
+.ap-channel .ap-body { flex: 0 0 auto; min-width: 0; }
 
 /* ── 카드 마감 ──
    애플 카드의 무게감은 '그림자 한 겹'이 아니라 가까운 윤곽 + 먼 확산 두 겹에서 나온다. */
@@ -1973,13 +1968,14 @@ body.portal-open .ap-cards { display: none; }
   position: relative;
   padding: clamp(16px, 1.8vh, 24px) clamp(18px, 1.9vw, 28px) clamp(16px, 1.8vh, 24px);
   border-radius: clamp(22px, 2.2vw, 30px);
-  box-shadow: 0 1px 2px rgba(23,42,66,0.05), 0 14px 38px rgba(23,42,66,0.07);
+  /* 절제 — 가까운 윤곽 한 겹 + 아주 얕게 퍼지는 한 겹. 진한 그림자는 값싸 보인다. */
+  box-shadow: 0 0.5px 1.5px rgba(23,42,66,0.045), 0 10px 30px rgba(23,42,66,0.055);
   background: #fff;
-  border-color: rgba(23,42,66,0.06);
+  border-color: rgba(23,42,66,0.055);
 }
 .ap-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 2px 5px rgba(23,42,66,0.06), 0 26px 60px rgba(23,42,66,0.13);
+  transform: translateY(-2px);
+  box-shadow: 0 1px 3px rgba(23,42,66,0.05), 0 18px 46px rgba(23,42,66,0.10);
 }
 /* 아이브로우 앞 점 — 두 카드가 서로 다른 축임을 색으로 구분 */
 .ap-eyebrow { display: inline-flex; align-items: center; gap: 6px; }
@@ -2015,8 +2011,11 @@ body.portal-open .ap-cards { display: none; }
 .ap-store .sp-go:hover { background: #0062c4; }
 /* 채널 카드 클릭존 */
 .ap-media-portal { cursor: pointer; }
+/* 클릭존은 **높이 기준**으로 잡는다. 미디어 영역이 정사각형일 때는 width:66% 가 원과 맞았지만,
+   카드 높이를 맞추며 미디어가 가로로 길어져(367×171) width:66% 는 242px — 원(171px)을 훌쩍 넘어
+   원 바깥 빈 여백까지 눌리는 클릭존이 됐다. 원은 높이로 결정되므로 높이를 기준으로 삼는다. */
 .ap-media-portal .portal-hole { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: 66%; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
+  height: 66%; width: auto; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
 .ap-cue { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: grid; place-items: center; pointer-events: none; z-index: 4; }
 .ap-cue .pc-ring { position: absolute; width: 74px; height: 74px; top: 50%; left: 50%;

@@ -24,10 +24,13 @@ P_KEYS, C_KEYS, R_KEYS = list(PRAISE), list(COMPLAIN), list(REASON)
 # 같은 백화점 안의 삼성 vs LG 를 잇는다.
 # 수집 레코드에 dept(백화점명)가 들어 있어 그걸로 묶으면 된다 —
 # 손으로 표를 적지 않으므로 매장이 늘어도 고칠 곳이 없다.
+from place_gate import sift, norm_dept, roster_name, load_roster   # 거르는 규칙은 place_gate 한 곳에만 둔다
+
+
 def build_pairs(stores):
     by_dept = {}
     for nm, v in stores.items():
-        dp = v.get("dept") or ""
+        dp = norm_dept(v.get("dept") or "")
         if not dp:
             continue
         by_dept.setdefault(dp, {})[v["brand"]] = nm
@@ -43,7 +46,7 @@ def build_dept_map(stores):
     m = {}
     for nm, v in stores.items():
         if v["brand"] == "삼성" and v.get("dept"):
-            m[v["dept"]] = nm
+            m[norm_dept(v["dept"])] = nm
     return m
 
 # 대시보드 매장명(백화점 기준) → 플레이스 매장(상호 기준) 매핑.
@@ -83,6 +86,8 @@ def main():
     recs = load()
     if not recs:
         raise SystemExit("수집 파일 없음 — artifacts/naver-place/*.json")
+    raw_n = len(recs)
+    recs, dropped, dup_n = sift(recs)
     stores, months = {}, set()
     for r in recs:
         nm = r["place"]["name"]
@@ -90,12 +95,23 @@ def main():
         months |= {x[0] for x in rw}
         stores[nm] = {
             "name": nm, "query": r["query"], "brand": r["brand"], "region": r["region"],
-            "dept": r.get("dept", ""),
+            "dept": norm_dept(r.get("dept", "")),
             "addr": r["place"].get("addr", ""), "pid": r["place"].get("id"),
             "total": r.get("reviewTotal") or 0, "participants": r.get("participants") or 0,
             "keywords": r.get("keywords") or [], "rows": rw,
         }
+    # 명부(data/백화점 리스트.xlsx) 대비 수집 현황 — 화면에 정직하게 띄운다.
+    # 사용자 지시: "매장 수와 lg(x사) 대응점은 첨부자료가 확실하니깐 정확하게 반영해야 해"
+    roster = load_roster(ROOT)
+    got = {roster_name(v["dept"]) for v in stores.values() if v.get("dept")}
+    miss = sorted(roster - got)
+    extra = sorted(got - roster) if roster else []
+    for k, v in stores.items():
+        v["roster"] = roster_name(v.get("dept", ""))
+
     data = {
+        "roster": {"total": len(roster), "got": len(roster & got),
+                   "miss": miss, "extra": extra},
         "built": datetime.now().strftime("%Y-%m-%d"),
         "now": datetime.now().strftime("%Y-%m"),
         "praise": P_KEYS, "complain": C_KEYS, "reason": R_KEYS,
@@ -110,6 +126,13 @@ def main():
     n = sum(len(s["rows"]) for s in stores.values())
     tot_s = sum(s["total"] for s in stores.values() if s["brand"] == "삼성")
     tot_l = sum(s["total"] for s in stores.values() if s["brand"] == "LG")
+    print(f"수집 {raw_n}개 → 중복 {dup_n} 제거 → 관문 탈락 {len(dropped)} → 분석 {len(stores)}곳")
+    for nm, dp, why in dropped:
+        print(f"   [제외] {nm} (검색: {dp}) — {why}")
+    print(f"명부 {len(roster)}곳 대비 수집 {len(roster & got)}곳"
+          + (f" · 미수집 {len(miss)}곳: {', '.join(miss)}" if miss else " · 전부 수집"))
+    if extra:
+        print(f"   명부 밖 수집 {len(extra)}곳: {', '.join(extra)}")
     print(f"매장 {len(stores)}곳 · 리뷰행 {n:,} · 월 {len(months)}개")
     print(f"네이버 리뷰 총계 — 삼성 {tot_s:,} / LG {tot_l:,}")
     print(f"→ {OUT} ({os.path.getsize(OUT)//1024}KB)")

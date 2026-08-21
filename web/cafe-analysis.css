@@ -1309,3 +1309,50 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
 
 /* 네이버 리뷰 채널 타일 — 네이버 그린 */
 .src-nrev .src-ic { background: linear-gradient(140deg,#03C75A,#00a94b); }
+
+/* ===== 기간 줄 — 연도는 접고 월만 편다 (2026-08-21) =====
+   전체+연도6+월12 = 19개 버튼이 한 줄에 늘어서 겹치고 누르기 어려웠다.
+   연도는 창으로 접고, 올해 월을 주인공으로 한 줄에 편다. */
+.ca-yr { position: relative; display: inline-flex; }
+
+.ca-yrb { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.ca-yrb i { font-style: normal; font-size: 0.72em; opacity: .6; }
+
+/* 연도 창 — 평소엔 감춰 두고, 올리거나 키보드 포커스가 오면 뜬다 */
+.ca-yrm {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+  display: flex; flex-direction: column; gap: 2px; min-width: 108px; padding: 5px;
+  border-radius: 11px; background: #fff;
+  border: 1px solid rgba(23,42,66,.12); box-shadow: 0 14px 36px rgba(0,0,0,.16);
+  opacity: 0; visibility: hidden; transform: translateY(-4px);
+  transition: opacity .15s ease, transform .15s ease, visibility .15s;
+}
+.ca-yr:hover .ca-yrm, .ca-yr:focus-within .ca-yrm {
+  opacity: 1; visibility: visible; transform: translateY(0);
+}
+
+.ca-yrm button {
+  width: 100%; text-align: left; white-space: nowrap;
+  padding: 6px 10px; border-radius: 7px; border: 0; background: transparent;
+  font-size: 12.5px; font-weight: 700; color: var(--text); cursor: pointer;
+}
+.ca-yrm button:hover { background: rgba(31,95,208,.09); color: #1f5fd0; }
+.ca-yrm button.cur { background: #1f5fd0; color: #fff; font-weight: 800; }
+
+/* 월 버튼 — 숫자를 크게, '월'은 작게 붙인다(칸을 아끼면서 읽히게) */
+.ca-nav > button > u { text-decoration: none; font-size: .74em; font-weight: 700;
+  opacity: .68; margin-left: 1px; }
+
+/* ===== 긴 글의 단락 (2026-08-21) =====
+   진단·액션이 한 덩어리로 이어져 읽기 어려웠다. 문장을 블록으로 끊는다.
+   첫 문장은 여백 없이 시작해 블록 상단선이 어긋나지 않게 한다. */
+.pl { display: block; }
+.pl + .pl { margin-top: 7px; }
+
+.rv-dtext .pl + .pl,
+.rv-act .pl + .pl,
+.sv-action .pl + .pl { margin-top: 6px; }
+
+/* 액션 라벨은 첫 단락과 같은 줄에서 시작한다 */
+.rv-act > em + .pl { display: inline; }
+.rv-act > em + .pl + .pl { display: block; margin-top: 6px; }

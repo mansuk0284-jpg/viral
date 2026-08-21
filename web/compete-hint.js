@@ -9,6 +9,15 @@
    붙이는 법: 매장 이름을 가진 요소에 data-store="<매장명>" 만 달면 된다.
    이 파일이 문서 전체에서 위임 처리하므로 화면마다 코드를 넣지 않는다. */
 (function () {
+  /* 경쟁력 표기 — 배수(1.07배)가 아니라 %로 읽는다.
+     사용자 지시(2026-08-21): "1.00 숫자로 표시하지 말고 %로 나타내줘
+     (우위는 100% 초과, 열세는 100% 미만)".
+     100% = 대등. 107% 면 X사의 1.07배를 판다는 뜻이다. */
+  window.CMP_PCT = function (v) {
+    if (v == null) return "-";
+    return Math.round(v * 100) + "%";
+  };
+
   "use strict";
   const C = window.COMPETE || null;
   if (!C) return;
@@ -66,16 +75,16 @@
         const spark = yrs.length >= 2
           ? `<span class="cmp-tr">` + yrs.map((k) => {
               const gv = grade(st.p[k]);
-              return `<i class="${gv.cls}" title="${k}">${st.p[k].toFixed(2)}</i>`;
+              return `<i class="${gv.cls}" title="${k}">${CMP_PCT(st.p[k])}</i>`;
             }).join('<em>›</em>') + `</span>`
           : "";
         t.innerHTML =
           `<b>${st.name}</b>` +
           `<span class="cmp-row"><em>경쟁력</em>` +
-          `<i class="cmp-v ${g.cls}">${v.toFixed(2)}<u>배</u></i>` +
+          `<i class="cmp-v ${g.cls}">${CMP_PCT(v)}</i>` +
           `<i class="cmp-g ${g.cls}">${g.t}</i></span>` +
           (spark ? `<span class="cmp-row"><em>추이</em>${spark}</span>` : "") +
-          `<span class="cmp-foot">${p} · 당사 ÷ X사 매출</span>`;
+          `<span class="cmp-foot">${p} · 당사 ÷ X사 매출 · <b>100% = 대등</b></span>`;
       }
     }
     const r = el.getBoundingClientRect();

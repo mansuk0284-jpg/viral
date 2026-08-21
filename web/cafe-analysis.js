@@ -120,8 +120,15 @@
     return [];
   }
   const isPend = () => false;   // census 전구간 확보 — 수집중 구간 없음
-  const perLab = (k) => (k === "custom" && isCus()) ? VF.label(st.range.a, st.range.b)
-    : ((PERIODS.find((p) => p.k === k) || {}).lab || k);
+  /* 기간 라벨. PERIODS 에는 올해 월만 들어 있어, 다른 해의 월을 고르면
+     "2025-03" 같은 날것이 그대로 나왔다. 키에서 직접 만든다. */
+  const perLab = (k) => {
+    if (k === "custom" && isCus()) return VF.label(st.range.a, st.range.b);
+    if (k === "all") return "전체";
+    if (/^\d{4}$/.test(k)) return k + "년";
+    if (/^\d{4}-\d\d$/.test(k)) return `${k.slice(0, 4)}년 ${+k.slice(5)}월`;
+    return (PERIODS.find((p) => p.k === k) || {}).lab || k;
+  };
 
   function regionRoll() {
     const R = {};
@@ -403,10 +410,25 @@
   }
 
   // ── 렌더 ──
+  /* 기간 줄 — 연도는 접고, 그 해 월만 한 줄로 편다.
+     예전엔 전체+연도6+월12 = 19개 버튼이 한 줄에 늘어서 서로 겹치고 누르기 어려웠다.
+     사용자 지시(2026-08-21): "년도는 마우스를 가져다놓으면 보이도록 하거나 창을 만들어서
+     선택하게 하고 올해 월별 현황 중심으로 한줄로 표시해줘". */
   function nav() {
+    const y = st.navY || CUR_Y;
+    const ms = MONTHS.filter((m) => m[0].slice(0, 4) === y);
+    const yrOn = st.period === y;
     return `<div class="ca-nav" id="caNav">` +
-      PERIODS.map((p) => `<button type="button" data-per="${p.k}" class="${st.period === p.k ? "on" : ""}${p.pend ? " pend" : ""}"` +
-        `${p.pend ? ' title="2021~2023 후기는 현재 백필 수집 중 — 통합되면 활성화됩니다"' : ""}>${p.lab}${p.pend ? " ·수집중" : ""}</button>`).join("") +
+      `<span class="ca-yr${yrOn ? " on" : ""}" tabindex="0">` +
+      `<button type="button" data-per="${y}" class="ca-yrb${yrOn ? " on" : ""}"` +
+      ` title="${y}년 전체로 보기">${y}<i>▾</i></button>` +
+      `<span class="ca-yrm">` +
+      YEARS.slice().reverse().map((v) =>
+        `<button type="button" data-navy="${v}" class="${v === y ? "cur" : ""}">${v}년</button>`).join("") +
+      `<button type="button" data-per="all" class="${st.period === "all" ? "cur" : ""}">전체 기간</button>` +
+      `</span></span>` +
+      ms.map((m) => `<button type="button" data-per="${m[0]}"` +
+        ` class="${st.period === m[0] ? "on" : ""}">${+m[0].slice(5)}<u>월</u></button>`).join("") +
       `</div>`;
   }
 
@@ -424,6 +446,17 @@
       (isCus() ? `<button type="button" class="car-off" id="carOff" title="기간 버튼으로 되돌리기">해제</button>` : "") +
       `</span>`;
   }
+  /* 긴 글은 문장 단위로 끊어 단락으로 만든다.
+     사용자 지시(2026-08-21): "진단 등 글이 길 경우 단락을 나눠주면 가독성이 좋아져 …
+     그래야 홈페이지가 정돈된 느낌이 나지".
+     소수점(1.07배)은 마침표 뒤에 공백이 없어 걸리지 않는다. */
+  function para(s) {
+    const parts = String(s).split(/\.\s+/).filter(Boolean);
+    if (parts.length < 2) return `<span class="pl">${s}</span>`;
+    return parts.map((t, i) =>
+      `<span class="pl">${t}${i < parts.length - 1 ? "." : ""}</span>`).join("");
+  }
+
   function crumb() {
     if (st.level === "nation") return "";   // 전사 단일 항목은 숨김(중복)
     const parts = [["전사", "nation"]];
@@ -616,9 +649,9 @@
       `<div class="rv-dhead"><h4>진단</h4>` +
       (opps.length ? `<span class="rv-oppsum">기회 ${opps.length}곳 · 회복 여지 <b>${fmtN(oppGap)}건</b></span>` : `<span class="rv-oppsum ok">열세 없음 · 방어 국면</span>`) +
       `</div>` +
-      `<p class="rv-dtext">${diag.join(" ")}</p>` +
+      `<div class="rv-dtext">${diag.map((d) => `<span class="pl">${d}</span>`).join("")}</div>` +
       (oppCards ? `<div class="rv-opps">${oppCards}</div>` : "") +
-      `<p class="rv-act"><em>액션</em>${action}</p>` +
+      `<div class="rv-act"><em>액션</em>${para(action)}</div>` +
       `</div>` +
       `<div class="rv-rhead"><h4>${unit}별 경쟁력 <em>${list.length}곳</em></h4>` +
       `<span class="rv-leg"><i class="s"></i>삼성<i class="l"></i>LG · 클릭 시 ${unit} 상세</span></div>` +
@@ -868,7 +901,7 @@
       storeProfile(st.store, c) +
       scaleCard("store", st.store, st.region) +
       mgrBlock(st.store, c) +
-      `<div class="ca-ncard sv-actcard"><h4 class="ca-ch">현장 액션</h4><p class="sv-action">${action}</p></div>` +
+      `<div class="ca-ncard sv-actcard"><h4 class="ca-ch">현장 액션</h4><div class="sv-action">${para(action)}</div></div>` +
       (sib.length > 1 ? `<div class="ca-ncard sv-peercard"><h4 class="ca-ch">${st.region} 내 비교 <i class="ca-tag">삼성 비중順</i></h4>` +
         `<div class="sv-peers">` + sib.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l)).map((x) => {
           const sh = pct(x.s, x.l), me = x.name === st.store;
@@ -1197,10 +1230,15 @@
         st.range = null; st.period = LAST_M;
         rerender(host); return;
       }
+      // 연도 창에서 해를 바꾸면 월 줄만 갈아 끼운다(기간 선택은 그대로)
+      const ny = e.target.closest("button[data-navy]");
+      if (ny) { st.navY = ny.getAttribute("data-navy"); rerender(host); return; }
       const per = e.target.closest("button[data-per]");
       if (per) {
         st.range = null;                       // 기간 버튼을 누르면 직접 입력은 해제
         st.period = per.getAttribute("data-per");
+        // 고른 기간이 다른 해면 줄도 따라 옮긴다 — 안 그러면 선택한 달이 줄에 없다
+        if (/^\d{4}(-\d\d)?$/.test(st.period)) st.navY = st.period.slice(0, 4);
         rerender(host); return;
       }
       const lv = e.target.closest("button[data-lv]");
