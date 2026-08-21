@@ -1306,3 +1306,6 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
 .cx-nrev[data-nrgo] { cursor: pointer; }
 .cx-nrev[data-nrgo]:hover { border-color: #03C75A; box-shadow: 0 8px 22px rgba(3,199,90,0.18); }
 .cx-chip.s em { font-style: normal; font-size: 9.5px; color: var(--muted); margin-left: 3px; }
+
+/* 네이버 리뷰 채널 타일 — 네이버 그린 */
+.src-nrev .src-ic { background: linear-gradient(140deg,#03C75A,#00a94b); }

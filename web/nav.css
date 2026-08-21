@@ -19,3 +19,7 @@
 /* 결과 화면에서는 헤더 내비가 대신하므로 플로팅 버튼을 띄우지 않는다
    (제휴카페에서 헤더 버튼과 실제로 겹쳤다 — 실측 확인) */
 body.mode-results .back-float { display: none !important; }
+
+/* 메인(결과 화면이 아닐 때)에는 내비를 감춘다.
+   갈 곳이 없는데 버튼만 남아 있으면 눌러도 아무 일이 없어 오작동처럼 보인다. */
+body:not(.mode-results) .vnav { display: none; }

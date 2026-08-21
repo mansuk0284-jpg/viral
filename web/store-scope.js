@@ -313,7 +313,7 @@
     if (window.VNAV) VNAV.push({ id: "store:" + name, label: name, open: () => openStoreScope(name) });
     paint(host);
     sec.hidden = false;
-    document.body.classList.add("mode-results", "view-channel", "view-cx");
+    window.setView ? setView("view-channel", "view-cx") : document.body.classList.add("mode-results", "view-channel", "view-cx");
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 

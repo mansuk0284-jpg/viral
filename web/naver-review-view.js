@@ -214,7 +214,7 @@
       open: () => window.openNaverReview(key) });
     paint(host);
     sec.hidden = false;
-    document.body.classList.add("mode-results", "view-channel", "view-af", "view-nr");
+    window.setView ? setView("view-channel", "view-af", "view-nr") : document.body.classList.add("mode-results", "view-channel", "view-af", "view-nr");
     window.scrollTo({ top: 0, behavior: "auto" });
   };
 })();

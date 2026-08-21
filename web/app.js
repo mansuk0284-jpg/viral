@@ -302,8 +302,21 @@ function vbarOne(tag, val, cls, max) {
    groups: [{label, share, sub, bars:[{val,cls}]}] */
 // 인트로 복귀(뒤로가기 ← / 채널·카페 화면의 '처음'에서 호출). 결과 진입은 openChannel/openCafeAnalysis가 담당.
 function setupStart() {
+  const VIEWS = ["view-channel", "view-cafe", "view-af", "view-cx", "view-nr"];
+
+  /* 화면 전환 — 켤 view 만 남기고 나머지는 끈다.
+     각 화면이 add 만 하고 지우지 않으면 클래스가 겹겹이 쌓여 CSS 가 서로 간섭한다. */
+  function setView() {
+    const on = Array.prototype.slice.call(arguments);
+    document.body.classList.remove(...VIEWS);
+    document.body.classList.add("mode-results", ...on);
+  }
+  window.setView = setView;
+
   function showIntro() {
-    document.body.classList.remove("mode-results", "view-channel", "view-cafe");
+    // view-* 를 한 곳에서 전부 턴다. 화면마다 각자 지우게 두었더니
+    // view-af / view-cx / view-nr 이 남아 클래스가 쌓였다(실측: 처음으로 눌러도 view-nr 잔존).
+    document.body.classList.remove("mode-results", ...VIEWS);
     window.scrollTo({ top: 0, behavior: "auto" });
   }
   window.showIntro = showIntro;

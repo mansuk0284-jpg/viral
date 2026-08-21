@@ -39,8 +39,14 @@
     },
     home() {
       stack.length = 0; ahead.length = 0;
-      document.body.classList.remove("mode-results", "view-channel", "view-cafe", "view-cx", "view-af");
-      window.scrollTo({ top: 0, behavior: "auto" });
+      // view-* 목록을 여기서 또 들고 있으면 새 화면이 생길 때마다 빠뜨린다
+      // (실제로 view-nr 이 빠져 '처음으로' 후에도 남았다). showIntro 한 곳에 맡긴다.
+      if (window.showIntro) window.showIntro();
+      else {
+        document.body.classList.remove("mode-results", "view-channel",
+          "view-cafe", "view-cx", "view-af", "view-nr");
+        window.scrollTo({ top: 0, behavior: "auto" });
+      }
       V.sync();
     },
     canBack: () => stack.length > 1,

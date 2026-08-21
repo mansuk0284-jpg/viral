@@ -346,19 +346,6 @@
     // 지정 구간은 팩트 테이블에서 지역·매장까지 그대로 분해되므로 경고가 필요 없다
     const geoNote = hasF() ? ""
       : "지역·매장 분해는 2026 누적 기준만 제공(과거 기간은 백필 통합 후)";
-    if (st.level === "bu") {
-      if (hasF()) {
-        const rows = REGIONS.map((rg) => {
-          const ps = periodStores(rg);
-          return { rg, s: ps.reduce((a, x) => a + x.s, 0), l: ps.reduce((a, x) => a + x.l, 0) };
-        });
-        const s = rows.reduce((a, x) => a + x.s, 0), l = rows.reduce((a, x) => a + x.l, 0);
-        return { title: "부울경", sub: perLab(p), s, l, trend: vsBars(s, l), geoNote, regions: rows };
-      }
-      const s = STORES.reduce((a, x) => a + x[2], 0), l = STORES.reduce((a, x) => a + x[3], 0);
-      return { title: "부울경", sub: "2026 누적", s, l, trend: vsBars(s, l),
-        geoNote, regions: REGIONS.map((rg) => ({ rg, s: R[rg].s, l: R[rg].l })) };
-    }
     if (st.level === "region") {
       if (hasF()) {
         const ps = periodStores(st.region);
@@ -440,7 +427,6 @@
   function crumb() {
     if (st.level === "nation") return "";   // 전사 단일 항목은 숨김(중복)
     const parts = [["전사", "nation"]];
-    if (st.level !== "nation") parts.push(["부울경", "bu"]);
     if (st.level === "region" || st.level === "store") parts.push([st.region, "region"]);
     if (st.level === "store") parts.push([st.store, "store"]);
     return `<div class="ca-crumb">` + parts.map((p, i) =>
@@ -488,7 +474,10 @@
       `<span class="nk-v">${v}<i>건</i></span><span class="nk-s">${sub}</span></div>`;
   }
 
-  const LV = ["nation", "bu", "region", "store"];
+  // 부울경 층은 걷어냈다. 전국 대상이 된 뒤로 진입 경로가 없는 막다른 층이 됐고
+  // (지도에서 지역을 누르면 바로 region 으로 간다) 브레드크럼에만 남아 혼동을 줬다.
+  // 왜 부울경만 있고 수도권은 없느냐는 물음에도 답할 수 없다.
+  const LV = ["nation", "region", "store"];
   function pager() {
     const i = LV.indexOf(st.level);
     return `<div class="ca-pager">` +
@@ -1141,7 +1130,7 @@
         })() +
 
         `</div>`;
-    } else if (st.level === "region" || st.level === "bu") {
+    } else if (st.level === "region") {
       mid = regionView(c);
     } else if (st.level === "store") {
       mid = storeView(c);
@@ -1227,7 +1216,6 @@
         const to = lv.getAttribute("data-lv");
         st.level = to;
         if (to === "nation") { st.region = null; st.store = null; }
-        if (to === "bu") { st.store = null; }
         if (to === "region") { st.store = null; }
         rerender(host); return;
       }
@@ -1249,13 +1237,15 @@
           if (i <= 0) { window.showIntro && window.showIntro(); return; }
           st.level = LV[i - 1];
           if (st.level === "nation") { st.region = null; st.store = null; }
-          if (st.level === "bu" || st.level === "region") st.store = null;
+          if (st.level === "region") st.store = null;
         } else if (dir === "next" && i < LV.length - 1) {
           const R = regionRoll();
-          if (st.level === "nation") st.level = "bu";
-          else if (st.level === "bu") {
-            st.region = REGIONS.slice().sort((a, b) => (R[b].s + R[b].l) - (R[a].s + R[a].l))[0];
-            st.level = "region";
+          if (st.level === "nation") {
+            // 표본이 가장 큰 지역으로 내려간다(지도 클릭과 같은 결과)
+            const G = geoRegions();
+            const top = Object.keys(G).sort((a, b) =>
+              (G[b].s + G[b].l) - (G[a].s + G[a].l))[0];
+            if (top) { st.region = top; st.level = "region"; }
           } else if (st.level === "region") {
             st.store = R[st.region].stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l))[0].name;
             st.level = "store";
@@ -1274,7 +1264,7 @@
     if (st.level === "nation") paintGeo(host);
     const sec = document.getElementById("channel");
     if (sec) sec.hidden = false;
-    document.body.classList.add("mode-results", "view-channel", "view-cafe");
+    window.setView ? setView("view-channel", "view-cafe") : document.body.classList.add("mode-results", "view-channel", "view-cafe");
     window.scrollTo({ top: 0, behavior: "auto" });
     // 리스너는 1회만 등록 — 재진입 시 중복 등록되면 클릭 1회에 핸들러가 여러 번 실행된다
     if (!host.dataset.caBound) { bind(host); host.dataset.caBound = "1"; }

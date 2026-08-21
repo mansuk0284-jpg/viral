@@ -34,6 +34,27 @@
 **왜 분리하나:** 구매 후기는 '무엇을 샀나', 방문 리뷰는 '어떻게 응대받았나'를 말한다.
 전자는 품목·브랜드 경쟁을, 후자는 **매장 운영 품질과 온라인 노출량**을 드러낸다.
 
+
+## 도구 인벤토리 (2026-08-21 점검)
+
+실행 경로에 있는 스크립트만 남겼다. 진단용·1회용은 제거했다.
+
+| 스크립트 | 쓰임 |
+|---|---|
+| `naver_cafe_scraper.py` | 카페 수집 정본(board/scrape/audit/timeline). VIRAL_CLUBID 로 대상 교체 |
+| `collect_cafe.py` | 카페 **범용** 전구간 수집(clubId/menuId 인자화). 새 카페를 통째로 긁을 때 |
+| `collect_history.py` | 다이렉트결혼준비 전용 과거 수집(collect_cafe 의 원형) |
+| `build_web_data.py` | census → `web/assets/cafe-data.js` (매칭 규칙 SSOT) |
+| `affiliate_insight.py` / `build_affiliate_web.py` | 제휴카페 리포트 / 웹 데이터 |
+| `naver_place_collect.py` / `naver_review_insight.py` / `build_naver_review_web.py` | 네이버 리뷰 수집 / 리포트 / 웹 |
+| `build_compete.py` / `compete_viral_link.py` | 경쟁력 자료 / 바이럴 교차 |
+| `brand_lexicon.py` | 브랜드 분류 공용 SSOT |
+| `channel_session.py` / `channel_analyze.py` | 채널 로그인 세션 / 세션캡처 분석 |
+| `naver_api_collect.py` / `naver-search.ps1` | ⚠ 네이버 검색 API 경로 — **신규 발급 중단**으로 동작 불가([[naver-search-api-discontinued]]) |
+| `youtube_collect.py` | 유튜브 — API 키 미등록 상태 |
+| `geojson_to_svg.py` / `build_cafes_data.py` | 지도 SVG / 제휴카페 타일 데이터 |
+| `analyze_2026.py` / `analyze_board_full.py` | 카페 분석 보조 |
+
 ## 2. 접속 계층
 
 | 에이전트 | 스킬 | 임무 |

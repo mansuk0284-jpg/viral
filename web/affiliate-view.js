@@ -277,7 +277,7 @@
       paint(host);
     }
     sec.hidden = false;
-    document.body.classList.add("mode-results", "view-channel", "view-af");
+    window.setView ? setView("view-channel", "view-af") : document.body.classList.add("mode-results", "view-channel", "view-af");
     window.scrollTo({ top: 0, behavior: "auto" });
   };
 })();
