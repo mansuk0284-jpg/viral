@@ -64,9 +64,17 @@
 
   // 상태: 기간 + 드릴 레벨 — 기본은 데이터의 마지막(당월)
   const LAST_M = MONTHS.length ? MONTHS[MONTHS.length - 1][0] : "2026-05";
+  /* 첫 화면은 **현재 월**로 연다(사용자 지시 2026-08-21).
+     데이터에 이번 달이 아직 없으면(수집 전) 마지막 달로 물러선다. */
+  const NOW_M = (() => {
+    const d = new Date();
+    const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+    return MONTHS.some((m) => m[0] === k) ? k : LAST_M;
+  })();
   // range: 사용자가 날짜를 직접 지정한 구간 {a,b}. 지정되면 period는 "custom"이 되고
   //        모든 집계가 팩트 테이블(VFACT)에서 그 구간만 잘라 계산된다.
-  const st = { period: LAST_M, range: null, level: "nation", region: null, store: null };
+  const st = { period: NOW_M, range: null, level: "nation", region: null, store: null,
+    navY: NOW_M.slice(0, 4) };   // navY = 월 목록을 펼쳐 놓을 연도(선택 기간과 별개)
   const VF = window.VFACT || null;
   const isCus = () => !!(st.range && VF);
 
@@ -410,25 +418,42 @@
   }
 
   // ── 렌더 ──
-  /* 기간 줄 — 연도는 접고, 그 해 월만 한 줄로 편다.
-     예전엔 전체+연도6+월12 = 19개 버튼이 한 줄에 늘어서 서로 겹치고 누르기 어려웠다.
-     사용자 지시(2026-08-21): "년도는 마우스를 가져다놓으면 보이도록 하거나 창을 만들어서
-     선택하게 하고 올해 월별 현황 중심으로 한줄로 표시해줘". */
+  /* 기간 줄 — 연도와 월을 각각 **칩 하나**로 접는다.
+     19개 버튼이 한 줄에 늘어서 겹치던 것을 8개로 줄였는데(2026-08-21 1차),
+     그래도 길다는 지적을 받아 월도 창으로 접었다. 이제 두 칸이면 끝난다:
+
+         [2026 ▾] [8월 ▾]
+
+     칩을 누르면 그 단위 전체(연도 전체 / 그 달), 마우스를 올리면 목록이 열린다. */
   function nav() {
     const y = st.navY || CUR_Y;
     const ms = MONTHS.filter((m) => m[0].slice(0, 4) === y);
     const yrOn = st.period === y;
+    const isAll = st.period === "all";
+    const curM = /^\d{4}-\d\d$/.test(st.period) ? st.period : null;
+
+    // 월 칩에 뭐라고 쓸지 — 고른 것이 달이면 "8월", 연도면 "연간", 전체면 "전체"
+    // 전체 기간에는 '월'이라는 개념이 없다. 두 칩이 나란히 '전체'라고 적혀 있으면
+    // 같은 말을 두 번 하는 셈이라 어색하다(실측). 고르라는 안내로 바꾼다.
+    const mLab = curM ? (+curM.slice(5)) + "월" : (isAll ? "월 선택" : "연간");
+
+    const yrMenu = YEARS.slice().reverse().map((v) =>
+        `<button type="button" data-navy="${v}" class="${v === y ? "cur" : ""}">${v}년</button>`).join("")
+      + `<button type="button" data-per="all" class="${isAll ? "cur" : ""}">전체 기간</button>`;
+
+    const mMenu = `<button type="button" data-per="${y}" class="${yrOn ? "cur" : ""}">${y}년 전체</button>`
+      + ms.map((m) => `<button type="button" data-per="${m[0]}"` +
+          ` class="${st.period === m[0] ? "cur" : ""}">${+m[0].slice(5)}월</button>`).join("");
+
     return `<div class="ca-nav" id="caNav">` +
-      `<span class="ca-yr${yrOn ? " on" : ""}" tabindex="0">` +
+      `<span class="ca-yr${yrOn || isAll ? " on" : ""}" tabindex="0">` +
       `<button type="button" data-per="${y}" class="ca-yrb${yrOn ? " on" : ""}"` +
-      ` title="${y}년 전체로 보기">${y}<i>▾</i></button>` +
-      `<span class="ca-yrm">` +
-      YEARS.slice().reverse().map((v) =>
-        `<button type="button" data-navy="${v}" class="${v === y ? "cur" : ""}">${v}년</button>`).join("") +
-      `<button type="button" data-per="all" class="${st.period === "all" ? "cur" : ""}">전체 기간</button>` +
-      `</span></span>` +
-      ms.map((m) => `<button type="button" data-per="${m[0]}"` +
-        ` class="${st.period === m[0] ? "on" : ""}">${+m[0].slice(5)}<u>월</u></button>`).join("") +
+      ` title="${y}년 전체로 보기">${isAll ? "전체" : y}<i>▾</i></button>` +
+      `<span class="ca-yrm">${yrMenu}</span></span>` +
+      `<span class="ca-yr ca-mo${curM ? " on" : ""}" tabindex="0">` +
+      `<button type="button" class="ca-yrb${curM ? " on" : ""}"` +
+      ` title="월 고르기">${mLab}<i>▾</i></button>` +
+      `<span class="ca-yrm ca-mom">${mMenu}</span></span>` +
       `</div>`;
   }
 
@@ -1227,12 +1252,31 @@
         rerender(host); return;
       }
       if (e.target.closest("#carOff")) {
-        st.range = null; st.period = LAST_M;
+        st.range = null; st.period = NOW_M; st.navY = NOW_M.slice(0, 4);
         rerender(host); return;
       }
-      // 연도 창에서 해를 바꾸면 월 줄만 갈아 끼운다(기간 선택은 그대로)
+      /* 연도 창에서 해를 바꾸면 **같은 달의 그 해**로 함께 옮긴다.
+         목록만 갈아 끼우면 칩은 '2025'인데 보고 있는 건 '2026년 3월'이라 어긋나 보인다(실측). */
       const ny = e.target.closest("button[data-navy]");
-      if (ny) { st.navY = ny.getAttribute("data-navy"); rerender(host); return; }
+      if (ny) {
+        const y2 = ny.getAttribute("data-navy");
+        st.navY = y2;
+        if (/^\d{4}-\d\d$/.test(st.period)) {
+          const want = y2 + "-" + st.period.slice(5);
+          const has = MONTHS.some((m) => m[0] === want);
+          if (has) st.period = want;
+          else {          // 그 해에 그 달이 없으면 그 해 마지막 달로
+            const last = MONTHS.filter((m) => m[0].slice(0, 4) === y2).slice(-1)[0];
+            if (last) st.period = last[0];
+          }
+          st.range = null;
+        } else {
+          // 연간을 보고 있었거나 '전체'였어도, 연도를 골랐다는 건 그 해를 보겠다는 뜻이다.
+          // (전체 상태에서 연도를 눌러도 전체 그대로였다 — 눌러도 아무 일이 없어 고장처럼 보였다)
+          st.period = y2; st.range = null;
+        }
+        rerender(host); return;
+      }
       const per = e.target.closest("button[data-per]");
       if (per) {
         st.range = null;                       // 기간 버튼을 누르면 직접 입력은 해제
@@ -1264,7 +1308,7 @@
   function openCafeAnalysis() {
     const host = document.getElementById("channelPanel");
     if (!host) return;
-    st.period = LAST_M; st.range = null; st.level = "nation"; st.region = null; st.store = null;
+    st.period = NOW_M; st.navY = NOW_M.slice(0, 4); st.range = null; st.level = "nation"; st.region = null; st.store = null;
     host.innerHTML = render();
     if (st.level === "nation") paintGeo(host);
     const sec = document.getElementById("channel");

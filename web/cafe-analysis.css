@@ -1551,3 +1551,22 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .rv-third .pf-items .it-bar { height: 6px; }
 .rv-third .pf-items .it-n { font-size: 12px; }
 .rv-third .pf-items .it-v { font-size: 12px; }
+
+/* ===== 월 칩 — 창을 격자로 (2026-08-21) =====
+   월은 최대 12개 + '연간 전체' 라 세로 한 줄로 두면 창이 화면을 넘는다.
+   3열 격자로 접으면 네 줄이면 끝나고, 눈으로 훑기도 쉽다. */
+.ca-mo .ca-yrm { min-width: 168px; }
+.ca-mom {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+.ca-mom button { text-align: center; padding: 6px 4px; }
+/* '연간 전체'는 한 줄을 다 쓴다 — 월과 성격이 달라 구분이 필요하다 */
+.ca-mom button:first-child { grid-column: 1 / -1; text-align: left; padding-left: 10px; }
+
+/* 두 칩 사이 간격 */
+.ca-nav > .ca-yr + .ca-yr { margin-left: 4px; }
+
+/* 전체 기간일 때 월 칩은 고를 것을 안내만 한다 — 선택된 상태가 아니므로 옅게 */
+.ca-mo:not(.on) .ca-yrb { opacity: .72; font-weight: 700; }
