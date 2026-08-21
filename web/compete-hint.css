@@ -80,3 +80,21 @@
 .cx-comp.win2 .cxc-g, .cx-comp.win .cxc-g { background: rgba(31,95,208,0.12); color: #1f5fd0; }
 .cx-comp.even .cxc-g { background: rgba(245,158,11,0.16); color: #b45309; }
 .cx-comp.lose .cxc-g { background: rgba(210,59,84,0.12); color: #c02744; }
+
+/* ===== 금액과 갭 (2026-08-21 지시) =====
+   사내 실적이라 상시 노출은 하지 않는다 — 이 툴팁 안에서만 보인다. */
+.cmp-amt { display: flex; gap: 6px; margin: 7px 0 2px;
+  padding: 7px 0; border-top: 1px solid rgba(255,255,255,.1);
+  border-bottom: 1px solid rgba(255,255,255,.1); }
+.cmp-amt > i { flex: 1; display: flex; flex-direction: column; gap: 2px; font-style: normal; }
+.cmp-amt em { font-style: normal; font-size: 10.5px; font-weight: 700; color: #94a3b8; }
+.cmp-amt b { font-size: 14px; font-weight: 900; color: #e6edf7;
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cmp-amt > i.up b { color: #7cb2ff; }
+.cmp-amt > i.dn b { color: #fca5a5; }
+
+/* 분기 추이 — 라벨(1Q)과 값을 위아래로 붙여 좁은 폭에 넷을 담는다 */
+.cmp-tr i > u { display: block; text-decoration: none; font-size: 9.5px;
+  font-weight: 700; color: #64748b; letter-spacing: .02em; }
+.cmp-tr i { text-align: center; min-width: 34px; }
+.cmp-tip { min-width: 246px; }

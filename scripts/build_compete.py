@@ -115,7 +115,7 @@ def main():
         row = {"name": nm, "key": norm(nm),
                "team": str(ws.cell(r, COL_TEAM).value or "").strip(),
                "chain": str(ws.cell(r, COL_CHAIN).value or "").strip(),
-               "p": {}}
+               "p": {}, "v": {}}
         both = False
         for p in ps:
             o = ws.cell(r, p["ours"]).value or 0
@@ -128,6 +128,10 @@ def main():
             # 한쪽이 0이면 미입점이거나 집계 전이라 배수가 0 또는 무한이 된다.
             if o > 0 and t > 0:
                 row["p"][p["label"]] = round(o / t, 4)
+                # 금액과 갭 — 2026-08-21 사용자 지시로 싣는다("금액과 갭을 보여줘").
+                # 원래는 사내 실적이라 안 실었다. 화면에서는 hover 로만 띄운다.
+                # 단위는 시트 그대로 백만원. 갭 = 당사 - X사(양수면 우리가 앞선다).
+                row["v"][p["label"]] = [round(o), round(t), round(o - t)]
                 both = True
         if not both:
             skipped_solo += 1
@@ -143,12 +147,13 @@ def main():
     keep = [p["label"] for p in ps if have_cnt.get(p["label"], 0) >= len(stores) * 0.5]
     for st in stores:
         st["p"] = {k: v for k, v in st["p"].items() if k in keep}
+        st["v"] = {k: v for k, v in st.get("v", {}).items() if k in keep}
 
     data = {
         "built": datetime.now().strftime("%Y-%m-%d"),
         "periods": keep,
         "stores": stores,
-        "note": "경쟁력 = 당사/X사 매출 배수. 양사 모두 입점한 매장만. 금액은 싣지 않음.",
+        "note": "경쟁력 = 당사/X사 매출 배수. 양사 모두 입점한 매장만. v = [당사, X사, 갭] 백만원(사내 실적 — 화면에서는 hover 로만).",
     }
     json.dump(data, io.open(OUT_J, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     io.open(OUT_W, "w", encoding="utf-8").write(

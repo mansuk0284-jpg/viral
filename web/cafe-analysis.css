@@ -1570,3 +1570,19 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 
 /* 전체 기간일 때 월 칩은 고를 것을 안내만 한다 — 선택된 상태가 아니므로 옅게 */
 .ca-mo:not(.on) .ca-yrb { opacity: .72; font-weight: 700; }
+
+/* ===== 전국 — 몇 개 점에서 이기고 있나 (2026-08-21) ===== */
+.nsc-win { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+  margin-top: 9px; padding: 8px 11px; border-radius: 11px;
+  border: 1px solid rgba(210,59,84,0.24); background: rgba(210,59,84,0.05); }
+.nsc-win.up { border-color: rgba(31,95,208,0.28); background: rgba(31,95,208,0.05); }
+.nsc-win > b { font-size: 22px; font-weight: 900; letter-spacing: -.03em;
+  line-height: 1; color: #d23b54; white-space: nowrap; }
+.nsc-win.up > b { color: #1f5fd0; }
+.nsc-win > i { font-style: normal; font-size: 12.5px; font-weight: 800;
+  color: var(--text); white-space: nowrap; }
+.nw-p { font-size: 12px; font-weight: 900; padding: 2px 8px; border-radius: 999px;
+  background: rgba(210,59,84,.13); color: #c02744; white-space: nowrap; margin-left: auto; }
+.nsc-win.up .nw-p { background: rgba(31,95,208,.12); color: #1f5fd0; }
+.nw-sub { flex: 1 1 100%; font-size: 11px; font-weight: 600; color: var(--muted);
+  word-break: keep-all; }

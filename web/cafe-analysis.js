@@ -555,6 +555,55 @@
       `<div class="vs-side l"><b>${ls}<i>%</i></b><span>LG ${fmtN(l)}건</span></div>` +
       `</div>`;
   }
+  /* 몇 개 점에서 이기고 있나 — 전체 매장 수 가운데 우위 매장 수.
+     사용자 지시(2026-08-21): "전체 매장 수 가운데 몇개점이 우위인지를 나타내줘".
+     비교가 성립하려면 양쪽 후기가 있어야 하므로, 후기가 아예 없는 매장은 '표본 없음'으로 뺀다.
+     삼성 > LG 면 우위, 같으면 동률. */
+  function winCount() {
+    const seen = {};
+    /* 기간을 반드시 반영해야 한다. regionRoll() 은 전체 기간 고정값이라
+       8월을 보든 전체를 보든 같은 숫자가 나왔다(실측). 팩트 집계(A())를 쓴다. */
+    const src = hasF() && A() ? A().stores : null;
+    if (src) {
+      Object.keys(src).forEach((rg) => {
+        (src[rg] || []).forEach((x) => {
+          const k = x.n || x.name;
+          if (!seen[k]) seen[k] = { s: 0, l: 0 };
+          seen[k].s += x.s; seen[k].l += x.l;
+        });
+      });
+    } else {
+      const R = regionRoll();
+      Object.keys(R).forEach((rg) => {
+        R[rg].stores.forEach((x) => {
+          if (!seen[x.name]) seen[x.name] = { s: 0, l: 0 };
+          seen[x.name].s += x.s; seen[x.name].l += x.l;
+        });
+      });
+    }
+    const has = Object.keys(seen).filter((k) => seen[k].s + seen[k].l > 0);
+    const win = has.filter((k) => seen[k].s > seen[k].l).length;
+    const tie = has.filter((k) => seen[k].s === seen[k].l).length;
+    if (!has.length) return "";
+    const pct0 = Math.round(win / has.length * 100);
+
+    /* 분모를 조심해야 한다. 후기가 없는 매장은 이기고 지고를 말할 수 없으므로
+       '이 기간 후기가 있는 매장' 이 분모다. 그런데 그것만 적으면 8월처럼 표본이 얇을 때
+       "11개점이 전부인가" 로 읽힌다. 그래서 **명부 전체(양사 입점 71곳)를 함께** 밝힌다.
+       명부는 data/백화점 리스트.xlsx 가 정본이다. */
+    const roster = (window.COMPETE && window.COMPETE.stores)
+      ? window.COMPETE.stores.length : null;
+
+    return `<div class="nsc-win${pct0 >= 50 ? " up" : ""}">` +
+      `<b>${win}</b><i>/${has.length}개점 우위</i>` +
+      `<span class="nw-p">${pct0}%</span>` +
+      `<span class="nw-sub">` +
+      (roster ? `양사 입점 <b>${roster}곳</b> 중 이 기간 후기가 있는 <b>${has.length}곳</b> 기준` +
+                (tie ? ` · 동률 ${tie}곳` : "")
+              : (tie ? `동률 ${tie}곳 · ` : "") + `표본 있는 매장 기준`) +
+      `</span></div>`;
+  }
+
   // 전국 현황 박스 하단 — 우위/열세 지역 요약(제목기반 추정, 표본 충분 시도만)
   function regionSummary() {
     const R = geoRegions();
@@ -1113,10 +1162,11 @@
       const segV = (v, cls) => v > 0 ? `<div class="db-seg ${cls}" style="width:${(v / (c.total || 1) * 100).toFixed(1)}%"></div>` : "";
       // 좌측 — 심플한 전국 요약(큰 숫자 + 삼성vsLG 한 줄 + 우위/열세 칩)
       const sumCol = `<div class="ca-nsumcol">` +
-        `<div class="nsc-h"><h3>전국 요약</h3><span>${perLab(st.period)}</span></div>` +
+        `<div class="nsc-h"><h3>전국</h3><span>${perLab(st.period)}</span></div>` +
         `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` +
         `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b></span><span class="nv l">LG <b>${ls}%</b></span></div>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
+        winCount() +
         regionSummary() +
         `</div>`;
       mid = `<div class="ca-nation">` +
@@ -1320,5 +1370,9 @@
     if (window.VNAV) VNAV.push({ id: "cafe-analysis", label: "다이렉트웨딩 분석",
       open: () => window.openCafeAnalysis() });
   }
+  /* 지금 보고 있는 기간을 밖에서 물어볼 수 있게 연다.
+     경쟁력 hover(compete-hint.js)가 이걸 보고 같은 기간의 경쟁력을 띄운다 —
+     화면은 8월인데 툴팁은 누계를 보여주면 두 숫자가 따로 논다. */
+  window.VPERIOD = function () { return st.range ? null : st.period; };
   window.openCafeAnalysis = openCafeAnalysis;
 })();

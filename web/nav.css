@@ -25,7 +25,18 @@ body.mode-results .back-float { display: none !important; }
 /* 메인(1번)에서는 갈 곳이 없으니 감춘다. 단 2번(portal-open)에서는 보여야
    메인으로 돌아갈 수 있다 — 이 한 줄이 없어서 1번이 사실상 막다른 길이었다. */
 body:not(.mode-results):not(.portal-open) .vnav { display: none; }
-#portalNav { margin-bottom: 12px; }
+/* 2번 페이지 내비 — hero-grid 위 별도 줄.
+   좌측 제목 블록 안에 두면 좌측만 밀려 좌우 타일 높이가 어긋난다(실측 48px). */
+.portal-nav { display: none; }
+/* hero-grid 와 **같은 폭·같은 왼쪽 선**에 맞춘다. 그리드 밖에 두면
+   화면 맨 왼쪽 구석(x=0)에 붙어 제목들과 선이 어긋난다(실측). */
+body.portal-open .portal-nav {
+  display: block;
+  width: min(1120px, 100%);
+  margin: 18px auto 8px;   /* 화면 맨 위에 붙지 않게 숨 쉴 자리 */
+  padding: 0 40px;
+  box-sizing: border-box;
+}
 
 /* 채널 단일 화면 머리 — 내비를 제목 위 같은 자리에 둔다 */
 .ch-nav { margin: 0 0 12px; }
