@@ -21,78 +21,35 @@ except Exception: pass
 OUT = os.path.join(ROOT, "web", "assets", "naver-review.js")
 P_KEYS, C_KEYS, R_KEYS = list(PRAISE), list(COMPLAIN), list(REASON)
 
-# 같은 상권 짝 — 손으로 적지 않는다.
-# 매장이 늘 때마다 표를 고쳐야 하고, 한 번 빠뜨리면 그 매장은 비교가 통째로 사라진다.
-# 수집기(naver_place_collect.TARGETS)가 삼성·LG를 **쌍으로** 넣으므로 그 순서로 잇는다.
+# 같은 백화점 안의 삼성 vs LG 를 잇는다.
+# 수집 레코드에 dept(백화점명)가 들어 있어 그걸로 묶으면 된다 —
+# 손으로 표를 적지 않으므로 매장이 늘어도 고칠 곳이 없다.
 def build_pairs(stores):
-    import naver_place_collect as NPC
-    q2name = {}
+    by_dept = {}
     for nm, v in stores.items():
-        q2name[v["query"]] = nm
-    pairs, i = [], 0
-    T = NPC.TARGETS
-    while i + 1 < len(T):
-        a_q, a_br, a_rg = T[i]
-        b_q, b_br, b_rg = T[i + 1]
-        if a_br == "삼성" and b_br == "LG" and a_rg == b_rg:
-            an, bn = q2name.get(a_q), q2name.get(b_q)
-            if an and bn:
-                # 라벨 = 지역 + 상권(검색어에서 브랜드어를 걷어낸 것)
-                spot = (a_q.replace("삼성스토어", "").replace("광주광역시", "")
-                        .replace("서울", "").strip()) or a_rg
-                pairs.append([an, bn, f"{a_rg} {spot}".strip()])
-            i += 2
+        dp = v.get("dept") or ""
+        if not dp:
             continue
-        i += 1
+        by_dept.setdefault(dp, {})[v["brand"]] = nm
+    pairs = []
+    for dp, br in sorted(by_dept.items()):
+        if "삼성" in br and "LG" in br:
+            pairs.append([br["삼성"], br["LG"], dp])
     return pairs
+
+
+# 대시보드 매장명(백화점) → 플레이스 매장. dept 로 그대로 잇는다.
+def build_dept_map(stores):
+    m = {}
+    for nm, v in stores.items():
+        if v["brand"] == "삼성" and v.get("dept"):
+            m[v["dept"]] = nm
+    return m
 
 # 대시보드 매장명(백화점 기준) → 플레이스 매장(상호 기준) 매핑.
 # 두 체계가 다르다 — 대시보드는 '신세계 센텀시티', 플레이스는 '삼성스토어 센텀'.
 # 부분 일치로는 절대 못 잇는다(실측: 매칭 0). 여기 한 곳에서만 정의한다.
-DEPT_MAP = {
-    # 부울경
-    "신세계 센텀시티": "삼성스토어 센텀", "롯데 센텀시티": "삼성스토어 센텀",
-    "롯데 부산본점": "삼성스토어 롯데 부산", "롯데 광복": "삼성스토어 롯데 부산",
-    "롯데 동래": "삼성스토어 동래",
-    "롯데 울산": "삼성스토어 울산", "현대 울산": "삼성스토어 울산",
-    "롯데 창원": "삼성스토어 창원", "신세계 마산": "삼성스토어 창원", "롯데 마산": "삼성스토어 창원",
-    "갤러리아 진주": "삼성스토어 진주", "신세계 김해": "삼성스토어 김해",
-    # 서울 — 백화점 21곳을 삼성스토어 6곳에 상권 기준으로 잇는다
-    "롯데 잠실": "삼성스토어 롯데 잠실",
-    "롯데 강남": "삼성스토어 롯데 강남", "신세계 강남": "삼성스토어 롯데 강남",
-    "갤러리아 압구정": "삼성스토어 롯데 강남", "현대 압구정": "삼성스토어 롯데 강남",
-    "현대 무역센터": "삼성스토어 롯데 강남",
-    "롯데 영등포": "삼성스토어 영등포", "신세계 영등포": "삼성스토어 영등포",
-    "현대 여의도": "삼성스토어 영등포",
-    "롯데 노원": "삼성스토어 노원", "롯데 미아": "삼성스토어 노원", "현대 미아": "삼성스토어 노원",
-    "현대 목동": "삼성스토어 현대 목동",
-    "롯데 청량리": "삼성스토어 롯데 청량리", "롯데 건대": "삼성스토어 롯데 청량리",
-    "현대 천호": "삼성스토어 롯데 청량리",
-    "롯데 본점": "삼성스토어 영등포", "신세계 본점": "삼성스토어 영등포",
-    "더현대 서울": "삼성스토어 영등포", "현대 신촌": "삼성스토어 영등포",
-    "롯데 관악": "삼성스토어 영등포",
-    # 경기
-    "롯데 수원": "삼성스토어 수원", "AK 수원": "삼성스토어 수원",
-    "갤러리아 광교": "삼성스토어 수원", "신세계 죽전": "삼성스토어 수원",
-    "롯데 분당": "삼성스토어 분당", "AK 분당": "삼성스토어 분당", "현대 판교": "삼성스토어 분당",
-    "롯데 일산": "삼성스토어 일산", "현대 일산": "삼성스토어 일산",
-    "신세계 의정부": "삼성스토어 일산", "롯데 구리": "삼성스토어 일산",
-    "롯데 동탄": "삼성스토어 동탄",
-    "롯데 부천": "삼성스토어 부천중동", "현대 중동": "삼성스토어 부천중동",
-    "롯데 김포": "삼성스토어 부천중동", "신세계 시흥": "삼성스토어 부천중동",
-    "롯데 평촌": "삼성스토어 평촌", "AK 광명": "삼성스토어 평촌", "신세계 하남": "삼성스토어 평촌",
-    # 광역시·도
-    "롯데 인천": "삼성스토어 부평",
-    "신세계 대구": "삼성스토어 남대구", "더현대 대구": "삼성스토어 남대구", "롯데 대구": "삼성스토어 남대구",
-    "갤러리아 타임월드": "삼성스토어 대전", "신세계 대전": "삼성스토어 대전", "롯데 대전": "삼성스토어 대전",
-    "신세계 광주": "삼성스토어 광산", "롯데 광주": "삼성스토어 광산",
-    "신세계 천안": "삼성스토어 천안", "갤러리아 천안": "삼성스토어 천안",
-    "신세계 아산": "삼성스토어 천안", "갤러리아 아산": "삼성스토어 천안",
-    "현대 청주": "삼성스토어 청주",
-    "롯데 전주": "삼성스토어 전주",
-    "롯데 포항": "삼성스토어 포항", "롯데 안동": "삼성스토어 포항",
-    "AK 원주": "삼성스토어 원주",
-}
+
 
 
 def rows_of(rec):
@@ -133,6 +90,7 @@ def main():
         months |= {x[0] for x in rw}
         stores[nm] = {
             "name": nm, "query": r["query"], "brand": r["brand"], "region": r["region"],
+            "dept": r.get("dept", ""),
             "addr": r["place"].get("addr", ""), "pid": r["place"].get("id"),
             "total": r.get("reviewTotal") or 0, "participants": r.get("participants") or 0,
             "keywords": r.get("keywords") or [], "rows": rw,
@@ -143,7 +101,7 @@ def main():
         "praise": P_KEYS, "complain": C_KEYS, "reason": R_KEYS,
         "months": sorted(months, reverse=True),
         "pairs": build_pairs(stores),
-        "deptMap": {k: v for k, v in DEPT_MAP.items() if v in stores},
+        "deptMap": build_dept_map(stores),
         "stores": stores,
     }
     io.open(OUT, "w", encoding="utf-8").write(

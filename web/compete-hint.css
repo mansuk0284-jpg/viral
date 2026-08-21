@@ -1,0 +1,82 @@
+/* ===== 경쟁력 힌트 툴팁 =====
+   기본은 감춰 두고, 매장 이름에 마우스를 올릴 때만 떠오른다.
+   사내 실적이라 상시 노출하지 않는다는 것이 이 설계의 전제다. */
+
+/* 경쟁력 자료가 있는 매장 이름에 아주 옅은 밑줄 — "여기 뭔가 더 있다"는 신호만 준다 */
+[data-store] { position: relative; }
+[data-store]:hover { cursor: help; }
+
+.cmp-tip {
+  position: fixed; z-index: 9999; pointer-events: none;
+  min-width: 210px; max-width: 320px;
+  padding: 12px 14px; border-radius: 14px;
+  background: rgba(17, 24, 39, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
+  color: #fff;
+  opacity: 0; transform: translateY(4px) scale(0.98);
+  transition: opacity .16s ease, transform .16s cubic-bezier(.22, 1, .36, 1);
+}
+.cmp-tip.on { opacity: 1; transform: translateY(0) scale(1); }
+
+.cmp-tip > b { display: block; font-size: 16px; font-weight: 900; letter-spacing: -.02em;
+  margin-bottom: 8px; }
+.cmp-tip .cmp-none { color: #cbd5e1; }
+.cmp-msg { display: block; font-size: 13px; font-weight: 600; color: #94a3b8; }
+
+.cmp-row { display: flex; align-items: center; gap: 9px; padding: 3px 0; }
+.cmp-row > em { flex: 0 0 42px; font-style: normal; font-size: 12px; font-weight: 700;
+  color: #94a3b8; }
+
+.cmp-v { font-style: normal; font-size: 26px; font-weight: 900; line-height: 1; }
+.cmp-v u { text-decoration: none; font-size: 13px; font-weight: 800; margin-left: 2px; opacity: .8; }
+.cmp-g { font-style: normal; font-size: 12px; font-weight: 800; padding: 3px 9px;
+  border-radius: 999px; }
+
+/* 등급 색 — 우세는 파랑(삼성), 열세는 빨강 */
+.cmp-v.win2, .cmp-v.win { color: #7cb2ff; }
+.cmp-v.even { color: #fcd34d; }
+.cmp-v.lose { color: #fca5a5; }
+.cmp-g.win2 { background: rgba(59, 130, 246, .28); color: #bfdbfe; }
+.cmp-g.win { background: rgba(59, 130, 246, .18); color: #bfdbfe; }
+.cmp-g.even { background: rgba(252, 211, 77, .18); color: #fde68a; }
+.cmp-g.lose { background: rgba(248, 113, 113, .2); color: #fecaca; }
+
+/* 연도 추이 */
+.cmp-tr { display: inline-flex; align-items: center; gap: 5px; }
+.cmp-tr i { font-style: normal; font-size: 13px; font-weight: 800; }
+.cmp-tr i.win2, .cmp-tr i.win { color: #7cb2ff; }
+.cmp-tr i.even { color: #fcd34d; }
+.cmp-tr i.lose { color: #fca5a5; }
+.cmp-tr em { font-style: normal; font-size: 11px; color: #64748b; }
+
+.cmp-foot { display: block; margin-top: 8px; padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, .1);
+  font-size: 11px; font-weight: 600; color: #94a3b8; }
+
+/* ── 매장 대시보드 안 경쟁력 블록 ──
+   배수만 크게 띄우지 않는다. 상관이 거의 없으므로(r=+0.19)
+   '어느 사분면인가'와 '그래서 뭘 할까'가 더 중요하다. */
+.cx-comp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 10px; padding: 10px 14px; border-radius: 12px;
+  border: 1px solid rgba(23,42,66,0.12); background: #fff; }
+.cxc-lb { font-size: 11.5px; font-weight: 800; color: var(--muted); }
+.cxc-v { font-size: 24px; font-weight: 900; line-height: 1; letter-spacing: -.02em; }
+.cxc-v u { text-decoration: none; font-size: 12px; font-weight: 800; margin-left: 2px; opacity: .75; }
+.cxc-g { font-style: normal; font-size: 11.5px; font-weight: 800;
+  padding: 3px 9px; border-radius: 999px; }
+.cxc-q { font-size: 12.5px; font-weight: 800; color: var(--text);
+  padding-left: 10px; border-left: 1px solid rgba(23,42,66,0.14); }
+.cxc-tip { flex: 1 1 100%; font-size: 12px; font-weight: 600; color: var(--muted); }
+.cxc-p { font-size: 10.5px; font-weight: 600; color: #b0bacb; margin-left: auto; }
+
+.cx-comp.win2 { border-color: rgba(31,95,208,0.34); background: rgba(31,95,208,0.05); }
+.cx-comp.win  { border-color: rgba(31,95,208,0.24); }
+.cx-comp.even { border-color: rgba(245,158,11,0.34); background: rgba(245,158,11,0.05); }
+.cx-comp.lose { border-color: rgba(210,59,84,0.34); background: rgba(210,59,84,0.05); }
+.cx-comp.win2 .cxc-v, .cx-comp.win .cxc-v { color: #1f5fd0; }
+.cx-comp.even .cxc-v { color: #b45309; }
+.cx-comp.lose .cxc-v { color: #c02744; }
+.cx-comp.win2 .cxc-g, .cx-comp.win .cxc-g { background: rgba(31,95,208,0.12); color: #1f5fd0; }
+.cx-comp.even .cxc-g { background: rgba(245,158,11,0.16); color: #b45309; }
+.cx-comp.lose .cxc-g { background: rgba(210,59,84,0.12); color: #c02744; }

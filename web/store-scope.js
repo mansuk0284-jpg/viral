@@ -213,6 +213,34 @@
       `</span>`;
   }
 
+
+  /* 경쟁력 × 바이럴 — 두 축이 어긋나는 지점이 곧 할 일이다.
+     상관은 r=+0.19 로 거의 없다(실측). "바이럴 잘 되면 경쟁력도 높다"는 성립하지 않는다.
+     그래서 배수만 크게 띄우지 않고 **사분면 진단**으로 보여준다. */
+  function compBlock(name) {
+    const L = window.COMPETE_LINK, CO = window.COMPETE_OF && window.COMPETE_OF(name);
+    if (!CO) return "";
+    const p = window.COMPETE_PERIOD ? window.COMPETE_PERIOD(CO) : null;
+    const v = p ? CO.p[p] : null;
+    if (v == null) return "";
+    const row = L && L.rows.find((r) => r.store === name);
+    const g = v >= 1.3 ? ["win2", "크게 우세"] : v >= 1.0 ? ["win", "우세"]
+            : v >= 0.8 ? ["even", "접전"] : ["lose", "열세"];
+    const tip = row ? ({
+      "말은 도는데 안 팔림": "후기는 도는데 매출이 안 따라옵니다 — 상담·재고·가격 점검",
+      "잘 파는데 안 알려짐": "잘 파는데 온라인에 흔적이 적습니다 — 후기 유도가 비어 있습니다",
+      "둘 다 강함": "바이럴·경쟁력이 함께 높습니다 — 이 방식을 다른 매장으로",
+      "둘 다 약함": "두 축 모두 낮습니다 — 기본기부터",
+    })[row.quad] : "";
+    return `<div class="cx-comp ${g[0]}">` +
+      `<span class="cxc-lb">경쟁력</span>` +
+      `<b class="cxc-v">${v.toFixed(2)}<u>배</u></b>` +
+      `<i class="cxc-g">${g[1]}</i>` +
+      (row ? `<span class="cxc-q">${row.quad}</span>` : "") +
+      (tip ? `<span class="cxc-tip">${tip}</span>` : "") +
+      `<span class="cxc-p">${p}</span></div>`;
+  }
+
   /* ── 대시보드 렌더 ── */
   function render(name) {
     const row = storeRow(name);
@@ -230,7 +258,7 @@
     return `<div class="ca2 cx-wrap">` +
       `<div class="cx-top">` +
       `${window.VNAV ? VNAV.bar() : ""}` +
-      `<div class="cx-title"><h2>${name}</h2>` +
+      `<div class="cx-title"><h2 data-store="${name}">${name}</h2>` +
       `<span>${rg}${isMine ? " · <b>우리 권역</b>" : ""} · 채널 ${CHANNELS.length}개 중 <b>${live}개</b> 수집 완료` +
       `${isCus() ? ` · <b>${VF.label(st.range.a, st.range.b)}</b>` : ""}</span></div>` +
       rangeBox() +
@@ -248,6 +276,7 @@
       `<div class="${diff >= 0 ? "up" : "down"}"><b>${diff >= 0 ? "+" : ""}${diff}<i>p</i></b><span>지역평균 대비</span></div>` +
       `<div><b>${sib.length}<i>곳</i></b><span>${rg} 매장</span></div>` +
       `</div>` +
+      compBlock(name) +
       `<p class="cx-note">⚠ 현재는 <b>다이렉트결혼준비</b> 채널만 수집 완료 — 나머지 채널은 수집 후 자동 반영됩니다.` +
       `${isCus() ? "<br>표시 수치는 지정하신 기간만 잘라 집계한 값입니다." : ""}</p>` +
       `</div></div>` +
