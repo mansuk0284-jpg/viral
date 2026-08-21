@@ -196,6 +196,7 @@
   }
 
   window.openNaverReview = function (storeName) {
+    storeName = storeName || "";        // 인자 없이 불러도 첫 매장으로 열린다
     const host = document.getElementById("channelPanel");
     const sec = document.getElementById("channel");
     if (!host || !sec || !NR) return;

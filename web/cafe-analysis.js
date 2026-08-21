@@ -478,14 +478,9 @@
   // (지도에서 지역을 누르면 바로 region 으로 간다) 브레드크럼에만 남아 혼동을 줬다.
   // 왜 부울경만 있고 수도권은 없느냐는 물음에도 답할 수 없다.
   const LV = ["nation", "region", "store"];
-  function pager() {
-    const i = LV.indexOf(st.level);
-    return `<div class="ca-pager">` +
-      `<button type="button" data-pg="first" title="처음(지도)으로" aria-label="처음">⤒</button>` +
-      `<button type="button" data-pg="prev"${i <= 0 ? " disabled" : ""} title="이전(상위 단계)" aria-label="이전">‹</button>` +
-      `<button type="button" data-pg="next"${i >= LV.length - 1 ? " disabled" : ""} title="앞(하위 단계)" aria-label="앞">›</button>` +
-      `</div>`;
-  }
+  // 하단 페이저(⤒ ‹ ›)는 걷어냈다. 같은 화면 상단에 이미 VNAV 가 있어 두 벌이었고,
+  // 둘은 서로 다른 것을 셌다 — 상단은 '지나온 화면', 하단은 '드릴 단계'.
+  // 그래서 같은 '‹' 가 화면마다 다른 곳으로 갔다. 이동은 상단 VNAV 하나로만 한다.
 
   // 전체현황 3분할 바 (삼성/LG/기타 유통)
   function distBar(s, l, etc) {
@@ -1163,9 +1158,6 @@
       rangeBox() +          // 직접 입력은 접히지 않고 항상 보이는 자리에
       `</div>` +
       crumb() + mid +
-      `<div class="ca-botrow ca-botrow-r">` +
-      pager() +
-      `</div>` +
       `</div>`;
   }
 
@@ -1228,31 +1220,6 @@
       }
       const stb = e.target.closest("[data-store]");
       if (stb) { st.store = stb.getAttribute("data-store"); st.level = "store"; rerender(host); return; }
-      const pg = e.target.closest("button[data-pg]");
-      if (pg && !pg.disabled) {
-        const dir = pg.getAttribute("data-pg");
-        const i = LV.indexOf(st.level);
-        if (dir === "first") { window.showIntro && window.showIntro(); return; }
-        if (dir === "prev") {
-          if (i <= 0) { window.showIntro && window.showIntro(); return; }
-          st.level = LV[i - 1];
-          if (st.level === "nation") { st.region = null; st.store = null; }
-          if (st.level === "region") st.store = null;
-        } else if (dir === "next" && i < LV.length - 1) {
-          const R = regionRoll();
-          if (st.level === "nation") {
-            // 표본이 가장 큰 지역으로 내려간다(지도 클릭과 같은 결과)
-            const G = geoRegions();
-            const top = Object.keys(G).sort((a, b) =>
-              (G[b].s + G[b].l) - (G[a].s + G[a].l))[0];
-            if (top) { st.region = top; st.level = "region"; }
-          } else if (st.level === "region") {
-            st.store = R[st.region].stores.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l))[0].name;
-            st.level = "store";
-          }
-        }
-        rerender(host); return;
-      }
     });
   }
 

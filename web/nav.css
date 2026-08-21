@@ -22,4 +22,10 @@ body.mode-results .back-float { display: none !important; }
 
 /* 메인(결과 화면이 아닐 때)에는 내비를 감춘다.
    갈 곳이 없는데 버튼만 남아 있으면 눌러도 아무 일이 없어 오작동처럼 보인다. */
-body:not(.mode-results) .vnav { display: none; }
+/* 메인(1번)에서는 갈 곳이 없으니 감춘다. 단 2번(portal-open)에서는 보여야
+   메인으로 돌아갈 수 있다 — 이 한 줄이 없어서 1번이 사실상 막다른 길이었다. */
+body:not(.mode-results):not(.portal-open) .vnav { display: none; }
+#portalNav { margin-bottom: 12px; }
+
+/* 채널 단일 화면 머리 — 내비를 제목 위 같은 자리에 둔다 */
+.ch-nav { margin: 0 0 12px; }

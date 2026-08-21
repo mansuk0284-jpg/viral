@@ -12,12 +12,12 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r121" />
-  <link rel="stylesheet" href="cafe-analysis.css?v=2026r88" />
-  <link rel="stylesheet" href="affiliate-view.css?v=2026r3" />
-  <link rel="stylesheet" href="naver-review.css?v=2026r1" />
-  <link rel="stylesheet" href="compete-hint.css?v=2026r2" />
-  <link rel="stylesheet" href="nav.css?v=2026r2" />
+  <link rel="stylesheet" href="styles.css?v=2026r134" />
+  <link rel="stylesheet" href="cafe-analysis.css?v=2026r134" />
+  <link rel="stylesheet" href="affiliate-view.css?v=2026r134" />
+  <link rel="stylesheet" href="naver-review.css?v=2026r134" />
+  <link rel="stylesheet" href="compete-hint.css?v=2026r134" />
+  <link rel="stylesheet" href="nav.css?v=2026r134" />
 </head>
 <body>
   <!-- 결과 화면 전용 플로팅 복귀 버튼 (헤더 제거 후 대체) -->
@@ -49,6 +49,8 @@
 
           <!-- 2번 페이지: 혼수채널 타일 무대(포털 열림 시 #sourceMosaic를 여기로 이동) -->
           <div class="grp grp-left" id="grpLeft" hidden>
+            <!-- 2번 페이지 내비 자리. 여기가 비어 있어서 메인으로 돌아갈 길이 없었다. -->
+            <div id="portalNav"></div>
             <p class="grp-eyebrow">Channel</p>
             <h2 class="grp-title">혼수 기반 바이럴 채널</h2>
             <p class="grp-sub">웨딩카페·블로그·SNS에서 오가는 가전 구매후기</p>
@@ -203,22 +205,22 @@
     </div>
   </footer>
 
-  <script src="app.js?v=2026r44"></script>
-  <script src="assets/korea-sido.js?v=2026r36"></script>
-  <script src="assets/cafe-data.js?v=2026r59"></script>
-  <script src="assets/cafes-data.js?v=2026r1"></script>
-  <script src="fact.js?v=2026r4"></script>
-  <script src="assets/affiliate-insight.js?v=2026r2"></script>
-  <script src="nav.js?v=2026r2"></script>
-  <script src="cafe-world.js?v=2026r7"></script>
-  <script src="assets/compete-data.js?v=2026r1"></script>
-  <script src="assets/compete-link.js?v=2026r1"></script>
-  <script src="assets/naver-review.js?v=2026r2"></script>
-  <script src="affiliate-view.js?v=2026r8"></script>
-  <script src="naver-review-view.js?v=2026r3"></script>
-  <script src="cafe-analysis.js?v=2026r88"></script>
-  <script src="store-scope.js?v=2026r8"></script>
-  <script src="compete-hint.js?v=2026r1"></script>
+  <script src="app.js?v=2026r134"></script>
+  <script src="assets/korea-sido.js?v=2026r134"></script>
+  <script src="assets/cafe-data.js?v=2026r134"></script>
+  <script src="assets/cafes-data.js?v=2026r134"></script>
+  <script src="fact.js?v=2026r134"></script>
+  <script src="assets/affiliate-insight.js?v=2026r134"></script>
+  <script src="nav.js?v=2026r134"></script>
+  <script src="cafe-world.js?v=2026r134"></script>
+  <script src="assets/compete-data.js?v=2026r134"></script>
+  <script src="assets/compete-link.js?v=2026r134"></script>
+  <script src="assets/naver-review.js?v=2026r134"></script>
+  <script src="affiliate-view.js?v=2026r134"></script>
+  <script src="naver-review-view.js?v=2026r134"></script>
+  <script src="cafe-analysis.js?v=2026r134"></script>
+  <script src="store-scope.js?v=2026r134"></script>
+  <script src="compete-hint.js?v=2026r134"></script>
   <!-- 소스 타일: 크기=센싱 건수 비례 + 살아있는 클러스터 연출 + 클릭 이동 -->
   <script>
     (function () {
@@ -525,6 +527,9 @@
           if (ah > 200 && leadEl) { leadEl.style.height = ah + 'px'; left.style.height = ''; }
         }
         if (typeof window.showCafeMosaic === 'function') window.showCafeMosaic();
+        // 2번을 이동 스택의 첫 칸으로 등록 — 여기서 '뒤로'를 누르면 메인(1번)으로 간다
+        var pn = document.getElementById('portalNav');
+        if (pn && window.VNAV) { pn.innerHTML = VNAV.bar(); VNAV.push({ id: 'portal', label: '채널별 바이럴 현황', open: function () { window.openPortal(); } }); }
         layoutCluster();                              // 무대가 바뀐 기준으로 재배치
         var hub = mosaic._hub;
         // 각도 순서로 줄지어 등장(중앙 타일 먼저) — 끊김 없이 한 줄로 이어지는 생동감
@@ -550,6 +555,35 @@
           var p = document.getElementById('heroPortal'); if (p) p.style.display = 'none';
         }, 90 + tiles.length * 55 + 720);
       }
+      /* 포털 닫기 — 2번(채널 타일)에서 1번(메인)으로 되돌린다.
+         이게 없어서 '처음' 버튼이 2번까지만 가고 메인으로는 갈 길이 아예 없었다.
+         revealPortal 이 한 일을 정확히 되짚는다(타일 원위치 → 무대 정리 → 클래스 해제). */
+      var homeParent = mosaic.parentElement, homeNext = mosaic.nextElementSibling;
+      function closePortal() {
+        if (!portalOpened) return;
+        portalOpened = false;
+        if (homeParent) homeParent.insertBefore(mosaic, homeNext);   // 타일을 히어로 무대로 되돌린다
+        var left = document.getElementById('stageLeft');
+        var gl = document.getElementById('grpLeft'), gr = document.getElementById('grpRight');
+        var cm = document.getElementById('cafeMosaic');
+        if (left) { left.hidden = true; left.style.height = ''; if (left.parentElement) left.parentElement.style.height = ''; }
+        if (gl) gl.hidden = true;
+        if (gr) gr.hidden = true;
+        if (cm) cm.hidden = true;
+        document.body.classList.remove('portal-open');
+        var p = document.getElementById('heroPortal'); if (p) p.style.display = '';
+        layoutCluster();
+        applyClosed();                                // 타일을 다시 블랙홀 안으로
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+      window.closePortal = closePortal;
+      /* 스택이 되돌아올 때 쓰는 '2번으로 가기'. 이미 열려 있으면 결과 화면만 벗으면 된다
+         (revealPortal 은 portalOpened 가드로 즉시 반환해 아무것도 안 했다 — 뒤로가 먹통이던 이유). */
+      window.openPortal = function () {
+        if (window.exitResults) window.exitResults();
+        if (!portalOpened) revealPortal();
+      };
+
       var hole = document.getElementById('portalHole');
       if (hole) hole.addEventListener('click', revealPortal);
 

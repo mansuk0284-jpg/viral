@@ -202,6 +202,8 @@ function renderChannel(id) {
     : "";
 
   return (
+    // 내비가 없어 들어가면 나올 길이 없던 화면이다(스택엔 있는데 버튼이 없었다)
+    (window.VNAV ? `<div class="ch-nav">${VNAV.bar()}</div>` : "") +
     `<div class="ch-head ${c.cls}">` +
     `<span class="ch-ic">${c.ic}</span>` +
     `<span class="ch-htext"><h2>${c.name}</h2><span class="ch-sub">${c.sub}</span></span>` +
@@ -231,7 +233,11 @@ function openChannel(id) {
   host.innerHTML = renderChannel(id);
   const sec0 = $("#channel");
   if (sec0) sec0.hidden = false;
-  document.body.classList.add("mode-results", "view-channel");
+  // setView 로 통일 — add 만 하면 앞 화면의 view-* 가 그대로 남아 CSS 가 섞인다
+  window.setView ? setView("view-channel") : document.body.classList.add("mode-results", "view-channel");
+  // 스택에 쌓아야 '뒤로'가 이 화면을 기억한다(빠져 있어서 채널 화면이 스택에서 투명했다)
+  if (window.VNAV) VNAV.push({ id: "channel:" + id, label: (CHANNELS[id] && CHANNELS[id].name) || "채널",
+    open: () => window.openChannel(id) });
   window.scrollTo({ top: 0, behavior: "auto" });
   requestAnimationFrame(() => {
     const sec = $("#channel");
@@ -317,9 +323,19 @@ function setupStart() {
     // view-* 를 한 곳에서 전부 턴다. 화면마다 각자 지우게 두었더니
     // view-af / view-cx / view-nr 이 남아 클래스가 쌓였다(실측: 처음으로 눌러도 view-nr 잔존).
     document.body.classList.remove("mode-results", ...VIEWS);
-    window.scrollTo({ top: 0, behavior: "auto" });
+    // portal-open 까지 닫아야 진짜 처음(1번 메인)이다. 이걸 빠뜨려서
+    // '처음'이 늘 2번(채널 타일)에 멈췄고, 1번으로 갈 길이 아예 없었다.
+    if (window.closePortal) window.closePortal();
+    else window.scrollTo({ top: 0, behavior: "auto" });
   }
   window.showIntro = showIntro;
+
+  /* 결과 화면(3번)만 벗고 2번(채널 타일)에 남는다 — '뒤로'가 쓰는 길.
+     showIntro 와 달리 포털은 열어 둔다. 이 구분이 없어서 뒤로가 아무 데도 못 갔다. */
+  window.exitResults = function () {
+    document.body.classList.remove("mode-results", ...VIEWS);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  };
   const back = $("#backBtn");
   if (back) back.addEventListener("click", showIntro);
 }
