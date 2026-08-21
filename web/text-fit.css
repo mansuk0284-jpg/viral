@@ -1,0 +1,62 @@
+/* ===== 글자 배치 공용 규칙 =====
+   실측 문제(2026-08-21): 좁은 칸에 큰 글자가 들어가 갈라졌다.
+     · "100%" → 42px 칸에 18px 900 이 안 들어가 "100" / "%" 두 줄
+     · "롯데 잠실" → 73px 칸에서 "롯데" / "잠실"
+     · 버튼 "적용" → 47px 안에서 두 글자가 세로로
+   원인은 하나다 — 전체화면 모드에서 글자만 키우고 칸 폭은 그대로 뒀다.
+   여기 규칙은 "수치·이름·버튼은 갈라지지 않는다"를 화면 공통으로 못 박는다. */
+
+/* 1) 수치와 단위는 절대 갈라지지 않는다 --------------------------------- */
+.rv-sh, .nk-v, .cxc-v, .cmp-v, .sc-k b, .nsc-total, .nsc-vs b,
+.fc-mini b, .fc-mini > b, .ca-nkpi .nk-v, .vs-side b, .cv, .ch-metric .cv,
+.nr-kpi b, .nr-v, .sv-kpi b, .cx-kpi b, .af-kpi b,
+.count-up, [data-count], [data-count-to] { white-space: nowrap; }
+
+/* 단위 기호(%, 건, 배)는 숫자에 붙어 다닌다 */
+.rv-sh i, .nk-v i, .cxc-v u, .cmp-v u, .sc-k b i, .vs-side b i,
+.cv small, .nsc-vs b i { white-space: nowrap; }
+
+/* 2) 매장·지점 이름은 한 줄로 --------------------------------------------
+   "롯데 부산본점"이 "롯데" / "부산본점" 으로 갈리면 다른 매장처럼 보인다.
+   넘치면 줄을 늘리는 대신 말줄임으로 자른다(전체 이름은 title 로 남는다). */
+.rv-pick b, .rv-nm, .rv-store, .sv-title, .cx-name, .nr-store,
+[data-store], .rv-row > b, .st-name {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+
+/* 3) 버튼 글자는 세로로 서지 않는다 --------------------------------------- */
+.car-go, .car-off, .vnav-b, .ca-periodnav button, .cpn-b,
+button.ca-b, .ca-pill, .nr-b { white-space: nowrap; }
+
+/* 4) 한국어는 어절 단위로 끊는다 -----------------------------------------
+   keep-all 이 없으면 브라우저가 글자 아무 데서나 자른다("정수기·청 / 소기"). */
+.ca2, .sv-wrap, .cx-wrap, .nr-wrap, .af-wrap, #channelPanel,
+.rv-act, .sv-action, .ca-note, .fc-note, .mgr-tip, .cxc-tip,
+.sc-k span, .sc-k em, .nk-s, .ch-note, .card-sub { word-break: keep-all; }
+
+/* 5) 좁은 수치 칸은 칸을 넓힌다 — 글자를 줄이는 건 마지막 수단 ------------ */
+.rv-row { grid-template-columns: 20px minmax(72px, 1.4fr) 74px minmax(0, 2.2fr)
+          52px 50px 52px !important; }
+body.view-cafe .rv-sh { font-size: 16px; }        /* 18 → 16, 50px 칸에 "100%" 가 들어간다 */
+
+/* 6) 좁은 칸의 보조 라벨은 확대 상한을 둔다 ------------------------------
+   전체화면 모드가 글자를 일괄로 키우는데, 95~113px 짜리 KPI 칸의 설명 라벨까지
+   18px 로 부풀어 "지역평균 / 대비", "4개↑ / 대형 패키지" 로 갈라졌다.
+   칸에서 커야 할 것은 수치이지 라벨이 아니다. */
+body.view-cafe .sc-k span, body.view-cafe .sc-k em,
+body.view-cafe .rv-kpis .s > span, body.view-cafe .rv-kpis .l > span,
+body.view-cafe .rv-kpis > div > span, body.view-cafe .nk-s,
+body.view-cafe .ca-nkpi .nk-k { font-size: 12px; line-height: 1.35; }
+
+/* 7) 문장 속 강조 조각은 통째로 넘긴다 -----------------------------------
+   "정수기·청소기" 가 "정수기· / 청소기" 로 갈리면 강조가 두 동강 난다.
+   (keep-all 은 가운뎃점을 끊는 걸 막지 못한다) */
+.rv-act b, .rv-act .warn, .sv-action b, .sv-action .warn,
+.ca-note b, .fc-note b, .cxc-tip b, .mgr-tip b { white-space: nowrap; }
+
+/* 8) 제휴카페 모자이크의 '상위로' 헤드 타일 ------------------------------
+   타일 크기가 회원수에 비례하는데 헤드 타일은 회원수가 없어 17px 로 쪼그라들었고,
+   "‹ 맘카페" 가 세로로 섰다. 이건 데이터 타일이 아니라 이동 버튼이니 크기를 따로 준다. */
+.src-cwhead { min-width: 138px !important; }
+.src-cwhead figcaption b { white-space: nowrap; }
+.src-cwhead figcaption small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
