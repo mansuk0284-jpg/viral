@@ -13,6 +13,7 @@
   "use strict";
   const NR = window.NAVER_REVIEW || null;
   const fmtN = (n) => (n || 0).toLocaleString("ko-KR");
+  const esc = (t) => String(t || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   const ymLab = (ym) => ym ? `${+ym.slice(0, 4)}년 ${+ym.slice(5)}월` : "전체 기간";
   const R_YM = 0, R_VIA = 1, R_STAR = 2, R_P = 3, R_C = 4, R_R = 5, R_NEG = 6, R_MGR = 7, R_T = 8;
 
@@ -220,31 +221,39 @@
     const pr = A.top("praise"), rs = A.top("reason"), mg = A.top("mgr");
     const pMax = pr.length ? pr[0][1] : 1, rMax = rs.length ? rs[0][1] : 1;
     return `<section class="af-pane nr-mine">` +
-      `<header class="af-ph"><span class="af-tag">① 우리 매장</span>` +
-      `<h3>${S.name}</h3></header>` +
+      `<header class="af-ph tight"><span class="af-tag">① 우리 매장</span>` +
+      `<h3 data-fit="22,12">${S.name}</h3></header>` +
       `<div class="af-stats">` +
       `<div class="af-stat"><b>${fmtN(S.total)}</b><span>네이버 리뷰</span><em>누적 총계</em></div>` +
       `<div class="af-stat hot"><b>${fmtN(A.book)}</b><span>예약 경유</span><em>표본 ${A.n}건 중 · 추정</em></div>` +
       `<div class="af-stat"><b>${A.bookRate}<i>%</i></b><span>예약 비율</span><em>추정</em></div>` +
       `</div>` +
+      // 칭찬 칩은 전폭 — 네이버 키워드는 문구라서 좁은 칸에는 한 줄에 하나밖에 안 들어간다
       (S.keywords.length ? `<div class="af-block"><h4>고객이 고른 칭찬 <i>네이버 집계</i></h4>` +
         `<div class="nr-kw">` + S.keywords.slice(0, 6).map((k) =>
           `<span class="nr-k"><b>${k.k}</b><i>${fmtN(k.n)}</i></span>`).join("") + `</div></div>` : "") +
+      // 막대 목록 둘은 나란히 — 행 높이가 고정이라 좁아져도 안 늘어난다
+      `<div class="nr-cols2">` +
       (rs.length ? `<div class="af-block"><h4>왜 방문했나 <i>${A.n}건 기준</i></h4>` +
         rs.map((x) => `<div class="af-row"><span class="af-rn">${x[0]}</span>` +
           bar(x[1], rMax) + `<b class="af-rv">${x[1]}</b></div>`).join("") + `</div>` : "") +
       (pr.length ? `<div class="af-block"><h4>본문에서 읽은 칭찬</h4>` +
         pr.slice(0, 5).map((x) => `<div class="af-row"><span class="af-rn">${x[0]}</span>` +
           bar(x[1], pMax, "s") + `<b class="af-rv">${x[1]}</b></div>`).join("") + `</div>` : "") +
+      `</div>` +
+      // 매니저 실명과 아쉬움도 나란히 — 세로로 쌓으면 둘 다 첫 화면 밖으로 밀린다
+      `<div class="nr-cols2">` +
       (mg.length ? `<div class="af-block"><h4>리뷰에 이름이 오르는 사람 <i>매장 자산</i></h4>` +
         `<div class="nr-kw">` + mg.slice(0, 6).map((x) =>
           `<span class="nr-k star"><b>${x[0]}</b><i>${x[1]}</i></span>`).join("") + `</div></div>` : "") +
       (A.neg.length
-        ? `<div class="af-block af-miss"><h4>아쉬움 <i>${A.neg.length}건</i></h4>` +
-          `<p class="af-sub">명시적 불만 표현이 있는 리뷰만 셌습니다(‘고장’은 방문 사유라 제외).</p>` +
-          `<ul class="af-list">` + A.neg.slice(0, 4).map((x) =>
-            `<li><span class="af-ym">${x.ym}</span><span>${x.t}</span></li>`).join("") + `</ul></div>`
+        ? `<div class="af-block af-miss"><h4>아쉬움 <i>${A.neg.length}건</i>` +
+          `<button type="button" class="nr-more" data-nrmore="1">전문 보기</button></h4>` +
+          `<p class="af-sub">명시적 불만만 셌습니다(‘고장’은 방문 사유라 제외).</p>` +
+          `<ul class="af-list nr-clamp">` + A.neg.slice(0, 4).map((x) =>
+            `<li><span class="af-ym">${x.ym}</span><span title="${esc(x.t)}">${x.t}</span></li>`).join("") + `</ul></div>`
         : `<div class="af-block"><h4>아쉬움</h4><p class="af-sub">이 기간 명시적 불만이 없습니다.</p></div>`) +
+      `</div>` +
       `</section>`;
   }
 
@@ -287,8 +296,8 @@
     };
     const rz = (o, k) => (o.reason[k] || 0);
     return `<section class="af-pane af-ours">` +
-      `<header class="af-ph"><span class="af-tag ours">② ${P.lab} · 삼성 vs LG</span>` +
-      `<h3>같은 상권에서 나란히</h3></header>` +
+      `<header class="af-ph tight"><span class="af-tag ours">② ${P.lab} · 삼성 vs LG</span>` +
+      `<h3 data-fit="22,12">같은 상권에서 나란히</h3></header>` +
       `<div class="af-verdict ${verdict.cls}"><b>${verdict.t}</b><div class="nr-vbody">${verdict.d}</div></div>` +
       `<div class="af-block"><h4>맞대결</h4>` +
       `<p class="nr-lgd"><span class="s" data-fit="12.5,9.5">${S.name}</span>` +
@@ -299,11 +308,12 @@
       cmpRow("이사·입주 방문", rz(A, "이사·입주"), rz(B, "이사·입주")) +
       cmpRow("구독·렌탈 언급", rz(A, "구독·렌탈"), rz(B, "구독·렌탈")) +
       `</div>` +
-      (V.keywords.length ? `<div class="af-block"><h4>상대가 받는 칭찬 <i>${V.name}</i></h4>` +
+      (V.keywords.length ? `<div class="af-block"><h4>상대가 받는 칭찬 <i data-fit="17,10">${V.name}</i></h4>` +
         `<div class="nr-kw">` + V.keywords.slice(0, 5).map((k) =>
           `<span class="nr-k vs"><b>${k.k}</b><i>${fmtN(k.n)}</i></span>`).join("") + `</div></div>` : "") +
       `<p class="af-sub nr-note"><span>네이버 리뷰 누적은 <b>매장 전체 기간</b> 기준입니다.</span>` +
-      `<span>나머지 항목은 <b>선택 기간의 수집 표본</b> 기준입니다.</span></p>` +
+      `<span>나머지 항목은 <b>선택 기간의 수집 표본</b> 기준입니다.</span>` +
+      `<span><b>예약 경유는 추정</b>입니다 — 예약 건수는 외부에서 조회할 수 없습니다.</span></p>` +
       `</section>`;
   }
 
@@ -339,6 +349,12 @@
       if (b.disabled) return;
       st.ym = b.getAttribute("data-nrym") || null;
       paint(host);
+    }));
+    // 아쉬움 원문 펼치기 — 기본은 두 줄로 접어 한 화면을 지키고, 누르면 전문을 보여준다
+    host.querySelectorAll("[data-nrmore]").forEach((b) => b.addEventListener("click", () => {
+      const ul = b.closest(".af-block").querySelector(".af-list");
+      const on = ul.classList.toggle("nr-clamp");
+      b.textContent = on ? "전문 보기" : "접기";
     }));
     host.querySelectorAll("[data-nrdept]").forEach((b) => b.addEventListener("click", () => {
       window.openNaverReview(b.getAttribute("data-nrdept"));

@@ -10,7 +10,8 @@
 .rv-sh, .nk-v, .cxc-v, .cmp-v, .sc-k b, .nsc-total, .nsc-vs b,
 .fc-mini b, .fc-mini > b, .ca-nkpi .nk-v, .vs-side b, .cv, .ch-metric .cv,
 .nr-kpi b, .nr-v, .sv-kpi b, .cx-kpi b, .af-kpi b,
-.count-up, [data-count], [data-count-to] { white-space: nowrap; }
+.count-up, [data-count], [data-count-to],
+.af-ym, .nr-ym, [class$="-ym"] { white-space: nowrap; }   /* 날짜(2026-08)도 갈라지면 안 된다 */
 
 /* 단위 기호(%, 건, 배)는 숫자에 붙어 다닌다 */
 .rv-sh i, .nk-v i, .cxc-v u, .cmp-v u, .sc-k b i, .vs-side b i,
@@ -48,14 +49,16 @@ body.view-cafe .rv-sh { font-size: 16px; }        /* 18 → 16, 50px 칸에 "100
 body.view-cafe .sc-k span, body.view-cafe .sc-k em,
 body.view-cafe .rv-kpis .s > span, body.view-cafe .rv-kpis .l > span,
 body.view-cafe .rv-kpis > div > span, body.view-cafe .nk-s,
-body.view-cafe .ca-nkpi .nk-k { font-size: 12px; line-height: 1.35; }
+body.view-cafe .ca-nkpi .nk-k,
+body.view-cafe .fc-mini span, body.view-cafe .fc-mini > span { font-size: 12px; line-height: 1.35; }
 
 /* 7) 문장 속 강조 조각은 통째로 넘긴다 -----------------------------------
    "정수기·청소기" 가 "정수기· / 청소기" 로 갈리면 강조가 두 동강 난다.
    (keep-all 은 가운뎃점을 끊는 걸 막지 못한다) */
 .rv-act b, .rv-act .warn, .sv-action b, .sv-action .warn,
 .ca-note b, .fc-note b, .cxc-tip b, .mgr-tip b,
-.pf-sum b, .pf-sum .warn, .rv-dtext b, .sv-verdict b { white-space: nowrap; }
+.pf-sum b, .pf-sum .warn, .rv-dtext b, .sv-verdict b,
+.nr-wrap li > b, .nr-why b, .sc-tip b, .mgr-nat b { white-space: nowrap; }
 
 /* 8) 제휴카페 모자이크의 '상위로' 헤드 타일 ------------------------------
    타일 크기가 회원수에 비례하는데 헤드 타일은 회원수가 없어 17px 로 쪼그라들었고,
@@ -70,6 +73,6 @@ body.view-cafe .ca-nkpi .nk-k { font-size: 12px; line-height: 1.35; }
    → 한 줄로 못 박고, web/text-fit.js 가 칸에 맞을 때까지 글자를 줄인다.
      (nowrap + overflow:hidden 이라야 스크립트가 넘침을 감지할 수 있다) */
 .sc-k span, .sc-k em, .fc-mini span, .rv-kpis > div > span, .nk-s,
-.ca-nkpi .nk-k, .sv-side span, .sv-mid span {
+.ca-nkpi .nk-k, .sv-side span, .sv-mid span, .rv-big span, .rv-big > span {
   white-space: nowrap; overflow: hidden; min-width: 0;
 }

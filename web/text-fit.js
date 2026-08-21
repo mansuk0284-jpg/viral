@@ -13,7 +13,7 @@
   const SEL = ".vfit, [data-fit], .rv-pick b, .rv-nm, .rv-store, .sv-title,"
     + " .cx-name, .nr-store, [data-store], .rv-row > b, .st-name,"
     + " .sc-k span, .sc-k em, .fc-mini span, .rv-kpis > div > span, .nk-s,"
-    + " .ca-nkpi .nk-k, .sv-side span, .sv-mid span";
+    + " .ca-nkpi .nk-k, .sv-side span, .sv-mid span, .rv-big > span";
 
   function fit(el) {
     if (!el || !el.isConnected) return;

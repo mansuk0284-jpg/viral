@@ -211,3 +211,101 @@ while (el.scrollWidth > el.clientWidth + 0.5 && fs > 9.5) { fs -= 0.5; … }
 `para()` 로 `.` + 공백에서 끊어 `<span class="pl">` 블록으로 만든다.
 **소수점(1.07배)은 마침표 뒤에 공백이 없어 걸리지 않는다** — 그래서 이 방식이 안전하다.
 
+
+## 카드가 사라진다 — `auto` 행 + 글자 갈라짐 (2026-08-21, 매장 상세 우측)
+
+**증상.** 다이렉트웨딩 → 지역 → 매장 화면의 `.sv-right` 743px 안에 내용이 1498px.
+`grid-template-rows` 계산값이 `228.7 / 498.4 / 0px` 이 되어 3행에 놓인
+"현장 액션"·"이 매장 후기" 두 카드가 **18px 로 찌부러져 화면에서 사라졌다.**
+
+**원인은 두 겹이었다. 겉으로 보이는 쪽이 진짜 원인이 아니었다.**
+
+1. **진짜 범인 = 글자 갈라짐.** `.it-v` 의 "100%" 가 44px 칸에 19.5px 로 들어가
+   `1 / 0 / 0%` 세 줄이 됐다. 한 줄 30px → **62px**. 품목 4줄짜리 목록이 **486px**.
+   즉 카드가 부푼 건 정보가 많아서가 아니라 **글자가 칸에 안 들어가서**였다.
+   → 높이 문제로 보이면 **먼저 폭을 의심한다.** `scrollWidth - clientWidth` 를 재라.
+2. **행 높이 `auto auto 1fr`.** 부푼 앞 두 행이 공간을 다 먹고 3행에 0px 만 남았다.
+   → `minmax(0, Nfr)` 로 **비율 배분**. `auto` 는 "앞 행 우선"과 같은 말이다.
+
+**`body.view-cafe` 가 높이 제한을 푸는 규칙에 주의.** 전체화면 모드가
+`.pf-items { max-height: none }` 로 상한을 걷어내 버려, 좁은 화면용 `max-height` 가
+전부 무력화돼 있었다. 전체화면 규칙은 **글자만 키우고 칸은 그대로 두는** 같은 뿌리의
+사고를 계속 낸다(`web/text-fit.css` 머리말 참고).
+
+### 배치로 푸는 법 — 큰 카드끼리 행을 나눠 쓰게 한다
+
+우측 5카드를 2열 3행으로 놓으면 **큰 카드 셋(sc·mgr·rev)이 서로 다른 행을 하나씩**
+차지해, 행 합계 최소치가 `195+318+246 = 759px` 로 고정된다. 좌열은 473px 만 쓰고
+135px 를 논다. **행을 4개로 늘리고 span 을 엇갈리게** 두면 같은 내용이 634px 로 내려간다.
+
+```
+   1행 │ sc-card      │ ┐ sv-profile (1~2행)
+   2행 │ mgr-card     │ ┘
+   3행 │  (mgr 계속)  │ ┐ sv-rev (3~4행)
+   4행 │ sv-actcard   │ ┘
+```
+
+한 카드의 여유가 옆 카드의 부족을 메운다. **글씨를 줄이기 전에 이걸 먼저 한다.**
+
+### 재는 법 (짐작 금지)
+
+```js
+// ① 내부 스크롤이 남은 요소
+[...document.querySelectorAll('.sv-right *')].filter(e=>{const s=getComputedStyle(e);
+  return e.offsetParent && /auto|scroll/.test(s.overflowY+s.overflow) && e.scrollHeight-e.clientHeight>4;});
+// ② 넘쳐서 잘린 요소(overflow:hidden 이라 눈엔 안 보인다) — 세로·가로 둘 다
+[...document.querySelectorAll('.sv-right *')].filter(e=>e.offsetParent &&
+  (e.scrollHeight-e.clientHeight>4 || e.scrollWidth-e.clientWidth>1));
+// ③ 카드별 "박스 vs 필요" — 어디에 여유가 있고 어디가 모자란지 한눈에
+```
+③ 이 핵심이다. 카드마다 `box`(실제 높이)와 `need`(자식 scrollHeight 합 + gap + padding)를
+같이 찍으면 **fr 값을 눈대중이 아니라 산수로 정한다.** 실측 결과(1280x800):
+`profile 316/332 · sc 174/178 · mgr 291/299 · act 109/122 · rev 245/275` → 전부 0 넘침.
+
+**매장마다 내용 길이가 다르다. 한 곳만 보고 끝내면 안 된다.** 전 지역·전 매장(25곳)을
+순회해 최댓값으로 맞췄다. 1440x900 과 1280x800 둘 다 확인한다 — 낮은 화면은
+`@media (min-width:1180px) and (max-height:860px)` 로 밀도를 한 단계 더 조인다.
+
+## 카드가 화면에서 사라지는 이유 — 행 높이를 `auto` 로 두면 안 된다 (2026-08-21)
+
+매장 상세 우측(`.sv-right`)에서 **"현장 액션" 18px, "이 매장 후기" 18px** 로 찌부러져
+사실상 안 보였다. 743px 칸에 내용 1498px 을 넣은 것이 근본 원인이지만, 방아쇠는 따로 있었다.
+
+```
+grid-template-rows: auto auto minmax(0, 1fr)
+계산 결과: 228.7px / 498.4px / 0px          ← 3행이 0
+```
+
+**`auto` 행은 콘텐츠가 원하는 만큼 다 가져간다.** 앞 두 행이 공간을 다 먹으면
+`1fr` 인 마지막 행에는 **0px 만 남는다.** 카드가 사라져도 CSS 오류는 나지 않는다.
+
+→ **모든 행을 `minmax(0, Nfr)` 로 비율 배분한다.** 어느 행도 0이 되지 않는다.
+
+```css
+grid-template-rows: minmax(0, 1fr) minmax(0, .82fr) minmax(0, .815fr) minmax(0, .685fr);
+```
+
+3행 → 4행으로 늘리고 큰 카드를 2행에 걸치게(`grid-row: 1 / 3`) 배치하면 균형이 잡힌다.
+실측: 5개 카드가 402 / 217 / 362 / 148 / 333px 로 모두 실체를 갖고 내부 스크롤 0.
+
+### 전체화면 모드가 높이 제한을 푸는 것을 조심하라
+
+```css
+@media (min-width: 1180px) { .sv-right > .sv-profile .pf-items { max-height: 132px; } }
+body.view-cafe .sv-profile .pf-items { max-height: none; }   /* ← 이게 뒤에서 무력화 */
+```
+
+`body.view-cafe`(전체화면) 규칙이 **뒤에 있어서 이겼다.** 그래서 품목 목록이 486px 로 부풀었다.
+**글자를 키우는 규칙과 칸을 푸는 규칙은 다르다.** 확대 모드에서도 칸 제약은 유지해야 한다.
+(같은 뿌리로 `100%` 가 `100`/`%` 로 갈라진 적이 있다 — `web/text-fit.css` 참조)
+
+### 찌부러진 카드를 찾는 법
+
+높이가 40px 미만이면 사실상 안 보이는 것이다. 눈으로 찾지 말고 재라:
+
+```js
+[...document.querySelector('.sv-right').children]
+  .filter(c => getComputedStyle(c).display !== 'none')
+  .map(c => c.className + ':' + Math.round(c.getBoundingClientRect().height));
+```
+
