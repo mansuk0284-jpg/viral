@@ -1,0 +1,130 @@
+/* 기간 선택 공용 모듈 (window.VPER)
+
+   사용자 지시(2026-08-21): "기간 탭은 매장별 현황에도 반영하고 기간 선택별 데이터 화면도
+   채널별 현황과 동일한 로직으로 해줘. 이건 어느 분석 페이지에서도 동일하게 반영되어야 해."
+
+   그동안 기간 UI 는 다이렉트웨딩(cafe-analysis) 안에만 있었고, 매장 대시보드는
+   '직접 입력'만 있었다. 화면마다 따로 만들면 라벨과 동작이 갈라진다 —
+   이 프로젝트에서 내비가 그렇게 갈라져 버튼이 겹쳤던 전례가 있다.
+
+   쓰는 법:
+     const P = VPER.create({ months: [...], onChange: fn });   // 화면마다 하나
+     host.innerHTML = P.html();                                 // 칩 두 개 + 직접 입력
+     P.bind(host);                                              // 클릭 위임
+     P.range()  → [시작일, 종료일]  (팩트 집계에 그대로 넣는다)
+     P.label()  → "2026년 8월"      (화면 표기)
+*/
+(function () {
+  "use strict";
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const lastDay = (y, m) => new Date(y, m, 0).getDate();
+
+  function create(opt) {
+    const months = (opt.months || []).slice().sort();   // ["2021-01", …]
+    if (!months.length) return null;
+    const years = Array.from(new Set(months.map((m) => m.slice(0, 4)))).sort();
+    const lastM = months[months.length - 1];
+
+    /* 첫 화면은 **현재 월**. 데이터에 이번 달이 아직 없으면 마지막 달로 물러선다. */
+    const d = new Date();
+    const nowKey = d.getFullYear() + "-" + pad(d.getMonth() + 1);
+    const nowM = months.indexOf(nowKey) >= 0 ? nowKey : lastM;
+
+    const st = { period: nowM, navY: nowM.slice(0, 4), range: null };
+
+    const isAll = () => st.period === "all";
+    const curMonth = () => (/^\d{4}-\d\d$/.test(st.period) ? st.period : null);
+    const curYear = () => (/^\d{4}$/.test(st.period) ? st.period : null);
+
+    function label() {
+      if (st.range) return st.range[0] + " ~ " + st.range[1];
+      if (isAll()) return "전체";
+      const m = curMonth();
+      if (m) return m.slice(0, 4) + "년 " + (+m.slice(5)) + "월";
+      return st.period + "년";
+    }
+
+    /* 집계에 넣을 [시작일, 종료일]. 기간 개념을 한 곳에서만 계산해야
+       화면마다 다른 구간을 집계하는 사고가 안 난다. */
+    function range() {
+      if (st.range) return st.range.slice();
+      if (isAll()) {
+        const a = months[0], b = lastM;
+        return [a + "-01", b + "-" + pad(lastDay(+b.slice(0, 4), +b.slice(5)))];
+      }
+      const m = curMonth();
+      if (m) return [m + "-01", m + "-" + pad(lastDay(+m.slice(0, 4), +m.slice(5)))];
+      const y = st.period;
+      return [y + "-01-01", y + "-12-31"];
+    }
+
+    function html() {
+      const y = st.navY || years[years.length - 1];
+      const ms = months.filter((m) => m.slice(0, 4) === y);
+      const yrOn = st.period === y, all = isAll(), cm = curMonth();
+      const mLab = cm ? (+cm.slice(5)) + "월" : (all ? "월 선택" : "연간");
+
+      const yrMenu = years.slice().reverse().map((v) =>
+          `<button type="button" data-navy="${v}" class="${v === y ? "cur" : ""}">${v}년</button>`).join("")
+        + `<button type="button" data-per="all" class="${all ? "cur" : ""}">전체 기간</button>`;
+      const mMenu = `<button type="button" data-per="${y}" class="${yrOn ? "cur" : ""}">${y}년 전체</button>`
+        + ms.map((m) => `<button type="button" data-per="${m}"` +
+            ` class="${st.period === m ? "cur" : ""}">${+m.slice(5)}월</button>`).join("");
+
+      return `<div class="ca-nav vper">` +
+        `<span class="ca-yr${yrOn || all ? " on" : ""}" tabindex="0">` +
+        `<button type="button" data-per="${y}" class="ca-yrb${yrOn ? " on" : ""}"` +
+        ` title="${y}년 전체로 보기">${all ? "전체" : y}<i>▾</i></button>` +
+        `<span class="ca-yrm">${yrMenu}</span></span>` +
+        `<span class="ca-yr ca-mo${cm ? " on" : ""}" tabindex="0">` +
+        `<button type="button" class="ca-yrb${cm ? " on" : ""}" title="월 고르기">${mLab}<i>▾</i></button>` +
+        `<span class="ca-yrm ca-mom">${mMenu}</span></span>` +
+        `</div>`;
+    }
+
+    /* 클릭 위임 — 화면이 다시 그려져도 리스너를 새로 달 필요가 없다 */
+    function bind(host) {
+      if (!host || host.dataset.vperBound) return;
+      host.dataset.vperBound = "1";
+      host.addEventListener("click", (e) => {
+        const ny = e.target.closest("button[data-navy]");
+        if (ny) {
+          const y2 = ny.getAttribute("data-navy");
+          st.navY = y2;
+          /* 연도를 골랐다는 건 그 해를 보겠다는 뜻이다. 목록만 갈아 끼우면
+             칩은 2025 인데 보고 있는 건 2026년 3월이라 어긋나 보인다(실측). */
+          const m = curMonth();
+          if (m) {
+            const want = y2 + "-" + m.slice(5);
+            st.period = months.indexOf(want) >= 0 ? want
+              : (months.filter((x) => x.slice(0, 4) === y2).slice(-1)[0] || y2);
+          } else {
+            st.period = y2;
+          }
+          st.range = null;
+          fire(); return;
+        }
+        const pb = e.target.closest("button[data-per]");
+        if (pb) {
+          st.period = pb.getAttribute("data-per");
+          if (/^\d{4}(-\d\d)?$/.test(st.period)) st.navY = st.period.slice(0, 4);
+          st.range = null;
+          fire(); return;
+        }
+      });
+    }
+
+    function fire() { if (typeof opt.onChange === "function") opt.onChange(api); }
+
+    const api = {
+      html: html, bind: bind, range: range, label: label,
+      period: () => (st.range ? null : st.period),
+      setRange(a, b) { st.range = (a && b) ? [a, b] : null; fire(); },
+      state: st,
+    };
+    return api;
+  }
+
+  window.VPER = { create: create };
+})();

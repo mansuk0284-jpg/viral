@@ -1614,3 +1614,22 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .rv-hit u { text-decoration: none; font-size: 9.5px; font-weight: 700; opacity: .65; margin-left: 1px; }
 .rv-hit.s { color: #1f5fd0; } .rv-hit.l { color: #d23b54; }
 .rv-hit.off { color: #c3cbd8; font-weight: 600; }
+
+/* ===== 전국 요약 칼럼 — 상단 정렬 + 글씨 낮춤 (2026-08-21) =====
+   사용자 지시: "전국 텍스트가 좌측 상단에 위치하도록", "글씨 크기도 지금 너무 큰 건지".
+   제목 30~44px / 총건수 40~58px 는 한 칸에 담기엔 과했다. 숫자가 크다고 잘 읽히는 게
+   아니라, 옆 항목들이 밀려나면서 오히려 무슨 수치인지 알기 어려워졌다. */
+.ca-nsumcol { justify-content: flex-start !important; align-self: stretch !important;
+  gap: 10px !important; padding-top: 2px !important; }
+.ca-nsumcol .nsc-h h3 { font-size: clamp(22px, 2.2vw, 30px) !important; }
+.ca-nsumcol .nsc-h span { margin-top: 3px; font-size: 12.5px; }
+.ca-nsumcol .nsc-total { padding-bottom: 9px; }
+.ca-nsumcol .nsc-total b { font-size: clamp(28px, 2.8vw, 38px) !important; }
+.ca-nsumcol .nsc-total i { font-size: 14px; }
+.ca-nsumcol .nsc-side b { font-size: clamp(24px, 2.4vw, 32px) !important; }
+.ca-nsumcol .nsc-side span { margin-top: 3px; font-size: 13px; }
+
+/* 이 칸이 무엇을 말하는지 한 줄로 밝힌다 — 숫자만 크게 띄우면 무슨 수치인지 모른다 */
+.nsc-what { margin: -4px 0 0; font-size: 11.5px; line-height: 1.5; font-weight: 600;
+  color: var(--muted); word-break: keep-all; }
+.nsc-what b { color: var(--text); font-weight: 800; }

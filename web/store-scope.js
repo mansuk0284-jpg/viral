@@ -15,6 +15,27 @@
   /* 화면 상태 — 매장 + 조회 기간(직접 입력). 기본은 전체 수집 구간 */
   const st = { name: null, range: null };
   const isCus = () => !!(st.range && VF);   // 라벨·해제버튼 표시용
+
+  /* 기간 선택 — 채널별 현황과 **같은 모듈**을 쓴다(사용자 지시 2026-08-21:
+     "어느 분석 페이지에서도 동일하게 반영되어야 해").
+     화면마다 따로 만들면 라벨과 동작이 갈라진다. */
+  let PER = null;
+  function per() {
+    if (PER || !window.VPER || !VF) return PER;
+    const D = window.CAFE_DATA;
+    const ms = (D && D.months ? D.months.map((m) => (Array.isArray(m) ? m[0] : m)) : []);
+    PER = VPER.create({
+      months: ms,
+      onChange: () => {
+        const r = PER.range();
+        st.range = { a: r[0], b: r[1] };
+        const host = document.getElementById("channelPanel");
+        if (host) paint(host);
+      },
+    });
+    if (PER) { const r = PER.range(); st.range = { a: r[0], b: r[1] }; }
+    return PER;
+  }
   const hasF = () => !!VF;
   /* 집계는 항상 팩트 한 경로로 — 기간을 지정하든 안 하든 같은 코드가 돈다 */
   const A = () => VF.agg(st.range ? st.range.a : VF.d0, st.range ? st.range.b : VF.d1);
@@ -260,7 +281,8 @@
       `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="cx-title"><h2 data-store="${name}">${name}</h2>` +
       `<span>${rg}${isMine ? " · <b>우리 권역</b>" : ""} · 채널 ${CHANNELS.length}개 중 <b>${live}개</b> 수집 완료` +
-      `${isCus() ? ` · <b>${VF.label(st.range.a, st.range.b)}</b>` : ""}</span></div>` +
+      `${per() ? ` · <b>${per().label()}</b>` : ""}</span></div>` +
+      (per() ? per().html() : "") +
       rangeBox() +
       `</div>` +
       `<div class="cx-body">` +
@@ -287,15 +309,21 @@
   function paint(host) {
     host.innerHTML = render(st.name);
     if (window.VNAV) VNAV.sync();
+    if (per()) per().bind(host);      // 기간 칩 클릭 위임(한 번만 붙는다)
     const go = host.querySelector("#sxGo");
     if (go) go.addEventListener("click", () => {
       const A = host.querySelector("#sxA"), B = host.querySelector("#sxB");
       const r = VF.clamp(A && A.value, B && B.value);
       st.range = { a: r[0], b: r[1] };
-      paint(host);
+      if (per()) per().setRange(r[0], r[1]);   // 칩 라벨도 같은 기간을 말하게
+      else paint(host);
     });
     const off = host.querySelector("#sxOff");
-    if (off) off.addEventListener("click", () => { st.range = null; paint(host); });
+    if (off) off.addEventListener("click", () => {
+      if (per()) { per().setRange(null, null); const r = per().range(); st.range = { a: r[0], b: r[1] }; }
+      else st.range = null;
+      paint(host);
+    });
     host.querySelectorAll("[data-nrgo]").forEach((el) => el.addEventListener("click", () => {
       const k = el.getAttribute("data-nrgo");
       if (k && typeof window.openNaverReview === "function") window.openNaverReview(k);
@@ -309,7 +337,11 @@
     const host = document.getElementById("channelPanel");
     const sec = document.getElementById("channel");
     if (!host || !sec) return;
-    st.name = name; st.range = null;
+    st.name = name;
+    /* 기간을 **그리기 전에** 정한다. render 안에서 per()를 처음 부르면
+       그때는 이미 집계가 끝난 뒤라 전체 기간으로 집계된다(실측: 8월인데 1,350건). */
+    st.range = null;
+    if (per()) { const r0 = per().range(); st.range = { a: r0[0], b: r0[1] }; }
     if (window.VNAV) VNAV.push({ id: "store:" + name, label: name, open: () => openStoreScope(name) });
     paint(host);
     sec.hidden = false;

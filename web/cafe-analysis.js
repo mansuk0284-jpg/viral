@@ -1199,6 +1199,9 @@
       const sumCol = `<div class="ca-nsumcol">` +
         `<div class="nsc-h"><h3>전국</h3><span>${perLab(st.period)}</span></div>` +
         `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` +
+        // 무슨 수치인지 밝힌다 — 숫자만 크게 띄우면 무엇을 센 것인지 알 수 없다
+        `<p class="nsc-what">이 기간 <b>다이렉트결혼준비</b> 카페에 올라온 혼수가전 구매후기 ` +
+        `<b>${fmtN(c.total)}건</b>을 삼성·LG로 갈라 센 값입니다. 아래는 읽힌 횟수와 매장 성적입니다.</p>` +
         `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b></span><span class="nv l">LG <b>${ls}%</b></span></div>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
         hitsBlock() +
