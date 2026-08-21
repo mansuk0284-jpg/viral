@@ -1,0 +1,71 @@
+/* ===== 분석 화면 공용 뼈대 (2026-08-21) =====
+   사용자 지시: "매장별 현황 분석 페이지와 채널별 현황 분석 페이지의 ui가 통일되도록".
+
+   두 화면이 따로 자라서 실측이 이렇게 갈렸다:
+     머리글 높이  채널 54px  vs  매장 106px
+     제목        30px       vs  34px
+     카드 패딩   25.9px     vs  22/20px
+     카드 간격   17.3px     vs  12px
+     카드 반경   22px       vs  20px
+     기간칩 높이 48px       vs  37px
+
+   같은 성격의 화면이 다른 옷을 입으면 옮겨 다닐 때마다 다시 적응해야 한다.
+   조밀한 쪽(매장별)을 기준으로 맞춘다 — 한 화면 원칙에 유리하고,
+   큰 글씨가 옆 항목을 밀어내는 문제도 함께 줄어든다.
+
+   이 파일은 화면별 CSS **뒤에** 링크해야 이긴다. */
+
+/* ── 값 한 곳에 ── */
+:root {
+  --an-radius: 20px;          /* 카드 모서리 */
+  --an-pad: 20px 18px;        /* 카드 안쪽 */
+  --an-gap: 12px;             /* 카드 사이 */
+  --an-title: 30px;           /* 화면 제목 */
+  --an-sub: 12.5px;           /* 제목 아래 한 줄 설명 */
+}
+
+/* ── 화면 제목 ── */
+.ca2 .cx-title h2,
+.ca2 .ca-head h2,
+/* 전국 칼럼 제목도 같은 크기여야 한다. 이것만 뷰포트 비례(clamp)라
+   1280px 에서 28.16px 이 되어 매장별(30px)과 갈렸다(실측). */
+.ca2 .ca-nsumcol .nsc-h h3 { font-size: var(--an-title) !important; font-weight: 900;
+  letter-spacing: -0.03em; line-height: 1.15; margin: 0; }
+.ca2 .cx-title > span,
+.ca2 .ca-head > span { font-size: var(--an-sub); font-weight: 600; color: var(--muted); }
+
+/* ── 카드 ── */
+.ca2 .ca-ncard,
+.ca2 .cx-sum,
+.ca2 .ca-npanel { border-radius: var(--an-radius); padding: var(--an-pad); }
+.ca2 .ca-ncard { gap: var(--an-gap); }
+
+/* ── 머리글 줄: 제목 · 기간칩 · 직접입력을 한 줄에 ──
+   매장별은 106px, 채널별은 54px 이었다. 같은 구성을 같은 높이로 둔다. */
+.ca2 > .cx-top,
+.ca2 > .ca-head {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  /* 60px — 매장별은 머리글에 제목이 있고 채널별은 본문에 있어 구성이 다르다.
+     구성까지 억지로 같게 만들면 각 화면이 어색해지므로 **높이만** 맞춘다.
+     그래야 화면을 옮겨 다닐 때 본문 시작선이 흔들리지 않는다. */
+  min-height: 60px; flex: 0 0 auto;
+}
+.ca2 > .cx-top > .cx-title,
+.ca2 > .ca-head > .ca-periodnav { flex: 0 1 auto; min-width: 0; }
+/* 기간·직접입력은 오른쪽으로 몰아 제목과 붙지 않게 */
+.ca2 > .cx-top > .vper,
+.ca2 > .ca-head > .vper { margin-left: auto; }
+.ca2 > .cx-top > .ca-range,
+.ca2 > .ca-head > .ca-range { flex: 0 0 auto; }
+
+/* ── 기간 칩 높이 통일 ──
+   채널별에서 48px 로 부푼 건 전체화면 확대 규칙이 칩까지 키운 탓이다.
+   기간 칩은 조작 도구지 읽을거리가 아니므로 키울 이유가 없다. */
+.ca2 .ca-nav .ca-yrb,
+body.view-cafe .ca2 .ca-nav .ca-yrb {
+  min-height: 34px; padding: 6px 13px; font-size: 13px;
+}
+.ca2 .ca-range .car-d,
+body.view-cafe .ca2 .ca-range .car-d { font-size: 12.5px; }
+.ca2 .ca-range .car-go,
+body.view-cafe .ca2 .ca-range .car-go { font-size: 12.5px; padding: 6px 12px; }
