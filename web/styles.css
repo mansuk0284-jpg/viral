@@ -1913,14 +1913,31 @@ body.portal-open .ap-cards { display: none; }
    부모가 grid+place-items:center 라 height:100%가 자동높이로 풀려 영역 밖으로 크게 넘친다
    (실측 245px 초과 → 아래가 잘림). 영상과 같이 절대배치로 중앙에 고정한다. */
 .ap-media-portal { padding: 0; }
-.ap-media-portal img {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: auto; height: 100%; max-width: 100%; max-height: 100%;
-  aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 50%;
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, rgba(0,0,0,.55) 62%, transparent 72%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 52%, rgba(0,0,0,.55) 62%, transparent 72%);
-}
 
+/* 채널 카드 이미지 — 칸을 가득 채우고, 가장자리는 카드에 번지게 한다.
+   전에는 미디어 높이(172px)에 묶인 172px 원이 368px 폭 한가운데 놓여
+   좌우로 196px 이 빈 채였다. 작아 보이고 자리가 너무 반듯했다.
+
+   시안 셋을 실제로 띄워 놓고 골랐다:
+     A 원을 키워 오른쪽으로 → 원 오른쪽이 카드 경계에서 딱 잘리고 왼쪽에 초승달 여백이 남았다
+     C 원을 훨씬 키워 일부만 → 확대감은 좋으나 SAMSUNG·LG 로고가 잘려 맥락이 사라졌다
+     B 칸을 가득 채우고 가장자리를 흐림 → 이미지가 가장 크고 맥락도 온전하다  ← 채택
+
+   비네팅 중심(54% 52%)은 그림 속 소용돌이에 맞췄다. 네 모서리가 부드럽게 사라져
+   직사각형 사진이 아니라 카드에서 피어난 빛처럼 읽힌다. */
+.ap-media-portal img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+  /* 세로 초점 56% — 원본에서 소용돌이 중심은 세로 58.4% 지점이라(밝기 무게중심 실측)
+     그대로 두면 화면 세로 77% 까지 내려가 카드 밑단에 붙는다. 56% 로 올려
+     로고·소용돌이·사람이 한 화면에 균형 있게 들어오게 했다. */
+  object-position: 50% 56%;
+  display: block; border-radius: 16px;
+  -webkit-mask-image: radial-gradient(140% 120% at 54% 52%,
+    #000 46%, rgba(0, 0, 0, .72) 68%, transparent 94%);
+  mask-image: radial-gradient(140% 120% at 54% 52%,
+    #000 46%, rgba(0, 0, 0, .72) 68%, transparent 94%);
+}
 
 /* ── 매장 카드 영상 ──
    틀(회색 판·안쪽 테두리·레터박스 띠)을 전부 걷어낸다.
@@ -2014,9 +2031,15 @@ body.portal-open .ap-cards { display: none; }
 /* 클릭존은 **높이 기준**으로 잡는다. 미디어 영역이 정사각형일 때는 width:66% 가 원과 맞았지만,
    카드 높이를 맞추며 미디어가 가로로 길어져(367×171) width:66% 는 242px — 원(171px)을 훌쩍 넘어
    원 바깥 빈 여백까지 눌리는 클릭존이 됐다. 원은 높이로 결정되므로 높이를 기준으로 삼는다. */
-.ap-media-portal .portal-hole { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  height: 66%; width: auto; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
-.ap-cue { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+/* 클릭존과 큐는 **원의 중심을 따라간다.** 원만 옮기고 이것을 두고 오면
+   눈에 보이는 그림과 눌리는 자리가 어긋난다(전에 원 밖 여백이 눌린 적이 있다).
+   크기는 원의 선명한 안쪽(마스크 46%)에 맞춰 미디어 높이의 108% 로 잡는다. */
+/* 클릭존과 큐는 **그림 속 소용돌이 자리**에 놓는다(가로 54% · 세로 61%).
+   그림만 바꾸고 이걸 두고 오면 눈에 보이는 것과 눌리는 자리가 어긋난다 —
+   전에 원 바깥 빈 여백이 눌리는 클릭존이 된 적이 있다. */
+.ap-media-portal .portal-hole { position: absolute; left: 54%; top: 61%; transform: translate(-50%, -50%);
+  height: 62%; width: auto; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
+.ap-cue { position: absolute; left: 54%; top: 61%; transform: translate(-50%, -50%);
   display: grid; place-items: center; pointer-events: none; z-index: 4; }
 .ap-cue .pc-ring { position: absolute; width: 74px; height: 74px; top: 50%; left: 50%;
   transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,.75); border-radius: 50%;
