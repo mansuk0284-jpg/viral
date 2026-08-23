@@ -37,7 +37,11 @@
     const t = fig.getAttribute("title");
     if (t) {
       const tail = extra || ("센싱 " + n.toLocaleString("ko-KR") + "건");
-      fig.setAttribute("title", t.replace(/(?:센싱\s*)?[\d,]+\s*개?\s*매장?\s*[\d,]*\s*건.*$/, tail));
+      /* 꼬리를 통째로 갈아 끼운다. '센싱 N건' 뿐 아니라 '· 재생 N회' 같은 형태도
+         있어서 마지막 '·' 뒤를 통으로 바꾸는 편이 확실하다(실측: 유튜브 툴팁에
+         옛 값 '센싱 1건'이 남았다). */
+      const cut = t.lastIndexOf("·");
+      fig.setAttribute("title", (cut > 0 ? t.slice(0, cut + 1) + " " : t + " · ") + tail);
     }
   }
 
@@ -57,6 +61,12 @@
     // 제이웨딩 — 혼수 채널이므로 이 줄에 든다
     const J = window.JWEDDING;
     if (J) setTile(document.querySelector('[data-channel="jwedding"]'), J.total);
+
+    /* 유튜브 — '넓은 채널에서 골라낸 편수'다. 유튜브 전체가 아니다.
+       그래서 툴팁에 재생수를 함께 적어 규모를 오해하지 않게 한다. */
+    const Y = window.YOUTUBE;
+    if (Y) setTile(document.querySelector('[data-channel="youtube"]'), Y.total,
+      Y.total + "편 · 재생 " + (Y.views || 0).toLocaleString("ko-KR") + "회");
 
     /* 히어로의 '누적 N건 센싱' — **이 줄에 있는 타일의 합**이다.
        네이버 리뷰를 뺀 뒤로는 혼수 채널만 세므로, 방문자 평가가 섞이지 않는다. */

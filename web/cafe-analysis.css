@@ -1821,3 +1821,43 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .rv-more { display: block; margin-top: 5px; font-style: normal; font-size: 11px;
   font-weight: 700; color: #1f5fd0; }
 .rv-more::before { content: "→ "; }
+
+/* ===== 유튜브 채널 — 광고를 갈라 본다 (2026-08-24) ===== */
+.yt-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
+.ys-k { padding: 8px 10px; border-radius: 10px; text-align: center;
+  background: rgba(31,95,208,0.06); border: 1px solid rgba(31,95,208,0.16); }
+.ys-k.ad { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.3); }
+.ys-k b { display: block; font-size: 19px; font-weight: 900; line-height: 1;
+  letter-spacing: -.03em; color: #1f5fd0; white-space: nowrap; }
+.ys-k.ad b { color: #b45309; }
+.ys-k span { display: block; margin-top: 4px; font-size: 11px; font-weight: 700;
+  color: var(--muted); white-space: nowrap; }
+.yt-note { margin: 8px 0 0; font-size: 11px; line-height: 1.55; font-weight: 600;
+  color: var(--muted); word-break: keep-all; }
+.yt-note b { color: var(--text); font-weight: 800; white-space: nowrap; }
+
+.yt-list { display: flex; flex-direction: column; gap: 3px; }
+/* 영상 제목은 40자를 넘기도 한다. 채널명 칸을 줄이고 제목에 자리를 준다.
+   그래도 넘치면 VFIT 가 글자를 줄인다(말줄임하지 않는다 — 어떤 영상인지 알아야 한다). */
+.yt-row { display: grid; grid-template-columns: 46px minmax(0,1fr) minmax(0,76px) auto;
+  align-items: center; gap: 8px; padding: 5px 9px; border-radius: 9px;
+  border: 1px solid rgba(23,42,66,.1); background: #fff; text-decoration: none; }
+.yt-row:hover { border-color: #1f5fd0; background: rgba(31,95,208,.05); }
+.yt-v { font-size: 12.5px; font-weight: 900; text-align: right; white-space: nowrap;
+  font-variant-numeric: tabular-nums; color: var(--text); }
+.yt-v u { text-decoration: none; font-size: 9px; font-weight: 700; opacity: .6; }
+.yt-t { font-size: 11.5px; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; min-width: 0; }
+.yt-c { font-size: 10px; font-weight: 700; color: var(--muted);
+  white-space: nowrap; overflow: hidden; min-width: 0; }
+.yt-row.s .yt-v { color: #1f5fd0; } .yt-row.l .yt-v { color: #d23b54; }
+.yt-ad { font-size: 9.5px; font-weight: 800; padding: 1px 6px; border-radius: 999px;
+  white-space: nowrap; }
+.yt-ad.off { background: rgba(245,158,11,.18); color: #b45309; }
+.yt-ad.spo { background: rgba(23,42,66,.1); color: var(--muted); }
+
+.yt-chans { display: flex; flex-wrap: wrap; gap: 5px; }
+.yt-chip { font-size: 11.5px; font-weight: 700; color: var(--text);
+  padding: 4px 9px; border-radius: 999px; background: rgba(23,42,66,.06);
+  white-space: nowrap; }
+.yt-chip u { text-decoration: none; font-size: 10px; color: var(--muted); margin-left: 4px; }
