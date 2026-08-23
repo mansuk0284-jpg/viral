@@ -264,6 +264,7 @@ def main():
     fact_day = {}       # 원본 날짜 문자열 보관용(최소·최대 산출)
     hit_tot = hit_s = hit_l = 0     # 조회수(히트) — 전체 / 삼성 / LG
     hit_have = 0                    # 조회수를 가진 레코드 수(보강 진행률 표시용)
+    hit_list = []                   # 글 단위 조회수 — 쏠림(상위 10% 비중·중앙값) 계산용
     fact_price = []     # 계약 금액은 언급이 드물어(수백 건) 별도 희소 목록으로 보관
     fact_name = []      # 매니저 실명(후기 스타) — 매장 귀속 삼성 후기만
 
@@ -287,6 +288,8 @@ def main():
         if "readCount" in r:
             hit_have += 1
         hit_tot += _h
+        if "readCount" in r:
+            hit_list.append(_h)
         if single_s:
             hit_s += _h
         elif single_l:
@@ -499,8 +502,13 @@ def main():
         "lg": l_tot,
         # 조회수(히트) — 후기가 몇 명에게 읽혔나. 건수만으로는 노출량을 알 수 없다.
         # have 는 조회수를 가진 레코드 수 — 보강이 진행 중이면 total 보다 작다.
+        # p10 = 가장 많이 읽힌 상위 10% 글이 전체 조회수에서 차지하는 비중,
+        # med = 중앙값. 평균만 보면 소수의 대박글에 끌려가 '보통 글'의 크기를 놓친다.
         "hits": {"total": hit_tot, "s": hit_s, "l": hit_l,
-                 "have": hit_have, "of": tot},
+                 "have": hit_have, "of": tot,
+                 "p10": (round(sum(sorted(hit_list, reverse=True)[:max(1, len(hit_list) // 10)])
+                               / max(1, hit_tot) * 100) if hit_list else None),
+                 "med": (sorted(hit_list)[len(hit_list) // 2] if hit_list else None)},
         "retailers": dict(retail),
         "mgr": mgr_all,          # 매니저 언급 유무 × 브랜드(전국)
         "mgrStore": mgr_out,     # 매장별 매니저 언급 + 실명 TOP

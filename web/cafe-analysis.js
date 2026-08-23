@@ -570,6 +570,15 @@
     if (!h) return "";
     const sh = hs + hl ? Math.round(hs / (hs + hl) * 100) : 0;
     const per = A0 && A0.total ? Math.round(h / A0.total) : 0;
+    /* 후기당 조회수 — 총량과 다른 이야기를 한다.
+       총 조회수는 건수가 많은 쪽이 이기지만, 한 건이 얼마나 읽히는지는 별개다.
+       실측(전 기간): 삼성 267회 / LG 291회 — 우리가 더 많이 쓰고, 저쪽이 한 건은 더 읽힌다. */
+    const cs = A0 ? A0.s : 0, cl = A0 ? A0.l : 0;
+    const eS = cs ? Math.round(hs / cs) : 0, eL = cl ? Math.round(hl / cl) : 0;
+    const effWin = eS >= eL;
+
+    const HD = CD && CD.hits ? CD.hits : null;
+
     return `<div class="nsc-hits">` +
       `<div class="nh-top"><b>${fmtN(h)}</b><i>회 읽힘</i>` +
       (per ? `<span class="nh-per">후기당 ${per}회</span>` : "") + `</div>` +
@@ -577,6 +586,18 @@
         `<i class="l" style="width:${100 - sh}%"></i></div>` +
         `<div class="nh-vs"><span class="s">삼성 ${fmtN(hs)}회 <b>${sh}%</b></span>` +
         `<span class="l">LG ${fmtN(hl)}회 <b>${100 - sh}%</b></span></div>` : "") +
+      // 후기 한 건이 몇 명에게 읽혔나 — 총량이 가리는 축
+      (eS && eL ? `<div class="nh-eff">` +
+        `<span class="ne-lb">후기 한 건이 읽힌 횟수</span>` +
+        `<span class="ne-v s${effWin ? " win" : ""}">삼성 <b>${fmtN(eS)}</b>회</span>` +
+        `<span class="ne-v l${effWin ? "" : " win"}">LG <b>${fmtN(eL)}</b>회</span>` +
+        `</div>` : "") +
+      // 쏠림 — 평균만 보면 소수의 대박글에 끌려가 '보통 글'의 크기를 놓친다
+      /* 쏠림은 **글 단위**로 세야 나오는 값이라 팩트 테이블(묶음 집계)로는 기간별로 못 자른다.
+         전 기간 기준임을 밝히지 않으면 기간을 바꿔도 안 변하는 게 버그처럼 보인다. */
+      (HD && HD.p10 ? `<p class="nh-note"><em>전 기간 기준</em> 가장 많이 읽힌 <b>상위 10%</b> 후기가 ` +
+        `조회수의 <b>${HD.p10}%</b>를 차지합니다 · 보통 후기는 <b>${fmtN(HD.med)}회</b>(중앙값) — ` +
+        `평균 <b>${fmtN(Math.round(HD.total / Math.max(1, HD.have)))}회</b>는 소수의 대박글이 끌어올린 값입니다.</p>` : "") +
       `</div>`;
   }
 

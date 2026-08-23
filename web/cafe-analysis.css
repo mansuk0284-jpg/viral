@@ -1644,3 +1644,22 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .nsc-win.thin { border-color: rgba(245,158,11,0.34); background: rgba(245,158,11,0.05); }
 .nsc-win.thin > b { color: #b45309; }
 .nw-p.warn { background: rgba(245,158,11,.16); color: #b45309; }
+
+/* 후기 한 건이 읽힌 횟수 — 총량이 가리는 축 */
+.nh-eff { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 8px;
+  padding-top: 7px; border-top: 1px dashed rgba(23,42,66,0.14); }
+.ne-lb { flex: 1 1 100%; font-size: 11px; font-weight: 700; color: var(--muted); }
+.ne-v { font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.ne-v b { font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.ne-v.s b { color: #1f5fd0; } .ne-v.l b { color: #d23b54; }
+.ne-v.win { position: relative; }
+.ne-v.win::after { content: "▲"; font-size: 8px; margin-left: 3px; vertical-align: 2px; }
+.ne-v.s.win::after { color: #1f5fd0; } .ne-v.l.win::after { color: #d23b54; }
+
+.nh-note { margin: 8px 0 0; font-size: 11px; line-height: 1.55; font-weight: 600;
+  color: var(--muted); word-break: keep-all; }
+.nh-note b { color: var(--text); font-weight: 800; white-space: nowrap; }
+
+.nh-note em { font-style: normal; font-weight: 800; color: #7b8798;
+  background: rgba(23,42,66,.06); padding: 1px 6px; border-radius: 999px;
+  margin-right: 4px; white-space: nowrap; }
