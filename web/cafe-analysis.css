@@ -1794,11 +1794,17 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
   align-content: start;
 }
 .rv-list.two .rv-row { padding: 3px 7px; }
-/* 2열이 되면 칸이 좁아지니 격자를 다시 잡는다 */
+/* 2열이 되면 폭이 반으로 준다. 여덟 칸을 그대로 두면 고정폭 합(232px)에 밀려
+   **이름 칸이 0px 로 사라진다**(실측). 2열에서는 꼭 필요한 넷만 남긴다:
+   이름 · 막대 · 삼성비중 · 건수. 순위·건수분해·갭은 한 열일 때만 보여준다. */
 .rv-list.two .rv-row {
-  grid-template-columns: 16px minmax(0,1.15fr) 52px minmax(0,1fr) 40px 46px 38px 40px !important;
-  gap: 5px;
+  grid-template-columns: minmax(56px, 1.6fr) minmax(28px, 1fr) 40px 42px !important;
+  gap: 6px;
 }
+.rv-list.two .rv-rank,
+.rv-list.two .rv-cnt,
+.rv-list.two .rv-hit,
+.rv-list.two .rv-gap { display: none; }
 
 /* ===== 도시 화면 공간 배분 (2026-08-23) =====
    실측: 가운데 열 737px 중 진단 카드가 529px 을 먹고 매장 목록엔 123px 만 남았다.

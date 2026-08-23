@@ -340,7 +340,9 @@
   function paint(host) {
     host.innerHTML = render(st.name);
     if (window.VNAV) VNAV.sync();
-    if (per()) per().bind(host);      // 기간 칩 클릭 위임(한 번만 붙는다)
+    // 기간 칩 클릭 위임 — 화면을 다시 그릴 때마다 새 칩 묶음에 붙는다
+    // (공유 컨테이너에 붙이면 다른 화면의 기간 클릭까지 가로챈다)
+    if (per()) per().bind(host);
     const go = host.querySelector("#sxGo");
     if (go) go.addEventListener("click", () => {
       const A = host.querySelector("#sxA"), B = host.querySelector("#sxB");

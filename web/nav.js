@@ -149,9 +149,17 @@
     V.sync();
   });
 
-  /* 첫 진입 시 기점을 하나 놓는다 — 이게 없으면 첫 뒤로가기가 사이트를 떠난다 */
-  if (window.history && history.replaceState && !history.state) {
-    try { history.replaceState({ vid: null }, ""); } catch (err) { /* 무시 */ }
+  /* 첫 진입 시 기점을 놓는다 — 이게 없으면 첫 뒤로가기가 사이트를 떠난다.
+
+     **새로고침도 여기로 온다.** 그때 history.state 에 이전 화면 id 가 남아 있는데
+     화면은 메인부터 그려지므로 둘이 어긋난다(실측: 해시 #cafe-analysis · 화면 메인).
+     그 상태로 뒤로/앞으로를 누르면 엉뚱한 곳으로 간다.
+     함수(open)는 직렬화할 수 없어 새로고침 뒤 화면을 되살릴 수 없으므로,
+     **기점으로 되돌리고 해시도 지운다.** 새로고침하면 메인부터 시작한다. */
+  if (window.history && history.replaceState) {
+    try {
+      history.replaceState({ vid: null }, "", location.pathname + location.search);
+    } catch (err) { /* 파일 프로토콜 등에서 실패해도 화면은 계속 돈다 */ }
   }
 
   window.VNAV = V;

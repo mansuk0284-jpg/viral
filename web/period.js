@@ -83,11 +83,18 @@
         `</div>`;
     }
 
-    /* 클릭 위임 — 화면이 다시 그려져도 리스너를 새로 달 필요가 없다 */
+    /* 클릭 위임 — **자기 칩 묶음에만** 단다.
+
+       처음엔 host(#channelPanel)에 달았는데, 그 컨테이너는 모든 화면이 공유한다.
+       제이웨딩이 리스너를 달아 두면 다이렉트웨딩 화면에서 기간을 눌러도
+       제이웨딩의 onChange 가 발동해 **화면이 제이웨딩으로 바뀌어 버렸다**(실측).
+       칩 묶음(.vper)은 화면을 다시 그릴 때마다 새로 생기므로 서로 섞이지 않는다. */
     function bind(host) {
-      if (!host || host.dataset.vperBound) return;
-      host.dataset.vperBound = "1";
-      host.addEventListener("click", (e) => {
+      if (!host) return;
+      const box = host.querySelector(".vper");
+      if (!box || box.dataset.vperBound) return;
+      box.dataset.vperBound = "1";
+      box.addEventListener("click", (e) => {
         const ny = e.target.closest("button[data-navy]");
         if (ny) {
           const y2 = ny.getAttribute("data-navy");

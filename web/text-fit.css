@@ -23,8 +23,11 @@
    → 말줄임을 걷어내고, web/text-fit.js 가 칸에 맞을 때까지 글자만 줄인다.
      폭은 그대로 둔다 — 폭을 늘리면 옆 칸이 밀려 레이아웃이 무너진다. */
 .rv-pick b, .rv-nm, .rv-store, .sv-title, .cx-name, .nr-store,
-[data-store], .rv-row > b, .st-name {
-  white-space: nowrap; overflow: hidden; min-width: 0;
+[data-store], .rv-row > b, .st-name,
+/* .rv-name(도시 화면 매장 목록)도 같은 규칙 — 여기만 ellipsis 가 남아
+   "신세계 센텀시티"가 잘리고 있었다(실측 2026-08-24) */
+.rv-name {
+  white-space: nowrap; overflow: hidden; text-overflow: clip; min-width: 0;
 }
 
 /* 3) 버튼 글자는 세로로 서지 않는다 --------------------------------------- */
