@@ -29,3 +29,22 @@ python scripts/channel_analyze.py --source-id ohou --login-channel ohou
 ## 산출물
 `artifacts/YYYYMMDD-01-raw-ohou.md`. 소스ID `ohou` 고정. 레코드 양식은 `collect-ohou` 스킬 참조.
 review-collector가 6채널 산출물을 `01-raw-reviews.md`로 병합.
+
+## 배운 것 (2026-08-24 실측) — 수집 불가
+
+로그인 세션(`.browser-profile`)이 살아 있는 상태에서도 **모든 경로가 `Access Denied`** 다.
+
+| 경로 | 결과 |
+|---|---|
+| `ohou.se/search?query=혼수가전` | Access Denied |
+| `ohou.se/contents?query=...` | Access Denied |
+| `ohou.se/store/search?query=...` | Access Denied |
+| `ohou.se/advices?query=...` | Access Denied |
+| `m.ohou.se/search?query=...` | Access Denied |
+
+브라우저에서 사람이 열면 보이는데 자동화로 열면 막힌다 — **봇 차단**이다.
+차단을 우회하려 들지 않는다(ToS·프로젝트 규칙).
+
+그러므로 **오늘의집 타일 건수는 0이며, 이 숫자를 채우지 않는다.**
+다른 채널 수치를 빌려 오거나 추정치를 넣으면 회사 전체가 보는 화면에 거짓이 올라간다.
+공식 API가 열리거나 다른 합법적 경로가 생기면 그때 다시 연다.

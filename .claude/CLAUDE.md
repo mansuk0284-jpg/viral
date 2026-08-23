@@ -32,8 +32,8 @@
 | blog-collector | collect-blog | 네이버 블로그 / naver-blog | 네이버 검색 API → `naver_api_collect.py`(제목+요약+`--read-body` 본문) |
 | momcafe-collector | collect-momcafe | 부울경 맘카페 / busan-mom-cafe | 네이버 카페 검색 API → `naver_api_collect.py`(권역 필터+`--read-body`) |
 | youtube-collector | collect-youtube | 유튜브 / youtube | YouTube Data API v3 → `youtube_collect.py`(영상+댓글) |
-| ohou-collector | collect-ohou | 오늘의집 / ohou | 세션캡처→`channel_analyze.py`(공개 API 없음, SPA 한계) |
-| insta-collector | collect-insta | 인스타그램 / instagram | 세션캡처→`channel_analyze.py`(공식 API 없음, 로그인월) |
+| ohou-collector | collect-ohou | 오늘의집 / ohou | **수집 불가 — 로그인해도 전 경로 `Access Denied`**(2026-08-24 실측: 콘텐츠·스토어검색·조언·모바일 네 경로 모두). 자동화 차단이다 — 타일 건수를 지어내지 않는다 |
+| insta-collector | collect-insta | 인스타그램 / instagram | `insta_login.py`(사용자 직접 로그인) → `collect_instagram.py` — 혼수 해시태그 4종. 태그 URL 은 검색 페이지로 리다이렉트되므로 `/explore/search/keyword/?q=%23...` 로 바로 간다. **절반이 판매자 홍보 글**이라 `biz` 로 갈라 담는다 |
 
 각 채널 에이전트는 `01-raw-{소스ID}.md`를 산출하고, `review-collector`가 이를 `01-raw-reviews.md`로 병합한다. 채널↔에이전트 매핑 상세는 `data/sources.md`.
 

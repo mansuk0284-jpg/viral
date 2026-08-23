@@ -68,6 +68,14 @@
     if (Y) setTile(document.querySelector('[data-channel="youtube"]'), Y.total,
       Y.total + "편 · 재생 " + (Y.views || 0).toLocaleString("ko-KR") + "회");
 
+    /* 인스타 — 유튜브와 같이 '넓은 채널에서 골라낸 건수'다.
+       다만 절반 가까이가 판매자 홍보 글이라, 툴팁에 그 사실을 적는다.
+       건수만 보면 '고객이 이만큼 말했다'로 읽히는데 사실이 아니다. */
+    const G = window.INSTAGRAM;
+    if (G) setTile(document.querySelector('[data-channel="instagram"]'), G.total,
+      G.total + "건 · 개인 " + (G.personal ? G.personal.n : 0) + " / 판매자 홍보 "
+      + (G.biz ? G.biz.n : 0));
+
     /* 히어로의 '누적 N건 센싱' — **이 줄에 있는 타일의 합**이다.
        네이버 리뷰를 뺀 뒤로는 혼수 채널만 세므로, 방문자 평가가 섞이지 않는다. */
     const tiles = document.querySelectorAll(".source-mosaic .src[data-count]");

@@ -1861,3 +1861,26 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
   padding: 4px 9px; border-radius: 999px; background: rgba(23,42,66,.06);
   white-space: nowrap; }
 .yt-chip u { text-decoration: none; font-size: 10px; color: var(--muted); margin-left: 4px; }
+
+/* ── 인스타그램 화면 ────────────────────────────────────────────────
+   유튜브 화면의 뼈대를 쓰되, 조회수 칸 자리에 **누가 쓴 글인지**를 놓는다.
+   인스타는 조회수를 주지 않으므로 그 칸을 비워두면 '0회'처럼 읽히고,
+   억지로 채우면 없는 숫자를 지어내게 된다. */
+.ig-row { display: grid; grid-template-columns: 44px minmax(0,1fr) auto;
+  gap: 8px; align-items: center; padding: 6px 9px; border-radius: 9px;
+  border: 1px solid var(--line); background: var(--card); text-decoration: none;
+  margin-bottom: 5px; }
+.ig-row:hover { border-color: #1f5fd0; background: rgba(31,95,208,.05); }
+.ig-k { font-size: 10px; font-weight: 800; text-align: center; white-space: nowrap;
+  padding: 2px 0; border-radius: 5px; color: var(--muted); background: rgba(0,0,0,.04); }
+.ig-row.s .ig-k { color: #1f5fd0; background: rgba(31,95,208,.09); }
+.ig-row.l .ig-k { color: #d23b54; background: rgba(210,59,84,.09); }
+
+.ig-sts { list-style: none; margin: 0; padding: 0; }
+.ig-st { display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 4px 2px; border-bottom: 1px dashed var(--line); }
+.ig-st:last-child { border-bottom: 0; }
+.ig-sb { font-size: 12.5px; font-weight: 900; color: #b45309; white-space: nowrap; }
+.ig-sb u { text-decoration: none; font-weight: 700; color: var(--muted); font-size: 11px; }
+/* 표본이 적어 비율 대신 건수만 적는 줄 — 막대가 없으니 위 여백을 스스로 갖는다 */
+.cx-vs.thin { margin-top: 10px; }
