@@ -769,7 +769,7 @@
     if (list.length) diag.push(`${unit} ${list.length}곳 중 <b>${win.length}곳 우위</b>, <b class="down">${lose.length}곳 열세</b>.`);
     if (headShare >= 40 && list[0]) diag.push(`표본이 <b>${list[0].n}</b>에 ${headShare}% 쏠려 있어 이 ${unit}의 성적이 지역 전체를 좌우합니다.`);
     if (opps.length) diag.push(`열세 ${unit}에서 LG가 누적 <b class="down">${fmtN(oppGap)}건</b> 앞서며, 이 격차가 지역 순위의 실질 손실분입니다.`);
-    else if (list.length) diag.push(`열세 ${josa(unit, "이", "가")} 없어 <b>방어 국면</b> — 현 우위를 유지하며 후기 확보를 지속하는 것이 과제입니다.`);
+    else if (list.length) diag.push(`열세 ${josa(unit, "이", "가")} 없어 <b>방어 국면</b> — 현 우위를 유지하며 <b>고객 후기 요청</b>을 꾸준히 이어가는 것이 과제입니다.`);
 
     const oppCards = opps.slice(0, 3).map((x) => {
       const gap = x.l - x.s;
@@ -789,7 +789,9 @@
       ? `<b>${opps[0].n}</b>부터 공략하세요 — LG가 <b class="warn">${fmtN(opps[0].l - opps[0].s)}건</b> 앞서 지역 격차의 ` +
         `<b>${Math.round((opps[0].l - opps[0].s) / (oppGap || 1) * 100)}%</b>를 차지합니다. ` +
         `이 ${unit} 한 곳만 동률로 만들어도 지역 삼성비중이 <b>${share}% → 약 ${pct(c.s + (opps[0].l - opps[0].s), c.l)}%</b>로 올라갑니다.` + itemLine
-      : `열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두"}</b>(삼성 ${top ? pct(top.s, top.l) : "-"}%)의 상담 방식을 표본이 적은 ${unit}으로 확산해 <b>후기 절대량</b>을 키우세요.` + itemLine;
+      /* 후기는 **고객이 쓴다.** 우리가 늘리는 게 아니라, 구매 고객이 쓰도록
+         상담 마무리에 요청·독려하는 것이 매니저가 할 수 있는 일이다(사용자 지적 2026-08-23). */
+      : `열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두"}</b>(삼성 ${top ? pct(top.s, top.l) : "-"}%)의 상담 방식을 표본이 적은 ${unit}으로 확산하고, <b>구매 고객에게 후기 작성을 요청</b>해 표본을 넓히세요.` + itemLine;
 
     return `<div class="ca-rv">` +
       `<div class="rv-left">` +
@@ -1007,7 +1009,7 @@
       (vsNat !== null ? `<p class="mgr-nat">전국 실명 후기 삼성 비중 <b>${natMgr}%</b> 대비 ` +
         `<b class="${vsNat >= 0 ? "up" : "warn"}">${vsNat >= 0 ? "+" : ""}${vsNat}p</b></p>` : "") +
       `<div class="mgr-names"><span class="mgr-lb">후기 스타 <em>고객이 이름까지 남긴 담당자</em></span><div class="mgr-chips">${nameChips}</div></div>` +
-      `<p class="mgr-tip"><em>좋은 후기 만들기</em>${tip}</p>` +
+      `<p class="mgr-tip"><em>좋은 후기가 나오려면</em>${tip}</p>` +
       `</div>`;
   }
 
@@ -1285,7 +1287,7 @@
               (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>에서 합산 ${fmtN(loseGap)}건을 내주고 있어, 이 품목의 대안 제시가 회복의 출발점입니다. ` : "") +
               (cpSh > share0 ? `다만 비교 상담에서는 ${cpSh}%로 이기고 있어 <b>매장 방문·비교 견적 유도</b>가 유효합니다.` : `비교 상담에서도 밀리므로 <b>상담 스크립트·혜택 안내</b>부터 점검이 필요합니다.`)
             : `${itWin.length ? `<b>${itWin.map((x) => x.n).join("·")}</b>의 우위를 유지하고, ` : ""}` +
-              (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>는 패키지 묶음으로 방어하세요.` : `약점 품목이 없어 후기 절대량을 늘리는 것이 다음 과제입니다.`)) +
+              (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>는 패키지 묶음으로 방어하세요.` : `약점 품목이 없습니다 — <b>구매 고객에게 후기 작성을 요청</b>해 표본을 넓히는 것이 다음 과제입니다.`)) +
           `</p></div>`,
           [lead0 === "lose" ? "열세 " + share0 + "%" : "우위 " + share0 + "%",
            dSh !== null ? "직전 대비 " + (dSh >= 0 ? "+" : "") + dSh + "p" : ""].filter(Boolean)) +
