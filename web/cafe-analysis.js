@@ -965,7 +965,7 @@
     if (!d) {
       return `<div class="ca-ncard mgr-card"><h4 class="ca-ch">매니저 실명 후기 <i class="ca-tag">경쟁력 지표</i></h4>` +
         `<p class="mgr-empty">이 매장은 매니저 언급 후기 표본이 3건 미만입니다.` +
-        (natMgr !== null ? ` 전국 기준 <b>매니저가 언급된 후기</b>에서 삼성 비중은 <b class="warn">${natMgr}%</b>로, 미언급 후기(<b>${natNon}%</b>)보다 <b class="warn">${natNon - natMgr}p 낮습니다</b> — <b>실명 후기 확보가 최대 약점</b>입니다.` : "") +
+        (natMgr !== null ? ` 전국 기준 매니저가 언급된 <b>후기</b>에서 삼성 비중은 <b class="warn">${natMgr}%</b>로, 미언급 후기(<b>${natNon}%</b>)보다 <b class="warn">${natNon - natMgr}p 낮습니다</b> — 실명이 후기에 남지 않는 것이 <b>최대 약점</b>입니다.` : "") +
         `</p></div>`;
     }
     const mTot = d.s + d.l, mShare = pct(d.s, d.l);
@@ -1159,6 +1159,80 @@
   }
 
   // 애플식 분석 카드 — 앞면(라벨·제목·미니수치·＋) + 상세(영역 전체 덮음)
+  /* ── 매니저 실명 후기, 매장별로 ────────────────────────────────────
+     사용자 요청(2026-08-23): "매니저 실명 후기 지표 매장별로 자세히 보여줘".
+
+     전국 한 줄로는 못 보는 게 있다. 실측:
+       매니저 언급 후기   삼성 38.3%   (미언급 55.8%)  → 전국은 17.5p 열세
+       그런데 매장별로는  현대 압구정 85.7% … AK 광명 0%  → **편차가 극심하다**
+
+     평균 하나로 뭉개면 "우리가 약하다"로 끝나지만, 매장별로 펴면
+     **잘하는 매장이 무엇을 다르게 하는지** 물을 수 있다. 그게 이 카드의 쓸모다.
+     후기는 고객이 쓴다 — 매장이 할 수 있는 건 이름이 남도록 요청하는 것이다. */
+  function mgrCard() {
+    const MS = (CD && CD.mgrStore) || {};
+    const M = (CD && CD.mgr) || null;
+    const natOn = M ? pct(M.s_on, M.l_on) : null;
+    const natOff = M ? pct(M.s_off, M.l_off) : null;
+
+    /* 매장이 어느 지역인지 알아야 크럼이 '전사 › 서울 › 현대 압구정' 으로 뜬다.
+       지역을 안 넘기면 '전사 › null › …' 이 된다(실측). */
+    const RG_OF = {};
+    Object.keys((CD && CD.stores) || {}).forEach((rg) => {
+      (CD.stores[rg] || []).forEach((x) => { RG_OF[x.n || x.name] = rg; });
+    });
+
+    const rows = Object.keys(MS).map((k) => {
+      const v = MS[k], tot = v.s + v.l;
+      return { n: k, s: v.s, l: v.l, tot: tot, sh: tot ? Math.round(v.s / tot * 100) : 0,
+               rg: RG_OF[k] || null,
+               names: (v.names || []).length, top: (v.names || [])[0] || null };
+    }).filter((x) => x.tot >= 20).sort((a, b) => b.sh - a.sh);
+    if (!rows.length) return "";
+
+    const win = rows.filter((x) => x.sh >= 50);
+    const best = rows.slice(0, 4), worst = rows.slice(-4).reverse();
+
+    const line = (x) => {
+      const cls = x.sh >= 60 ? "s" : x.sh >= 40 ? "even" : "l";
+      return `<button type="button" class="mr-row ${cls}" data-store="${x.n}"` +
+        (x.rg ? ` data-region2="${x.rg}"` : "") +
+        ` title="${x.n} — 삼성 ${fmtN(x.s)} vs LG ${fmtN(x.l)}건` +
+        (x.top ? ` · 최다 ${x.top.n} ${x.top.c}건` : "") + `">` +
+        `<span class="mr-nm">${x.n}</span>` +
+        `<span class="mr-bar"><i style="width:${x.sh}%"></i></span>` +
+        `<span class="mr-sh">${x.sh}<u>%</u></span>` +
+        `<span class="mr-n">${fmtN(x.tot)}<u>건</u></span>` +
+        (x.top ? `<span class="mr-top">${x.top.n}</span>` : `<span class="mr-top off">실명 없음</span>`) +
+        `</button>`;
+    };
+
+    const detail =
+      `<p class="fc-plain">고객이 후기에 <b>담당자 이름까지 남긴</b> 경우만 셌습니다. ` +
+      `표본 20건 이상 <b>${rows.length}곳</b> 기준.</p>` +
+      (natOn !== null ?
+        `<div class="mr-nat"><span>전국 — 실명 언급 후기 삼성 <b class="${natOn >= natOff ? "up" : "warn"}">${natOn}%</b></span>` +
+        `<span>실명 없는 후기 <b>${natOff}%</b></span>` +
+        `<span class="mr-gap ${natOn >= natOff ? "up" : "warn"}">${natOn - natOff >= 0 ? "+" : ""}${natOn - natOff}p</span></div>` : "") +
+      `<div class="fc-sec"><h5>실명 후기가 강한 매장 <em>상위 4</em></h5>` +
+      `<div class="mr-list">${best.map(line).join("")}</div></div>` +
+      `<div class="fc-sec"><h5>실명이 잘 안 남는 매장 <em>하위 4</em></h5>` +
+      `<div class="mr-list">${worst.map(line).join("")}</div></div>` +
+      `<div class="fc-sec tip"><h5>여기서 읽을 것</h5><p>` +
+      `전국 평균은 <b class="warn">${natOn}%</b>지만 매장별로는 <b>${rows[0].sh}%</b>(${rows[0].n})부터 ` +
+      `<b class="warn">${rows[rows.length - 1].sh}%</b>(${rows[rows.length - 1].n})까지 갈립니다. ` +
+      `평균으로는 "약하다"에서 끝나지만, 매장별로 펴면 <b>잘 되는 매장이 무엇을 다르게 하는지</b> 물을 수 있습니다. ` +
+      `후기는 고객이 씁니다 — 매장이 할 수 있는 건 <b>계약 시 담당자 성함을 안내</b>하고 ` +
+      `후기에 <b>“○○매니저”</b>를 넣어달라고 <b>요청</b>하는 것입니다.` +
+      `</p></div>`;
+
+    return fcard("mgr", "사람이 남는가", "매니저 실명 후기",
+      `${win.length}<u>/${rows.length}</u>`, "삼성 우위 매장",
+      detail,
+      [natOn !== null ? "전국 " + natOn + "%" : "", "최고 " + rows[0].sh + "%",
+       "최저 " + rows[rows.length - 1].sh + "%"].filter(Boolean));
+  }
+
   function fcard(key, label, title, mini, miniLab, detail, keys) {
     const chips = (keys || []).length
       ? `<div class="fc-keys">` + keys.map((k) => `<span class="fc-key">${k}</span>`).join("") + `</div>`
@@ -1292,6 +1366,7 @@
           [lead0 === "lose" ? "열세 " + share0 + "%" : "우위 " + share0 + "%",
            dSh !== null ? "직전 대비 " + (dSh >= 0 ? "+" : "") + dSh + "p" : ""].filter(Boolean)) +
         itemCard() +
+        mgrCard() +
         winCard() +
         (function () {
           const PD = perData();
@@ -1446,7 +1521,12 @@
         st.region = rg.getAttribute("data-region"); st.level = "region"; rerender(host); return;
       }
       const stb = e.target.closest("[data-store]");
-      if (stb) { st.store = stb.getAttribute("data-store"); st.level = "store"; rerender(host); return; }
+      if (stb) {
+        // 지역을 함께 알려 주는 버튼(매니저 카드 등)은 크럼이 깨지지 않게 지역도 세운다
+        const rg2 = stb.getAttribute("data-region2");
+        if (rg2) st.region = rg2;
+        st.store = stb.getAttribute("data-store"); st.level = "store"; rerender(host); return;
+      }
     });
   }
 

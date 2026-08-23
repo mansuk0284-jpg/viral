@@ -1663,3 +1663,48 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .nh-note em { font-style: normal; font-weight: 800; color: #7b8798;
   background: rgba(23,42,66,.06); padding: 1px 6px; border-radius: 999px;
   margin-right: 4px; white-space: nowrap; }
+
+/* ===== 매니저 실명 후기 — 매장별 (2026-08-23) =====
+   전국 평균 하나로는 못 보는 편차(85.7% ~ 0%)를 매장별로 편다. */
+.mr-nat { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 0 0 10px; padding: 8px 11px; border-radius: 11px;
+  background: rgba(23,42,66,0.04); }
+.mr-nat span { font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.mr-nat b { font-size: 14px; font-weight: 900; }
+.mr-nat b.up { color: #1f5fd0; } .mr-nat b.warn { color: #d23b54; }
+.mr-gap { margin-left: auto; font-size: 12px; font-weight: 900;
+  padding: 2px 9px; border-radius: 999px; }
+.mr-gap.up { background: rgba(31,95,208,.12); color: #1f5fd0; }
+.mr-gap.warn { background: rgba(210,59,84,.12); color: #c02744; }
+
+.mr-list { display: flex; flex-direction: column; gap: 3px; }
+.mr-row { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr) 42px 46px minmax(0,1fr);
+  align-items: center; gap: 8px; width: 100%; text-align: left;
+  padding: 5px 9px; border-radius: 9px; cursor: pointer;
+  border: 1px solid rgba(23,42,66,.1); background: #fff; }
+.mr-row:hover { border-color: #1f5fd0; background: rgba(31,95,208,.05); }
+.mr-nm { font-size: 12.5px; font-weight: 800; color: var(--text);
+  white-space: nowrap; overflow: hidden; min-width: 0; }
+.mr-bar { position: relative; height: 6px; border-radius: 3px; overflow: hidden;
+  background: linear-gradient(90deg, #e87186, #d23b54); }
+.mr-bar i { position: absolute; inset: 0 auto 0 0; display: block;
+  background: linear-gradient(90deg, #1f5fd0, #4f86e6); }
+.mr-sh { font-size: 13px; font-weight: 900; text-align: right;
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mr-sh u { text-decoration: none; font-size: 9.5px; font-weight: 800; opacity: .7; }
+.mr-row.s .mr-sh { color: #1f5fd0; }
+.mr-row.even .mr-sh { color: #b45309; }
+.mr-row.l .mr-sh { color: #c02744; }
+.mr-n { font-size: 11.5px; font-weight: 700; color: var(--muted); text-align: right;
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mr-n u { text-decoration: none; font-size: 9px; opacity: .7; }
+.mr-top { font-size: 11.5px; font-weight: 700; color: #1f5fd0;
+  white-space: nowrap; overflow: hidden; min-width: 0; }
+.mr-top.off { color: #b0bacb; font-weight: 600; }
+.mr-row.l .mr-top { color: #c02744; }
+
+/* 매니저 카드 상세 — 행이 여덟이라 조금 더 조인다 */
+[data-card="mgr"] .mr-row { padding: 3px 8px; }
+[data-card="mgr"] .mr-list { gap: 2px; }
+[data-card="mgr"] .fc-sec { margin-top: 8px; }
+[data-card="mgr"] .fc-plain { margin-bottom: 6px; }
