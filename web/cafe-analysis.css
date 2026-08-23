@@ -1719,3 +1719,99 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
   color: var(--muted); word-break: keep-all; }
 .cx-jwed .cx-head b::before { content: "J "; font-family: Georgia, serif; font-style: italic;
   color: #7b5cff; }
+
+/* ===== 도시 단위 카드 (2026-08-23) =====
+   전국은 큰 시각, 매장은 세밀하게. 도시는 그 사이 —
+   "이 도시는 어디쯤이고, 안에서 얼마나 갈리고, 어디에 쏠려 있나". */
+.city-card { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; }
+
+.cy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.cy-k { text-align: center; padding: 8px 5px; border-radius: 10px;
+  background: rgba(23,42,66,0.04); border: 1px solid rgba(23,42,66,0.07); }
+.cy-k b { display: block; font-size: 20px; font-weight: 900; line-height: 1;
+  letter-spacing: -.03em; color: var(--text); white-space: nowrap; }
+.cy-k b u { text-decoration: none; font-size: .52em; font-weight: 800; margin-left: 1px; opacity: .7; }
+.cy-k span { display: block; margin-top: 4px; font-size: 10.5px; font-weight: 700;
+  color: var(--muted); word-break: keep-all; line-height: 1.35; }
+.cy-k.up b { color: #1f5fd0; } .cy-k.warn b { color: #d23b54; }
+
+.cy-sec { border-top: 1px dashed rgba(23,42,66,0.14); padding-top: 8px; }
+.cy-sec > h5 { margin: 0 0 6px; font-size: 11.5px; font-weight: 900; color: var(--muted);
+  letter-spacing: -.01em; }
+
+/* 도시 안 격차 — 최고와 최저를 선으로 잇는다 */
+.cy-spread { display: flex; align-items: center; gap: 7px; }
+.cs-hi, .cs-lo { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.cs-hi b { color: #1f5fd0; font-weight: 900; font-size: 13px; }
+.cs-lo b { color: #d23b54; font-weight: 900; font-size: 13px; }
+.cs-line { flex: 1; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, #1f5fd0, #cbd5e1 50%, #d23b54); min-width: 20px; }
+.cs-gap { font-size: 13px; font-weight: 900; padding: 2px 8px; border-radius: 999px;
+  white-space: nowrap; background: rgba(23,42,66,.07); color: var(--text); }
+.cs-gap u { text-decoration: none; font-size: .72em; opacity: .7; }
+.cy-spread.warn .cs-gap { background: rgba(210,59,84,.13); color: #c02744; }
+.cy-spread.even .cs-gap { background: rgba(245,158,11,.16); color: #b45309; }
+.cy-spread.up .cs-gap { background: rgba(31,95,208,.12); color: #1f5fd0; }
+
+/* 쏠림 */
+.cy-head { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr) 42px;
+  align-items: center; gap: 8px; }
+.ch-nm { font-size: 12px; font-weight: 800; color: var(--text);
+  white-space: nowrap; overflow: hidden; min-width: 0; }
+.ch-bar { height: 7px; border-radius: 4px; background: rgba(23,42,66,.08); overflow: hidden; }
+.ch-bar i { display: block; height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #1f5fd0, #4f86e6); }
+.ch-v { font-size: 13px; font-weight: 900; text-align: right; color: #1f5fd0;
+  white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ch-v u { text-decoration: none; font-size: .7em; opacity: .7; }
+
+/* 전국과 다른 점 */
+.cy-diff { display: grid; grid-template-columns: minmax(0,1fr) 46px minmax(0,1.4fr);
+  align-items: baseline; gap: 7px; padding: 3px 0; }
+.cd-n { font-size: 12px; font-weight: 800; color: var(--text); white-space: nowrap; }
+.cd-v { font-size: 13px; font-weight: 900; text-align: right; white-space: nowrap;
+  font-variant-numeric: tabular-nums; }
+.cy-diff.up .cd-v { color: #1f5fd0; } .cy-diff.warn .cd-v { color: #d23b54; }
+.cd-v u { text-decoration: none; font-size: .7em; opacity: .7; }
+.cd-d { font-size: 10.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.cd-d b { font-weight: 900; }
+.cy-diff.up .cd-d b { color: #1f5fd0; } .cy-diff.warn .cd-d b { color: #d23b54; }
+
+.cy-note { margin: 6px 0 0; font-size: 11px; line-height: 1.5; font-weight: 600;
+  color: var(--muted); word-break: keep-all; }
+.cy-note b { color: var(--text); font-weight: 800; }
+.cy-note b.warn { color: #d23b54; }
+
+/* ===== 매장이 많은 도시 — 목록을 2열로 (2026-08-23) =====
+   서울은 매장이 20곳이라 한 열에 넣으니 행 높이가 6px 로 눌려 읽을 수 없었다(실측).
+   리뷰 목록에서 서울 18곳을 2열로 접어 해결한 것과 같은 방법이다.
+   행이 12개를 넘으면 두 갈래로 나눈다 — 세로로 반이 되면 행마다 숨 쉴 자리가 생긴다. */
+.rv-list.two {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-flow: row;
+  gap: 3px 10px;
+  align-content: start;
+}
+.rv-list.two .rv-row { padding: 3px 7px; }
+/* 2열이 되면 칸이 좁아지니 격자를 다시 잡는다 */
+.rv-list.two .rv-row {
+  grid-template-columns: 16px minmax(0,1.15fr) 52px minmax(0,1fr) 40px 46px 38px 40px !important;
+  gap: 5px;
+}
+
+/* ===== 도시 화면 공간 배분 (2026-08-23) =====
+   실측: 가운데 열 737px 중 진단 카드가 529px 을 먹고 매장 목록엔 123px 만 남았다.
+   그래서 서울(20곳)은 행 높이가 6px 로 눌려 읽을 수 없었다.
+
+   도시 화면에서 주인공은 **매장 목록**이다 — 어느 매장이 이기고 지는지가
+   이 단위에서 답해야 할 질문이다. 진단은 읽을 만큼만 두고 목록에 자리를 준다. */
+.rv-right > .rv-diag { flex: 0 1 auto; max-height: 54%; overflow: hidden; }
+.rv-right > .rv-list { flex: 1 1 auto; min-height: 170px; }
+/* 매장이 적은 도시(1~5곳)는 목록이 짧으니 진단에 자리를 더 준다 */
+.rv-right > .rv-list:not(.two) { flex: 0 1 auto; }
+
+/* 도시 액션의 '더 보기' 안내 — 세밀한 처방은 매장 화면에 있다 */
+.rv-more { display: block; margin-top: 5px; font-style: normal; font-size: 11px;
+  font-weight: 700; color: #1f5fd0; }
+.rv-more::before { content: "→ "; }

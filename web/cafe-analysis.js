@@ -785,13 +785,18 @@
     const itemLine = rLose.length
       ? ` 이 지역은 <b class="warn">${rLose.map((x) => x.n).join("·")}</b>에서 특히 밀립니다(LG +${fmtN(rLose.reduce((a, x) => a + x.l - x.s, 0))}건) — 상담 시 이 품목의 <b>삼성 대안 모델</b>을 먼저 제시하세요.`
       : "";
+    /* 도시 액션은 **한 수만** 짚는다. 품목·혜택 같은 세밀한 처방은 매장 화면 몫이다
+       (사용자 지시 2026-08-23: "전국은 좀 더 큰 시각에서, 매장의 경우 세밀한 부분까지").
+       실측: 도시 액션이 197px 을 먹어 정작 주인공인 매장 목록이 눌렸다. */
     const action = opps.length
-      ? `<b>${opps[0].n}</b>부터 공략하세요 — LG가 <b class="warn">${fmtN(opps[0].l - opps[0].s)}건</b> 앞서 지역 격차의 ` +
-        `<b>${Math.round((opps[0].l - opps[0].s) / (oppGap || 1) * 100)}%</b>를 차지합니다. ` +
-        `이 ${unit} 한 곳만 동률로 만들어도 지역 삼성비중이 <b>${share}% → 약 ${pct(c.s + (opps[0].l - opps[0].s), c.l)}%</b>로 올라갑니다.` + itemLine
-      /* 후기는 **고객이 쓴다.** 우리가 늘리는 게 아니라, 구매 고객이 쓰도록
-         상담 마무리에 요청·독려하는 것이 매니저가 할 수 있는 일이다(사용자 지적 2026-08-23). */
-      : `열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두"}</b>(삼성 ${top ? pct(top.s, top.l) : "-"}%)의 상담 방식을 표본이 적은 ${unit}으로 확산하고, <b>구매 고객에게 후기 작성을 요청</b>해 표본을 넓히세요.` + itemLine;
+      ? `<b>${opps[0].n}</b>부터 공략하세요 — LG가 <b class="warn">${fmtN(opps[0].l - opps[0].s)}건</b> 앞서 ` +
+        `지역 격차의 <b>${Math.round((opps[0].l - opps[0].s) / (oppGap || 1) * 100)}%</b>를 차지합니다. ` +
+        `이 한 곳만 동률로 만들어도 지역 비중이 <b>${share}% → 약 ${pct(c.s + (opps[0].l - opps[0].s), c.l)}%</b>가 됩니다. ` +
+        `<em class="rv-more">품목·혜택별 처방은 매장을 눌러 확인하세요.</em>`
+      /* 후기는 고객이 쓴다 — 매니저는 요청·독려만 할 수 있다 */
+      : `열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두"}</b>(삼성 ${top ? pct(top.s, top.l) : "-"}%)의 ` +
+        `상담 방식을 표본이 적은 곳으로 확산하고, <b>구매 고객에게 후기 작성을 요청</b>하세요. ` +
+        `<em class="rv-more">매장별 상세는 목록에서 매장을 누르세요.</em>`;
 
     return `<div class="ca-rv">` +
       `<div class="rv-left">` +
@@ -814,20 +819,138 @@
       `<div class="rv-dhead"><h4>진단</h4>` +
       (opps.length ? `<span class="rv-oppsum">기회 ${opps.length}곳 · 회복 여지 <b>${fmtN(oppGap)}건</b></span>` : `<span class="rv-oppsum ok">열세 없음 · 방어 국면</span>`) +
       `</div>` +
-      `<div class="rv-dtext">${diag.map((d) => `<span class="pl">${d}</span>`).join("")}</div>` +
-      (oppCards ? `<div class="rv-opps">${oppCards}</div>` : "") +
+      /* 도시 진단은 세 줄까지 — 더 길어지면 매장 목록이 눌린다.
+           네 번째부터는 매장 화면에서 볼 이야기다. */
+      /* 매장이 많은 도시(서울 20곳·경기 17곳)는 목록이 자리를 많이 쓴다.
+         그런 도시는 진단을 두 줄로 줄여 둘 다 온전히 보이게 한다(실측 조정). */
+      `<div class="rv-dtext">${diag.slice(0, list.length > 12 ? 2 : 3).map((d) => `<span class="pl">${d}</span>`).join("")}</div>` +
+      /* 기회 카드(rv-opps)는 걷어냈다 — 바로 옆 매장 목록이 같은 것을 더 자세히 보여준다.
+         같은 화면에 두 번 두면 자리만 먹고(97px), 정작 목록이 눌린다(실측). */
       `<div class="rv-act"><em>액션</em>${para(action)}</div>` +
       `</div>` +
       `<div class="rv-rhead"><h4>${unit}별 경쟁력 <em>${list.length}곳</em></h4>` +
       `<span class="rv-leg"><i class="s"></i>삼성<i class="l"></i>LG · 클릭 시 ${unit} 상세</span></div>` +
-      (list.length ? `<div class="rv-list">${rows}</div>`
+      /* 매장이 많으면 2열로 — 한 열에 20행을 넣으면 행 높이가 6px 로 눌린다(실측) */
+      (list.length ? `<div class="rv-list${list.length > 12 ? " two" : ""}">${rows}</div>`
         : `<p class="ca-splx">이 구간은 백화점 ${unit} 표본이 부족합니다.</p>`) +
       `</div>` +
-      // 3열: 지역 진단(품목·혜택·추이)
+      // 3열: **도시 단위의 시각**. 품목·혜택·객단가 같은 매장급 디테일은 여기 두지 않는다
+      //       (실측: 도시와 매장이 같은 카드를 쓰고 있었다)
       `<div class="rv-third">` +
-      profileCard(isBu ? null : regionDetailOf(c.title), { title: `${c.title} 후기 진단`, items: periodItems("region", c.title) }) +
-      (isBu ? "" : scaleCard("region", c.title)) +
+      cityCard(c.title, list, c) +
       `</div></div>`;
+  }
+
+  /* ── 도시 단위의 시각 ────────────────────────────────────────────────
+     사용자 지시(2026-08-23): "전국, 도시, 매장별 페이지의 분석 내용과 분석의 밀도가
+     차이가 있어야 한다 … 전국은 좀 더 큰 시각에서, 매장의 경우 세밀한 부분까지."
+
+     실측해 보니 도시 화면이 **매장 화면의 축소판**이었다:
+       도시  후기 진단(품목·혜택·추이) · 계약 규모·리스크
+       매장  후기 진단(품목·혜택·추이) · 계약 규모·리스크   ← 같다
+
+     품목·혜택·객단가는 **매장에서 볼 것**이다. 도시에서 물어야 할 것은 다르다:
+       ① 이 도시는 전국에서 어디쯤인가
+       ② 도시 안에서 매장끼리 얼마나 벌어져 있나 (평균은 격차를 지운다)
+       ③ 한 매장에 쏠려 있나, 고르게 퍼져 있나 (쏠림이면 그 매장이 도시 성적을 좌우한다)
+       ④ 전국과 다른 성격이 있나 */
+  /* 조사 — "서울는" 이 되지 않게. 받침 유무로 고른다(실측 오류였다) */
+  const JOSA = (w, a, b) => {
+    const ch = String(w || "").trim().slice(-1).charCodeAt(0);
+    const jong = ch >= 0xac00 && ch <= 0xd7a3 && (ch - 0xac00) % 28 !== 0;
+    return w + (jong ? a : b);
+  };
+
+  function cityCard(rgName, list, c) {
+    const nat = natShare();
+    const sh = pct(c.s, c.l);
+    const A0 = hasF() ? A() : null;
+
+    // ① 전국에서의 위치 — 표본 규모 순위
+    let rank = null, nRg = 0;
+    if (A0 && A0.stores) {
+      const sizes = Object.keys(A0.regions || {}).map((k) => ({
+        n: k, v: (A0.regions[k].s || 0) + (A0.regions[k].l || 0) }))
+        .sort((a, b) => b.v - a.v);
+      nRg = sizes.length;
+      const at = sizes.findIndex((x) => x.n === rgName);
+      if (at >= 0) rank = at + 1;
+    }
+    const share = A0 && A0.total ? Math.round((c.s + c.l) / A0.total * 100) : null;
+
+    // ② 도시 안 격차 — 표본이 받쳐 주는 매장만(적은 표본은 비율이 요동친다)
+    const sized = list.filter((x) => x.s + x.l >= 5)
+      .map((x) => ({ n: x.n, sh: pct(x.s, x.l), tot: x.s + x.l }))
+      .sort((a, b) => b.sh - a.sh);
+    const spread = sized.length >= 2 ? sized[0].sh - sized[sized.length - 1].sh : null;
+
+    // ③ 쏠림 — 1위 매장이 도시 표본에서 차지하는 비중
+    const totAll = list.reduce((a, x) => a + x.s + x.l, 0) || 1;
+    const byVol = list.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l));
+    const headShare = byVol[0] ? Math.round((byVol[0].s + byVol[0].l) / totAll * 100) : 0;
+
+    // ④ 전국과 다른 성격 — 품목 구성 차이가 가장 큰 둘
+    let itemDiff = [];
+    if (A0 && A0.regionItems && A0.regionItems[rgName] && A0.items) {
+      const RI = A0.regionItems[rgName];
+      itemDiff = Object.keys(RI).map((k) => {
+        const r = RI[k], n = A0.items[k];
+        if (!n || r.s + r.l < 5) return null;
+        return { n: k, city: pct(r.s, r.l), nat: pct(n.s, n.l), tot: r.s + r.l };
+      }).filter(Boolean).map((x) => ({ ...x, d: x.city - x.nat }))
+        .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 3);
+    }
+
+    const gapCls = spread === null ? "" : spread >= 50 ? "warn" : spread >= 25 ? "even" : "up";
+
+    return `<div class="ca-ncard city-card">` +
+      `<h4 class="ca-ch">${JOSA(rgName, "은", "는")} 어떤 도시인가 <i class="ca-tag">도시 단위</i></h4>` +
+
+      `<div class="cy-grid">` +
+      `<div class="cy-k"><b>${rank ? rank : "-"}<u>위</u></b><span>표본 규모` +
+      (nRg ? ` (${nRg}개 지역 중)` : "") + `</span></div>` +
+      `<div class="cy-k"><b>${share !== null ? share : "-"}<u>%</u></b><span>전국 표본에서 차지</span></div>` +
+      `<div class="cy-k ${sh >= nat ? "up" : "warn"}"><b>${sh - nat >= 0 ? "+" : ""}${sh - nat}<u>p</u></b>` +
+      `<span>전국 비중(${nat}%) 대비</span></div>` +
+      `</div>` +
+
+      // 도시 안 격차 — 평균이 지우는 것
+      (spread !== null
+        ? `<div class="cy-sec"><h5>도시 안에서 얼마나 벌어져 있나</h5>` +
+          `<div class="cy-spread ${gapCls}">` +
+          `<span class="cs-hi">${sized[0].n} <b>${sized[0].sh}%</b></span>` +
+          `<span class="cs-line"></span>` +
+          `<span class="cs-lo">${sized[sized.length - 1].n} <b>${sized[sized.length - 1].sh}%</b></span>` +
+          `<span class="cs-gap">${spread}<u>p</u></span></div>` +
+          `<p class="cy-note">표본 5건 이상 <b>${sized.length}곳</b> 기준. ` +
+          (spread >= 50 ? `같은 도시인데 <b class="warn">${spread}p</b>나 갈립니다 — 도시 평균(${sh}%)으로는 안 보이는 차이입니다.`
+           : spread >= 25 ? `매장 간 <b>${spread}p</b> 차이가 있습니다.`
+           : `매장끼리 고르게 붙어 있습니다(<b>${spread}p</b>).`) + `</p></div>`
+        : `<p class="ca-splx">표본이 받쳐 주는 매장이 2곳 미만이라 격차를 말할 수 없습니다.</p>`) +
+
+      // 쏠림
+      (byVol[0]
+        ? `<div class="cy-sec"><h5>쏠림</h5>` +
+          `<div class="cy-head"><span class="ch-nm">${byVol[0].n}</span>` +
+          `<span class="ch-bar"><i style="width:${headShare}%"></i></span>` +
+          `<span class="ch-v">${headShare}<u>%</u></span></div>` +
+          `<p class="cy-note">` +
+          (headShare >= 50 ? `이 도시 표본의 절반 이상이 <b>한 매장</b>에서 나옵니다 — 이 매장이 도시 성적을 좌우합니다.`
+           : headShare >= 30 ? `상위 한 곳이 <b>${headShare}%</b>를 차지합니다.`
+           : `여러 매장에 고르게 퍼져 있습니다.`) + `</p></div>`
+        : "") +
+
+      // 전국과 다른 성격
+      (itemDiff.length
+        ? `<div class="cy-sec"><h5>전국과 다른 점</h5>` +
+          itemDiff.map((x) => `<div class="cy-diff ${x.d >= 0 ? "up" : "warn"}">` +
+            `<span class="cd-n">${x.n}</span>` +
+            `<span class="cd-v">${x.city}<u>%</u></span>` +
+            `<span class="cd-d">전국 ${x.nat}% 대비 <b>${x.d >= 0 ? "+" : ""}${x.d}p</b></span>` +
+            `</div>`).join("") +
+          `<p class="cy-note">품목별 삼성 비중을 전국과 견줬습니다(표본 5건 이상).</p></div>`
+        : "") +
+      `</div>`;
   }
 
   /* ── 지역/매장 공용 진단 카드 — 추이·비교승률·품목·혜택 ── */
