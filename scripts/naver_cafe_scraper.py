@@ -643,7 +643,7 @@ def cmd_scrape(args):
                     "articleId": aid, "title": subject,
                     "summary": summary[:200], "menu": menu_name,
                     "addDate": add_date, "url": url,
-                    "body_excerpt": body[:800],
+                    "body_excerpt": body[:4000],
                     "body_ok": bool(body),
                 }
                 rec.update(analysis)
@@ -1001,8 +1001,39 @@ def cmd_board(args):
     win_start = _window_start(win_months) if win_months else None
     stop_old = False
     with sync_playwright() as p:
-        ctx = launch(p, headless=args.headless)
+        # --login-first: 로그인 창을 띄우고 **그 창을 닫지 않은 채** 계속 수집한다.
+        #
+        # 왜 이런 것이 필요한가(2026-08-24 실측):
+        #   네이버는 '로그인 상태 유지'를 체크하지 않으면 NID_SES 를
+        #   **세션 쿠키**로 준다. 그러면 별도 로그인 명령으로 로그인해도
+        #   창을 닫는 순간 사라져, 다음 수집이 비로그인으로 돌아간다.
+        #   실제로 150건 중 16건(11%)만 본문이 읽혔고 나머지는
+        #   `errorCode 0004 로그인하지 않았습니다` 였다.
+        #   (프로필 자체는 멀정하다 — 시험 쿠키는 재실행 뒤에도 남았다.)
+        #
+        # 비번은 코드가 절대 입력하지 않는다. 사용자가 직접 친다.
+        want_login = getattr(args, "login_first", False)
+        ctx = launch(p, headless=False if want_login else args.headless)
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
+        if want_login:
+            safe_goto(page, "https://nid.naver.com/nidlogin.login?url="
+                            "https%3A%2F%2Fcafe.naver.com%2Fdirectwedding")
+            print("[board] 크롬 창이 열렸습니다 — **이 창에서** 네이버에 로그인하세요.")
+            print("[board] 로그인이 확인되면 수집이 자동으로 이어집니다.")
+            got = False
+            for i in range(120):            # 최대 10분
+                time.sleep(5)
+                names = {c["name"] for c in ctx.cookies()}
+                if "NID_AUT" in names and "NID_SES" in names:
+                    print(f"[board] 로그인 확인됨 ({(i + 1) * 5}초) — 수집 시작")
+                    got = True
+                    break
+                if i % 6 == 5:
+                    print(f"[board] 로그인 대기 중... {(i + 1) * 5}s")
+            if not got:
+                print("[board] 로그인이 확인되지 않아 중단합니다.")
+                ctx.close()
+                return
         safe_goto(page, f"https://cafe.naver.com/f-e/cafes/{CLUBID}/menus/{args.menu_id}")
         page.wait_for_timeout(2000)
         empty = 0
@@ -1048,7 +1079,7 @@ def cmd_board(args):
                     "articleId": aid, "title": subject,
                     "summary": summary[:200], "menu": menu_name,
                     "addDate": add_date, "url": url,
-                    "body_excerpt": body[:800], "body_ok": bool(body),
+                    "body_excerpt": body[:4000], "body_ok": bool(body),
                 }
                 rec.update(analyze_text(f"{subject}\n{summary}", body))
                 records.append(rec)
@@ -1139,7 +1170,7 @@ def cmd_backfill(args):
             time.sleep(args.delay)
             done += 1
             if body:
-                r["body_excerpt"] = body[:800]
+                r["body_excerpt"] = body[:4000]
                 r["body_ok"] = True
                 r.update(analyze_text(f"{r.get('title','')}\n{r.get('summary','')}", body))
                 ok += 1
@@ -1179,6 +1210,8 @@ def main():
     pb.add_argument("--max-articles", type=int, default=5000)
     pb.add_argument("--read-body", action="store_true", default=True)
     pb.add_argument("--no-read-body", dest="read_body", action="store_false")
+    pb.add_argument("--login-first", action="store_true",
+                    help="로그인 창을 띄우고 그 세션 그대로 수집(본문 읽기에 필수)")
     pb.add_argument("--headless", action="store_true", default=False)
     pb.add_argument("--delay", type=float, default=0.6)
     pb.add_argument("--cumulative", action="store_true")

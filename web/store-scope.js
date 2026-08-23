@@ -49,8 +49,8 @@
     { key: "jwedding", name: "제이웨딩", sub: "칭찬 · 혼수 선택이유", cls: "cx-jwed", live: true },
     { key: "naver-blog", name: "네이버 블로그", sub: "구매 후기글", cls: "cx-blog" },
     { key: "busan-mom-cafe", name: "맘카페", sub: "지역 커뮤니티", cls: "cx-mom" },
-    { key: "youtube", name: "유튜브", sub: "혼수 브이로그", cls: "cx-youtube" },
-    { key: "instagram", name: "인스타그램", sub: "해시태그 후기", cls: "cx-insta" },
+    { key: "youtube", name: "유튜브", sub: "혼수 브이로그", cls: "cx-youtube", live: true },
+    { key: "instagram", name: "인스타그램", sub: "매장 인스타 활동", cls: "cx-insta", live: true },
     { key: "ohou", name: "오늘의집", sub: "인테리어 앱", cls: "cx-ohou" },
   ];
 
@@ -179,6 +179,66 @@
   /* ── 채널 카드 ── */
   /* 제이웨딩 — 채널 화면과 같은 자료를 이 매장 것만 잘라 본다.
      두 화면이 어긋나면 안 되므로 window.JWEDDING 한 곳에서만 읽는다. */
+  /* 유튜브 — 매장이 제목에 적히는 일이 드문 채널이다.
+     그래서 카드에는 '이 매장 후기 수'가 아니라, 잡혔으면 잡힌 대로 보여주고
+     없으면 **왜 없는지**를 적는다. 빈 칸에 0을 적으면 "후기가 없다"로 읽히는데
+     사실은 "이 채널이 매장을 안 적는다" 이기 때문이다. */
+  function ytCard(ch, name) {
+    const Y = window.YOUTUBE;
+    const v = Y && Y.stores ? (Y.stores[name] || pick(Y.stores, name)) : null;
+    const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
+      `<i class="cx-live-tag">실데이터</i></div>`;
+    if (!v || !v.n) {
+      return `<div class="cx-card ${ch.cls}">${head}` +
+        `<div class="cx-empty"><em>매장 언급 없음</em>` +
+        `<span>영상 제목에 매장이 적히는 일은 드뭅니다 — 품목·브랜드 반응을 보는 채널입니다</span>` +
+        `</div></div>`;
+    }
+    const tot = v.s + v.l, sh = pct(v.s, v.l);
+    const lead = v.s > v.l ? "s" : v.l > v.s ? "l" : "even";
+    return `<div class="cx-card cx-live ${ch.cls}">${head}` +
+      `<div class="cx-main">` +
+      `<div class="cx-big"><b>${fmtN(v.n)}</b><span>편</span></div>` +
+      `<div class="cx-mini ${lead}"><b>${tot ? sh + "%" : "-"}</b><span>삼성 비중</span></div>` +
+      `</div>` +
+      (tot ? `<div class="cx-bar"><i class="s" style="width:${(v.s / tot * 100).toFixed(1)}%"></i>` +
+        `<i class="l" style="width:${(v.l / tot * 100).toFixed(1)}%"></i></div>` : "") +
+      `<div class="cx-sub"><span class="cx-lb">재생수</span>` +
+      `<span class="cx-chip">${fmtN(v.views)}회</span></div>` +
+      (v.top ? `<div class="cx-sub"><span class="cx-lb">대표 영상</span>` +
+        `<span class="cx-chip">${v.top.t}</span></div>` : "") +
+      `</div>`;
+  }
+
+  /* 인스타 — 매장명이 적힌 글은 대개 그 매장이 올린 홍보다(실측).
+     그러니 이 카드는 '고객 후기 수'가 아니라 **그 매장의 인스타 활동**이다.
+     우리가 올렸는지 경쟁이 올렸는지를 갈라 적어야 뜻이 통한다. */
+  function igCard(ch, name) {
+    const G = window.INSTAGRAM;
+    const v = G && G.stores ? (G.stores[name] || pick(G.stores, name)) : null;
+    const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
+      `<i class="cx-live-tag">실데이터</i></div>`;
+    if (!v || !v.n) {
+      return `<div class="cx-card ${ch.cls}">${head}` +
+        `<div class="cx-empty"><em>이 채널에 흔적 없음</em>` +
+        `<span>우리도 경쟁도 이 매장 이름으로 올린 글이 없습니다</span></div></div>`;
+    }
+    const ours = v.ours || 0, rival = v.rival || 0;
+    const verdict = ours > rival ? { c: "s", t: "우리가 활동 중" }
+      : rival > ours ? { c: "l", t: "경쟁만 활동 중" }
+      : { c: "even", t: "주체 불명" };
+    return `<div class="cx-card cx-live ${ch.cls}">${head}` +
+      `<div class="cx-main">` +
+      `<div class="cx-big"><b>${fmtN(v.n)}</b><span>건</span></div>` +
+      `<div class="cx-mini ${verdict.c}"><b>${ours}<i>:</i>${rival}</b><span>우리:경쟁</span></div>` +
+      `</div>` +
+      `<div class="cx-sub"><span class="cx-lb">판정</span>` +
+      `<span class="cx-chip ${rival > ours ? "warn" : ""}">${verdict.t}</span></div>` +
+      (v.top ? `<div class="cx-sub"><span class="cx-lb">${v.top.biz ? "홍보 글" : "개인 글"}</span>` +
+        `<span class="cx-chip">${v.top.t}</span></div>` : "") +
+      `</div>`;
+  }
+
   function jwCard(ch, name) {
     const J = window.JWEDDING;
     const v = J && J.stores ? (J.stores[name] || pick(J.stores, name)) : null;
@@ -205,9 +265,59 @@
       `</div>`;
   }
 
+  /* 좌측 요약의 숫자를 문장으로 잇는다 — 순위·지역평균 편차·채널 공백.
+     후기는 고객이 쓴다. 매니저가 할 수 있는 일은 요청·독려뿐이다(CLAUDE.md). */
+  function insightLi(name, row, rank, diff, sib, rg) {
+    const li = [];
+    const tot = row ? row.s + row.l : 0;
+    const sh = row ? pct(row.s, row.l) : 0;
+
+    if (rank && sib.length) {
+      const half = Math.ceil(sib.length / 2);
+      // 편차 0p 는 적지 않는다 — "0p 높습니다" 는 아무 말도 아니다
+      const dTxt = diff > 0 ? ` · 지역평균보다 <b>${diff}p 높습니다</b>`
+        : diff < 0 ? ` · 지역평균보다 <b>${Math.abs(diff)}p 낮습니다</b>` : "";
+      li.push(rank <= half
+        ? `<li><b>${rg} ${sib.length}곳 중 ${rank}위</b>${dTxt} —` +
+          ` 이 매장 방식이 <b>지역에서 통하고 있습니다</b>.</li>`
+        : `<li class="warn-li"><b>${rg} ${sib.length}곳 중 ${rank}위</b>${dTxt} —` +
+          ` 같은 지역 다른 매장은 되는데 여기서 안 되는 것이 있습니다.</li>`);
+    }
+
+    /* 표본이 열 건도 안 되면 퍼센트를 적지 않는다.
+       9건으로 "삼성 100%" 라고 쓰면 한 건만 뒤집혀도 89% 가 된다 —
+       회사 전체가 보는 화면에 없는 정밀도를 보이는 편이 더 나쁘다.
+       (인스타 화면에 먼저 적용한 것과 같은 원칙) */
+    if (tot >= 10 && sh < 50) {
+      li.push(`<li class="warn-li">이 매장은 <b>LG가 ${100 - sh}%</b>로 앞섭니다` +
+        ` (삼성 ${fmtN(row.s)} vs LG ${fmtN(row.l)}건).` +
+        ` 같은 백화점 안에서 갈린 것이라 <b>상담 접점 차이</b>로 봐야 합니다.</li>`);
+    } else if (tot >= 10) {
+      li.push(`<li>삼성이 <b>${sh}%</b>로 앞섭니다 (${fmtN(row.s)} vs ${fmtN(row.l)}건).` +
+        ` 이 우위는 <b>후기 요청이 이어질 때만</b> 유지됩니다.</li>`);
+    } else if (tot) {
+      li.push(`<li>표본이 <b>${fmtN(tot)}건</b>(삼성 ${fmtN(row.s)} · LG ${fmtN(row.l)})으로 적어` +
+        ` <b>비율은 적지 않습니다</b>. 판단을 세우려면 후기 자체가 더 쌓여야 합니다 —` +
+        ` 구매 고객에게 <b>후기 작성을 요청</b>하세요.</li>`);
+    }
+
+    // 채널 공백 — 어느 채널에 우리 흔적이 없는지
+    const gaps = [];
+    const J = window.JWEDDING, Y = window.YOUTUBE, G = window.INSTAGRAM;
+    if (J && J.stores && !(J.stores[name] || pick(J.stores, name))) gaps.push("제이웨딩");
+    if (G && G.stores && !(G.stores[name] || pick(G.stores, name))) gaps.push("인스타그램");
+    if (gaps.length) {
+      li.push(`<li><b>${gaps.join(" · ")}</b>에 이 매장 이름이 <b>한 번도 안 나옵니다</b> —` +
+        ` 그 채널을 보는 고객에게는 이 매장이 <b>없는 것과 같습니다</b>.</li>`);
+    }
+    return li;
+  }
+
   function channelCard(ch, name) {
     if (ch.key === "naver-review") return nrCard(ch, name);
     if (ch.key === "jwedding") return jwCard(ch, name);
+    if (ch.key === "youtube") return ytCard(ch, name);
+    if (ch.key === "instagram") return igCard(ch, name);
     if (!ch.live) {
       return `<div class="cx-card cx-wait ${ch.cls}">` +
         `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +
@@ -330,8 +440,10 @@
       `<div><b>${sib.length}<i>곳</i></b><span>${rg} 매장</span></div>` +
       `</div>` +
       compBlock(name) +
-      `<p class="cx-note">⚠ 현재는 <b>다이렉트결혼준비</b> 채널만 수집 완료 — 나머지 채널은 수집 후 자동 반영됩니다.` +
-      `${isCus() ? "<br>표시 수치는 지정하신 기간만 잘라 집계한 값입니다." : ""}</p>` +
+      /* 순위·편차를 뽑아만 두고 해석이 없었다(2026-08-24 점검).
+         숫자 옆에 "그래서 무엇"이 없으면 매니저는 읽고 지나간다. */
+      `<ul class="yt-act cx-act">${insightLi(name, row, rank, diff, sib, rg).join("")}</ul>` +
+      `${isCus() ? `<p class="cx-note">표시 수치는 지정하신 기간만 잘라 집계한 값입니다.</p>` : ""}` +
       `</div></div>` +
       `<div class="cx-grid">${CHANNELS.map((c) => channelCard(c, name)).join("")}</div>` +
       `</div></div>`;

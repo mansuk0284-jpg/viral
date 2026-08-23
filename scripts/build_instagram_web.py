@@ -76,18 +76,34 @@ def main():
 
     # 매장 축 — 인스타에서 매장이 적히는 글은 대개 그 매장이 직접 올린 홍보다.
     # 그래서 매장 화면에는 '고객 후기 수'가 아니라 '그 매장의 인스타 활동'으로 보여야 한다.
+    #
+    # 누가 올린 글인지는 **유통 이름**으로 가른다(2026-08-24 실측 교훈).
+    # 브랜드 언급(samsung/lg)만으로 가르면 틀린다 — 롯데 잠실 글은
+    # "8월 LG가전 BIG SALE" 인데 본문에 '삼성'이 스쳐 지나가서
+    # 우리 쪽 홍보로 잡혔다. 화면에는 "잠실에 우리 인스타가 있다"고
+    # 거짓이 뜬다. 파는 주체가 누구인지는 상호로만 확정할 수 있다.
+    OURS = re.compile(r"삼성스토어|삼성전자판매|디지털프라자|디지탈프라자", re.I)
+    RIVAL = re.compile(r"하이마트|베스트샵|베스트샾|하이프라자|전자랜드|LG전자\s*매장", re.I)
+
     stores = {}
     for x in rows:
         st = dept_store_of(x["alt"] or "")
         if not st or st in STORE_EXCLUDE:
             continue
-        v = stores.setdefault(st, {"n": 0, "s": 0, "l": 0, "biz": 0, "top": None})
+        v = stores.setdefault(st, {"n": 0, "s": 0, "l": 0, "biz": 0,
+                                   "ours": 0, "rival": 0, "top": None})
         v["n"] += 1
         sd = side(x)
         if sd:
             v[sd] += 1
+        t = x.get("alt") or ""
         if x.get("biz"):
             v["biz"] += 1
+            # 상호가 적힌 홍보만 주체를 확정한다. 둘 다 없으면 어느 쪽도 아니다.
+            if OURS.search(t):
+                v["ours"] += 1
+            elif RIVAL.search(t):
+                v["rival"] += 1
         if not v["top"]:
             v["top"] = {"t": (x["alt"] or "")[:60].replace("\n", " "),
                         "url": x["url"], "biz": bool(x.get("biz"))}

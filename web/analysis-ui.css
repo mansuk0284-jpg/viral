@@ -69,3 +69,78 @@ body.view-cafe .ca2 .ca-nav .ca-yrb {
 body.view-cafe .ca2 .ca-range .car-d { font-size: 12.5px; }
 .ca2 .ca-range .car-go,
 body.view-cafe .ca2 .ca-range .car-go { font-size: 12.5px; padding: 6px 12px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   여백 균형 + 활자 축소 (2026-08-24 사용자 지시)
+
+   사용자 지적: "좌우 많이 넓고 하단 자리없고, 위는 적당히 공간이 있어"
+   실측(1440x900, 다이렉트결혼준비 화면):
+       좌 47px · 우 47px · 상 22px · 하 14px
+   좌우가 하단의 3.4배였다. 화면이 한쪽으로 눌린 것처럼 보인다.
+
+   같은 실측에서 글씨는 9px~57px 스물여섯 가지로 흩어져 있었다.
+   사용자 지적: "글씨크기를 지금보다는 조금 줄이는게 좋을 것 같고".
+   크기를 줄이는 김에 **단계도 줄인다** — 단계가 많으면 무엇이 중요한지
+   오히려 안 보인다. 아래 한 곳에서만 정한다.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 여백: 사방을 26~28px 로 맞춘다 ── */
+body.view-cafe #channel.section,
+body.view-cx #channel.section,
+body.view-nr #channel.section,
+body.view-af #channel.section { padding: 26px 0; }
+
+body.view-cafe #channel .container,
+body.view-cx #channel .container,
+body.view-nr #channel .container,
+body.view-af #channel .container {
+  /* 98vw + 14px = 좌우 28.4px — 상하 26px 과 사실상 같다.
+     좌우를 좁힌 만큼 본문 폭이 1346 → 1411px 로 넓어져,
+     매장 목록처럼 가로가 아쉬운 표가 함께 편해진다. */
+  max-width: min(1600px, 98vw); padding: 0 14px;
+}
+
+/* ── 활자 계단: 큰 수치 → 제목 → 본문 → 캡션 ──
+   기존 값을 약 12~18% 줄이되 위아래 관계는 그대로 둔다. */
+:root {
+  --an-title: 26px;        /* 화면 제목 (was 30) */
+  --an-sub: 12.5px;
+  --an-hero: 46px;         /* 카드 앞면 대표 수치 (was 57) */
+  --an-big: 42px;          /* 브랜드 비중 (was 51) */
+  --an-num: 32px;          /* 총 건수 (was 38) */
+  --an-mid: 19px;          /* 중간 수치·기간칩 (was 22~24) */
+  --an-body: 17px;         /* 본문 문장 (was 20.2) */
+  --an-cap: 14.5px;        /* 캡션 */
+}
+
+.ca2 .fc-mini b, .ca2 .fc-mini b u { font-size: var(--an-hero); }
+.ca2 .nsc-vs .nv b { font-size: var(--an-big); }
+.ca2 .nsc-total b { font-size: var(--an-num); }
+.ca2 .nsc-total i { font-size: 21px; }
+.ca2 .ca-periodnav .cpn-cur { font-size: var(--an-mid); }
+.ca2 .nsc-vs .nv,
+.ca2 .nsc-win b { font-size: var(--an-mid); }
+.ca2 .nsc-h span,
+.ca2 .nsc-hits .nh-top b { font-size: 17.5px; }
+.ca2 .ca-reasons li b,
+.ca2 .ca-reasons li span b { font-size: 18.5px; }
+.ca2 .ca-reasons li span,
+.ca2 .fc-dbody .fc-sec p,
+.ca2 .fc-sec p b { font-size: var(--an-body); }
+.ca2 .fc-label, .ca2 .fc-plain, .ca2 .it-v { font-size: 17px; }
+.ca2 .it-n { font-size: 16.5px; }
+
+/* ── 제휴카페·네이버리뷰 머리글도 같은 계단에 넣는다 (2026-08-24) ──
+   점검 결과: 화면 제목이 26 / 30 / 38px 세 가지였다.
+   제휴카페만 38px 로 기준보다 46% 컸다 — 통일 목록에서 빠져 있었기 때문.
+   한 줄 설명도 12.5 / 14 / 17px 로 갈렸다. */
+.nr-wrap .af-title h2,
+.af-title h2 { font-size: var(--an-title) !important; font-weight: 900;
+  letter-spacing: -0.03em; line-height: 1.15; margin: 0; }
+.nr-wrap .af-title span,
+.af-title span { font-size: var(--an-sub) !important; font-weight: 600; color: var(--muted); }
+.nr-wrap .af-block h4,
+.af-block h4 { font-size: 16.6px; }
+
+/* 머리글 높이 통일에 .af-top 이 빠져 있어 두 화면만 규칙 밖이었다 */
+.af-top { min-height: 60px; gap: 12px; }

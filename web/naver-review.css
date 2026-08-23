@@ -304,3 +304,7 @@ body.view-nr #channel .container { padding: 0 18px; max-width: min(1560px, 96vw)
 .nr-wrap .af-block h4 i { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; }
 .nr-wrap .af-block h4 .nr-more { flex: 0 0 auto; margin-left: auto; }
 .nr-wrap .af-pane { padding-bottom: 8px; }
+
+/* 진단 불릿 — 경고성 항목은 붉게(2026-08-24) */
+.nr-why li.warn-li { color: #b02a41; }
+.nr-why li.warn-li b { color: #8f1f33; }

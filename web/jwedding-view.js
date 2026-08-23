@@ -59,7 +59,45 @@
     const rows = storeRows();
     const mgrS = J.mgr ? J.mgr.s : 0, mgrL = J.mgr ? J.mgr.l : 0;
 
-    const itemRows = Object.keys(J.items || {}).slice(0, 6).map((k) => {
+    /* ── 현장 액션 ─────────────────────────────────────────────────
+       사용자 지시(2026-08-24): "분석된 페이지는 인사이트가 있어야해.
+       삼성스토어에서 참고할 만한 내용이 있어야 해."
+
+       이 화면에 있던 문장은 화면 읽는 법이었다 —
+       "비율은 참고로 보고 매장·담당자 지목에 무게를 두세요".
+       무게를 어디 두라는 말이지, 매니저가 할 일이 아니다.
+
+       이 게시판의 값어치는 **담당자 이름이 남는다**는 점이다.
+       그러니 이름이 남은 매장과 안 남은 매장을 갈라 보여주는 것이 쓸모 있다.
+       후기는 고객이 쓴다 — 매니저가 할 수 있는 일은 요청뿐이다(CLAUDE.md). */
+    const named = rows.filter((x) => x.mgr);
+    const unnamed = rows.filter((x) => !x.mgr && x.s > 0);   // 삼성 표본은 있는데 이름이 없는 곳
+    const sTop = rows.filter((x) => x.s > x.l).length;
+    const lTop = rows.filter((x) => x.l > x.s).length;
+
+    const actLi = [];
+    if (mgrS || mgrL) {
+      actLi.push(`<li>담당자 이름이 적힌 글이 <b>삼성 ${fmtN(mgrS)}건</b> · ` +
+        `<b>LG ${fmtN(mgrL)}건</b>입니다. 이름이 남은 후기는 <b>다음 고객이 찾아오는 단서</b>가 됩니다 —` +
+        ` 상담을 마칠 때 <b>담당자 이름을 넣어</b> 후기를 남겨달라고 요청하세요.</li>`);
+    }
+    if (unnamed.length) {
+      actLi.push(`<li class="warn-li">삼성 후기는 있는데 <b>담당자 이름이 한 번도 안 나온 매장</b>이 ` +
+        `<b>${unnamed.length}곳</b>입니다` +
+        ` (${unnamed.slice(0, 3).map((x) => x.n).join(" · ")}${unnamed.length > 3 ? " 외" : ""}).` +
+        ` 후기 요청이 습관으로 자리 잡지 않은 곳입니다.</li>`);
+    }
+    if (lTop) {
+      const lose = rows.filter((x) => x.l > x.s).slice(0, 3).map((x) => x.n);
+      actLi.push(`<li class="warn-li">이 채널에서 <b>LG가 앞선 매장</b>이 <b>${lTop}곳</b>입니다` +
+        ` (${lose.join(" · ")}). 같은 백화점 안에서 갈린 것이라` +
+        ` <b>상담 접점 차이</b>로 보는 것이 맞습니다.</li>`);
+    }
+    actLi.push(`<li>표본은 <b>${fmtN(J.total)}건</b>으로 작지만, 이 게시판은 <b>칭찬 글</b>이 모이는 곳이라` +
+      ` <b>무엇을 잘했을 때 고객이 이름까지 적는지</b>가 그대로 보입니다 —` +
+      ` 우위 매장 ${sTop}곳의 후기 원문을 상담 교육 자료로 쓰세요.</li>`);
+
+    const itemRows = Object.keys(J.items || {}).slice(0, 4).map((k) => {
       const v = J.items[k], tot = v.s + v.l, ish = pct(v.s, v.l);
       return `<li class="it-row ${v.s >= v.l ? "s" : "l"}"><span class="it-n">${k}</span>` +
         `<span class="it-bar"><i style="width:${ish}%"></i></span>` +
@@ -67,7 +105,7 @@
         `<span class="it-c">${fmtN(tot)}</span></li>`;
     }).join("");
 
-    const storeLi = rows.slice(0, 8).map((x, i) => {
+    const storeLi = rows.slice(0, 5).map((x, i) => {
       const xsh = pct(x.s, x.l);
       const lead = x.s > x.l ? "s" : x.l > x.s ? "l" : "even";
       return `<button type="button" class="mr-row ${lead}" data-store="${x.n}"` +
@@ -117,14 +155,13 @@
       `<ul class="it-list">${itemRows}</ul>` +
       `</div>` +
       `<div class="ca-ncard">` +
-      `<h4 class="ca-ch">담당자 이름이 적힌 글</h4>` +
+      `<h4 class="ca-ch">현장 액션 <i class="ca-tag">담당자 이름이 남은 후기</i></h4>` +
       `<div class="mgr-vs">` +
       `<div class="mv s"><b>${fmtN(mgrS)}</b><span>삼성</span></div>` +
       `<div class="mv-mid ${mgrS >= mgrL ? "s" : "l"}"><b>${pct(mgrS, mgrL)}%</b><span>삼성 비중</span></div>` +
       `<div class="mv l"><b>${fmtN(mgrL)}</b><span>LG</span></div>` +
       `</div>` +
-      `<p class="fc-plain">이 게시판은 <b>칭찬 글</b>이 모이는 곳이라 담당자 이름이 자주 적힙니다 — ` +
-      `매장이 무엇을 잘했는지 읽기에 좋습니다.</p>` +
+      `<ul class="yt-act">${actLi.join("")}</ul>` +
       `</div>` +
       `</div></div></div>`;
   }

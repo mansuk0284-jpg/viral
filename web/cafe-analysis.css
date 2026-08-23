@@ -959,230 +959,230 @@ body.view-cafe .back-float { display: none !important; }
 .sv-right > .sv-actcard .sv-action { font-size: 11.5px; line-height: 1.45; }
 
 /* ===== 글씨 1.5배 스케일 (박스 크기는 유지, 여백으로 흡수) ===== */
-body.view-cafe .ca-htext h2 { font-size: clamp(30px, 3.9vw, 43.5px); }
-body.view-cafe .ca-sub { font-size: 18.8px; }
-body.view-cafe .ca-back { font-size: 19.5px; }
-body.view-cafe .ca-sectit { font-size: 19.5px; }
-body.view-cafe .ca-kpi-n { font-size: clamp(36px, 4.5vw, 51px); }
-body.view-cafe .ca-kpi-l { font-size: 18.8px; }
-body.view-cafe .ca-kpi-s { font-size: 16.5px; }
-body.view-cafe .ca-lead { font-size: 21.8px; }
-body.view-cafe .ca-seg button { font-size: 18.8px; }
-body.view-cafe .ca-legend { font-size: 18px; }
-body.view-cafe .ca-axt { font-size: 18px; }
-body.view-cafe .ca-mark { font-size: 15.8px; }
-body.view-cafe .ca-end { font-size: 21px; }
-body.view-cafe .ca-cap { font-size: 18.8px; }
-body.view-cafe .ca-inf-m { font-size: 18px; }
-body.view-cafe .ca-inf-tag { font-size: 21.8px; }
-body.view-cafe .ca-inf p { font-size: 18.8px; }
-body.view-cafe .ca-st-name { font-size: 19.5px; }
-body.view-cafe .ca-st-rg { font-size: 15.8px; }
-body.view-cafe .ca-st-bar em { font-size: 15.8px; }
-body.view-cafe .ca-st-tag { font-size: 16.5px; }
-body.view-cafe .ca-sm-head h4 { font-size: 24px; }
-body.view-cafe .ca-sm-head span { font-size: 17.2px; }
-body.view-cafe .ca-sm-col h5 { font-size: 18.8px; }
-body.view-cafe .ca-sm-tag { font-size: 15px; }
-body.view-cafe .ca-sm-t { font-size: 18.8px; }
-body.view-cafe .ca-sm-empty { font-size: 18.8px; }
-body.view-cafe .ca-sm-empty.sm { font-size: 18px; }
-body.view-cafe .ca-foot { font-size: 17.2px; }
-body.view-cafe .ca-geo-right .ca-stat-h h3 { font-size: 30px; }
-body.view-cafe .ca-nkpi .nk-k { font-size: 17.2px; }
-body.view-cafe .ca-nkpi .nk-v { font-size: 37.5px; }
-body.view-cafe .ca-nkpi .nk-s { font-size: 18px; }
-body.view-cafe .ca-keyins { font-size: 20.2px; }
-body.view-cafe .ca-barcap { font-size: 19.5px; }
-body.view-cafe .geo-svg .pv-name { font-size: 12.3px; }
-body.view-cafe .ca-nsumcol .nsc-h h3 { font-size: clamp(45px, 5.4vw, 66px); }
-body.view-cafe .ca-nsumcol .nsc-h span { font-size: 21px; }
-body.view-cafe .ca-nsumcol .nsc-total b { font-size: clamp(60px, 6.3vw, 87px); }
-body.view-cafe .ca-nsumcol .nsc-total i { font-size: 25.5px; }
-body.view-cafe .ca-nsumcol .nsc-side b { font-size: clamp(51px, 5.7vw, 75px); }
-body.view-cafe .ca-nsumcol .nsc-side span { font-size: 22.5px; }
-body.view-cafe .ca-nsumcol .nsc-etc { font-size: 19.5px; }
-body.view-cafe .ca-nsumcol .nsc-vs .nv { font-size: 22.5px; }
-body.view-cafe .ca-nsumcol .nsc-vs .nv b { font-size: clamp(51px, 5.4vw, 75px); }
-body.view-cafe .rs-row > b { font-size: 20.2px; }
-body.view-cafe .rs-chip { font-size: 20.2px; }
-body.view-cafe .rs-cap { font-size: 17.2px; }
-body.view-cafe .gt-donut b { font-size: 18px; }
-body.view-cafe .gt-rg { font-size: 21px; }
-body.view-cafe .gt-n { font-size: 18px; }
-body.view-cafe .gt-bd { font-size: 17.2px; }
-body.view-cafe .geo-svg .pv-name { font-size: 14.4px; }
-body.view-cafe .geo-svg .pv-name.on { font-size: 15.9px; }
-body.view-cafe .fc-label { font-size: 19.5px; }
-body.view-cafe .fc-title { font-size: clamp(27px, 2.5vw, 36px); }
-body.view-cafe .fc-key { font-size: 18px; }
-body.view-cafe .fc-mini b { font-size: clamp(45px, 5.1vw, 69px); }
-body.view-cafe .fc-mini span { font-size: 19.5px; }
-body.view-cafe .fc-open { font-size: 30px; }
-body.view-cafe .fc-dhead h4 { font-size: 30px; }
-body.view-cafe .fc-close { font-size: 30px; }
-body.view-cafe .fc-note { font-size: 19.5px; }
-body.view-cafe .fc-sec > h5 { font-size: 19.5px; }
-body.view-cafe .fc-pts li { font-size: 20.2px; }
-body.view-cafe .fc-sec.tip p { font-size: 20.2px; }
-body.view-cafe .ca-nsum-top h3 { font-size: 27px; }
-body.view-cafe .ca-nsum-sub { font-size: 18px; }
-body.view-cafe .ca-nbig b { font-size: 45px; }
-body.view-cafe .ca-nbig i { font-size: 19.5px; }
-body.view-cafe .ca-ch { font-size: 24px; }
-body.view-cafe .ca-ch .ca-tag { font-size: 16.5px; }
-body.view-cafe .ca-reasons li b { font-size: 22.5px; }
-body.view-cafe .ca-reasons li b::after { font-size: 16.5px; }
-body.view-cafe .ca-reasons li span { font-size: 20.2px; }
-body.view-cafe .vs-side b { font-size: clamp(51px, 6.6vw, 78px); }
-body.view-cafe .vs-side span { font-size: 20.2px; }
-body.view-cafe .vs-etc { font-size: 17.2px; }
-body.view-cafe .ca-why1 { font-size: 19.5px; }
-body.view-cafe .ca-splcol h6 { font-size: 19.5px; }
-body.view-cafe .ca-sm-tag { font-size: 14.2px; }
-body.view-cafe .ca-sm-t { font-size: 19.5px; }
-body.view-cafe .ca-splx { font-size: 16.5px; }
-body.view-cafe .ca-pin .pin-rg { font-size: 16.5px; }
-body.view-cafe .ca-pin .pin-v { font-size: 21px; }
-body.view-cafe .ca-pin .pin-c { font-size: 15.8px; }
-body.view-cafe .ca-maphint { font-size: 18.8px; }
-body.view-cafe .ca-geo-legend .gl { font-size: 16.5px; }
-body.view-cafe .ca-geo-legend .gl-hint { font-size: 15.8px; }
-body.view-cafe .ca2 .ca-htext h2 { font-size: clamp(31.5px, 3.6vw, 40.5px); }
-body.view-cafe .ca2 .ca-sub { font-size: 19.5px; }
-body.view-cafe .cpn-cur { font-size: 24px; }
-body.view-cafe .cpn-cur i { font-size: 18px; }
-body.view-cafe .ca-pager button { font-size: 22.5px; }
-body.view-cafe .ca-pager button { font-size: 18px; }
-body.view-cafe .ca-nav button { font-size: 20.2px; }
-body.view-cafe .ca-crumb button { font-size: 21.8px; }
-body.view-cafe .ca-stat-h h3 { font-size: 31.5px; }
-body.view-cafe .ca-stat-h span { font-size: 19.5px; }
-body.view-cafe .ca-share b { font-size: 54px; }
-body.view-cafe .ca-share i { font-size: 17.2px; }
-body.view-cafe .ca-note { font-size: 16.5px; }
-body.view-cafe .ca-vsk { font-size: 18px; }
-body.view-cafe .ca-vsbar em { font-size: 18px; }
-body.view-cafe .ca-wcard h5 { font-size: 19.5px; }
-body.view-cafe .ca-wcard .big { font-size: 26.2px; }
-body.view-cafe .ca-wcard .sm { font-size: 18px; }
-body.view-cafe .ca-tag { font-size: 13.5px; }
-body.view-cafe .ca-rs li { font-size: 18.8px; }
-body.view-cafe .ca-rs li i { font-size: 15px; }
-body.view-cafe .ca-items span { font-size: 16.5px; }
-body.view-cafe .ca-drilltit { font-size: 18px; }
-body.view-cafe .ca-drill { font-size: 21px; }
-body.view-cafe .ca-drillgrid.sido .ca-dr b { font-size: 18.8px; }
-body.view-cafe .ca-drillgrid.sido .ca-dr span { font-size: 15.8px; }
-body.view-cafe .ca-dr b { font-size: 21.8px; }
-body.view-cafe .ca-dr span { font-size: 18.8px; }
-body.view-cafe .ca-splcol h6 { font-size: 18px; }
-body.view-cafe .ca-spl a { font-size: 18px; }
-body.view-cafe .ca-splx { font-size: 16.5px; }
-body.view-cafe .ca-pend-n { font-size: 51px; }
-body.view-cafe .ca-pend p { font-size: 19.5px; }
-body.view-cafe .rv-head h3 { font-size: clamp(42px, 4.8vw, 60px); }
-body.view-cafe .rv-head span { font-size: 20.2px; }
-body.view-cafe .rv-big b { font-size: clamp(69px, 7.8vw, 102px); }
-body.view-cafe .rv-big span { font-size: 21px; }
-body.view-cafe .rv-vs { font-size: 21px; }
-body.view-cafe .rv-vs b { font-size: 25.5px; }
-body.view-cafe .rv-kpis b { font-size: 31.5px; }
-body.view-cafe .rv-kpis span { font-size: 18px; }
-body.view-cafe .rv-split span { font-size: 20.2px; }
-body.view-cafe .rv-pick em { font-size: 17.2px; }
-body.view-cafe .rv-pick b { font-size: 21.8px; }
-body.view-cafe .rv-pick span { font-size: 18.8px; }
-body.view-cafe .rv-rhead h4 { font-size: 22.5px; }
-body.view-cafe .rv-rhead h4 em { font-size: 18px; }
-body.view-cafe .rv-leg { font-size: 16.5px; }
-body.view-cafe .rv-rank { font-size: 16.5px; }
-body.view-cafe .rv-name { font-size: 20.2px; }
-body.view-cafe .rv-num { font-size: 18px; }
-body.view-cafe .rv-sh { font-size: 18px; }
-body.view-cafe .sv-verdict { font-size: 18.8px; }
-body.view-cafe .sv-side b { font-size: 40.5px; }
-body.view-cafe .sv-side span { font-size: 16.5px; }
-body.view-cafe .sv-mid b { font-size: 30px; }
-body.view-cafe .sv-mid span { font-size: 15px; }
-body.view-cafe .sv-action { font-size: 20.2px; }
-body.view-cafe .sv-revcols h6 { font-size: 18px; }
-body.view-cafe .pe-n { font-size: 18.8px; }
-body.view-cafe .pe-n em { font-size: 15px; }
-body.view-cafe .pe-v { font-size: 18px; }
-body.view-cafe .rv-cnt { font-size: 17.2px; }
-body.view-cafe .rv-gap { font-size: 17.2px; }
-body.view-cafe .rv-dhead h4 { font-size: 22.5px; }
-body.view-cafe .rv-oppsum { font-size: 18.8px; }
-body.view-cafe .rv-oppsum b { font-size: 21px; }
-body.view-cafe .rv-dtext { font-size: 20.2px; }
-body.view-cafe .op-n { font-size: 19.5px; }
-body.view-cafe .op-gap { font-size: 17.2px; }
-body.view-cafe .op-gap b { font-size: 19.5px; }
-body.view-cafe .op-sh { font-size: 16.5px; }
-body.view-cafe .rv-act { font-size: 19.5px; }
-body.view-cafe .rv-act em { font-size: 16.5px; }
-body.view-cafe .mgr-vs .mv b { font-size: 36px; }
-body.view-cafe .mgr-vs .mv span { font-size: 16.5px; }
-body.view-cafe .mv-mid b { font-size: 28.5px; }
-body.view-cafe .mv-mid span { font-size: 15px; }
-body.view-cafe .mgr-nat { font-size: 18.8px; }
-body.view-cafe .mgr-lb { font-size: 17.2px; }
-body.view-cafe .mgr-name b { font-size: 19.5px; }
-body.view-cafe .mgr-name i { font-size: 16.5px; }
-body.view-cafe .mgr-none { font-size: 18px; }
-body.view-cafe .mgr-tip { font-size: 19.5px; }
-body.view-cafe .mgr-tip em { font-size: 16.5px; }
-body.view-cafe .mgr-empty { font-size: 19.5px; }
-body.view-cafe .ca-nsumcol .nsc-h h3 { font-size: clamp(36px, 3.9vw, 48px); }
-body.view-cafe .ca-nsumcol .nsc-total b { font-size: clamp(45px, 4.5vw, 60px); }
-body.view-cafe .ca-nsumcol .nsc-vs .nv b { font-size: clamp(39px, 3.9vw, 51px); }
-body.view-cafe .rv-head h3 { font-size: clamp(33px, 3.6vw, 45px); }
-body.view-cafe .rv-big b { font-size: clamp(51px, 5.4vw, 69px); }
-body.view-cafe .rv-kpis b { font-size: 25.5px; }
-body.view-cafe .rv-dtext { font-size: 18.8px; }
-body.view-cafe .rv-act { font-size: 18px; }
-body.view-cafe .ca-ch { font-size: 19.5px; }
-body.view-cafe .sv-action { font-size: 18.8px; }
-body.view-cafe .mgr-vs .mv b { font-size: 31.5px; }
-body.view-cafe .mgr-tip { font-size: 18px; }
-body.view-cafe .fc-title { font-size: clamp(24px, 2.2vw, 30px); }
-body.view-cafe .fc-mini b { font-size: clamp(39px, 4.5vw, 57px); }
-body.view-cafe .it-n { font-size: 18.8px; }
-body.view-cafe .it-v { font-size: 19.5px; }
-body.view-cafe .it-c { font-size: 16.5px; }
-body.view-cafe .it-tag { font-size: 15px; }
-body.view-cafe .fc-plain { font-size: 19.5px; }
-body.view-cafe .pf-kpi b { font-size: 33px; }
-body.view-cafe .pf-kpi span { font-size: 15.8px; }
-body.view-cafe .pf-cap { font-size: 14.2px; }
-body.view-cafe .pf-lb { font-size: 17.2px; }
-body.view-cafe .pf-ben { font-size: 17.2px; }
-body.view-cafe .pf-sum { font-size: 18.8px; }
-body.view-cafe .rv-third .pf-kpi b { font-size: 28.5px; }
-body.view-cafe .rv-third .it-n { font-size: 17.2px; }
-body.view-cafe .rv-third .pf-sum { font-size: 17.2px; }
-body.view-cafe .rv-third .pf-ben { font-size: 16.5px; }
-body.view-cafe .ca-geonote { font-size: 16.5px; }
-body.view-cafe .ms-rank { font-size: 15.8px; }
-body.view-cafe .ms-name { font-size: 20.2px; }
-body.view-cafe .ms-cnt { font-size: 18.8px; }
-body.view-cafe .mgr-star.s1 .ms-name { font-size: 22.5px; }
-body.view-cafe .mgr-star.s1 .ms-cnt { font-size: 21px; }
-body.view-cafe .mgr-star.s1 .ms-name { font-size: 21px; }
-body.view-cafe .rs-chip em { font-size: 15px; }
-body.view-cafe .rs-none { font-size: 17.2px; }
-body.view-cafe .sc-k b { font-size: 28.5px; }
-body.view-cafe .sc-k span { font-size: 15.8px; }
-body.view-cafe .sc-k em { font-size: 15.8px; }
-body.view-cafe .sc-tip { font-size: 18.8px; }
-body.view-cafe .sv-right > .sc-card .sc-k b { font-size: 25.5px; }
-body.view-cafe .sv-right > .sc-card .sc-tip { font-size: 17.2px; }
-body.view-cafe .sv-right > .sv-actcard .sv-action { font-size: 18px; }
-body.view-cafe .sc-k b { font-size: 24px; }
-body.view-cafe .sc-tip { font-size: 16.5px; }
-body.view-cafe .sv-right > .sv-actcard .ca-ch { font-size: 18.8px; }
-body.view-cafe .sv-right > .sv-actcard .sv-action { font-size: 17.2px; }
+body.view-cafe .ca-htext h2 { font-size: clamp(25.5px, 3.31vw, 37px); }
+body.view-cafe .ca-sub { font-size: 16px; }
+body.view-cafe .ca-back { font-size: 16.6px; }
+body.view-cafe .ca-sectit { font-size: 16.6px; }
+body.view-cafe .ca-kpi-n { font-size: clamp(30.6px, 3.82vw, 43.4px); }
+body.view-cafe .ca-kpi-l { font-size: 16px; }
+body.view-cafe .ca-kpi-s { font-size: 14px; }
+body.view-cafe .ca-lead { font-size: 18.5px; }
+body.view-cafe .ca-seg button { font-size: 16px; }
+body.view-cafe .ca-legend { font-size: 15.3px; }
+body.view-cafe .ca-axt { font-size: 15.3px; }
+body.view-cafe .ca-mark { font-size: 13.4px; }
+body.view-cafe .ca-end { font-size: 17.8px; }
+body.view-cafe .ca-cap { font-size: 16px; }
+body.view-cafe .ca-inf-m { font-size: 15.3px; }
+body.view-cafe .ca-inf-tag { font-size: 18.5px; }
+body.view-cafe .ca-inf p { font-size: 16px; }
+body.view-cafe .ca-st-name { font-size: 16.6px; }
+body.view-cafe .ca-st-rg { font-size: 13.4px; }
+body.view-cafe .ca-st-bar em { font-size: 13.4px; }
+body.view-cafe .ca-st-tag { font-size: 14px; }
+body.view-cafe .ca-sm-head h4 { font-size: 20.4px; }
+body.view-cafe .ca-sm-head span { font-size: 14.6px; }
+body.view-cafe .ca-sm-col h5 { font-size: 16px; }
+body.view-cafe .ca-sm-tag { font-size: 12.8px; }
+body.view-cafe .ca-sm-t { font-size: 16px; }
+body.view-cafe .ca-sm-empty { font-size: 16px; }
+body.view-cafe .ca-sm-empty.sm { font-size: 15.3px; }
+body.view-cafe .ca-foot { font-size: 14.6px; }
+body.view-cafe .ca-geo-right .ca-stat-h h3 { font-size: 25.5px; }
+body.view-cafe .ca-nkpi .nk-k { font-size: 14.6px; }
+body.view-cafe .ca-nkpi .nk-v { font-size: 31.9px; }
+body.view-cafe .ca-nkpi .nk-s { font-size: 15.3px; }
+body.view-cafe .ca-keyins { font-size: 17.2px; }
+body.view-cafe .ca-barcap { font-size: 16.6px; }
+body.view-cafe .geo-svg .pv-name { font-size: 11px; }
+body.view-cafe .ca-nsumcol .nsc-h h3 { font-size: clamp(38.2px, 4.59vw, 56.1px); }
+body.view-cafe .ca-nsumcol .nsc-h span { font-size: 17.8px; }
+body.view-cafe .ca-nsumcol .nsc-total b { font-size: clamp(51px, 5.35vw, 74px); }
+body.view-cafe .ca-nsumcol .nsc-total i { font-size: 21.7px; }
+body.view-cafe .ca-nsumcol .nsc-side b { font-size: clamp(43.4px, 4.84vw, 63.8px); }
+body.view-cafe .ca-nsumcol .nsc-side span { font-size: 19.1px; }
+body.view-cafe .ca-nsumcol .nsc-etc { font-size: 16.6px; }
+body.view-cafe .ca-nsumcol .nsc-vs .nv { font-size: 19.1px; }
+body.view-cafe .ca-nsumcol .nsc-vs .nv b { font-size: clamp(43.4px, 4.59vw, 63.8px); }
+body.view-cafe .rs-row > b { font-size: 17.2px; }
+body.view-cafe .rs-chip { font-size: 17.2px; }
+body.view-cafe .rs-cap { font-size: 14.6px; }
+body.view-cafe .gt-donut b { font-size: 15.3px; }
+body.view-cafe .gt-rg { font-size: 17.8px; }
+body.view-cafe .gt-n { font-size: 15.3px; }
+body.view-cafe .gt-bd { font-size: 14.6px; }
+body.view-cafe .geo-svg .pv-name { font-size: 12.2px; }
+body.view-cafe .geo-svg .pv-name.on { font-size: 13.5px; }
+body.view-cafe .fc-label { font-size: 16.6px; }
+body.view-cafe .fc-title { font-size: clamp(22.9px, 2.12vw, 30.6px); }
+body.view-cafe .fc-key { font-size: 15.3px; }
+body.view-cafe .fc-mini b { font-size: clamp(38.2px, 4.33vw, 58.6px); }
+body.view-cafe .fc-mini span { font-size: 16.6px; }
+body.view-cafe .fc-open { font-size: 25.5px; }
+body.view-cafe .fc-dhead h4 { font-size: 25.5px; }
+body.view-cafe .fc-close { font-size: 25.5px; }
+body.view-cafe .fc-note { font-size: 16.6px; }
+body.view-cafe .fc-sec > h5 { font-size: 16.6px; }
+body.view-cafe .fc-pts li { font-size: 17.2px; }
+body.view-cafe .fc-sec.tip p { font-size: 17.2px; }
+body.view-cafe .ca-nsum-top h3 { font-size: 22.9px; }
+body.view-cafe .ca-nsum-sub { font-size: 15.3px; }
+body.view-cafe .ca-nbig b { font-size: 38.2px; }
+body.view-cafe .ca-nbig i { font-size: 16.6px; }
+body.view-cafe .ca-ch { font-size: 20.4px; }
+body.view-cafe .ca-ch .ca-tag { font-size: 14px; }
+body.view-cafe .ca-reasons li b { font-size: 19.1px; }
+body.view-cafe .ca-reasons li b::after { font-size: 14px; }
+body.view-cafe .ca-reasons li span { font-size: 17.2px; }
+body.view-cafe .vs-side b { font-size: clamp(43.4px, 5.61vw, 66.3px); }
+body.view-cafe .vs-side span { font-size: 17.2px; }
+body.view-cafe .vs-etc { font-size: 14.6px; }
+body.view-cafe .ca-why1 { font-size: 16.6px; }
+body.view-cafe .ca-splcol h6 { font-size: 16.6px; }
+body.view-cafe .ca-sm-tag { font-size: 12.1px; }
+body.view-cafe .ca-sm-t { font-size: 16.6px; }
+body.view-cafe .ca-splx { font-size: 14px; }
+body.view-cafe .ca-pin .pin-rg { font-size: 14px; }
+body.view-cafe .ca-pin .pin-v { font-size: 17.8px; }
+body.view-cafe .ca-pin .pin-c { font-size: 13.4px; }
+body.view-cafe .ca-maphint { font-size: 16px; }
+body.view-cafe .ca-geo-legend .gl { font-size: 14px; }
+body.view-cafe .ca-geo-legend .gl-hint { font-size: 13.4px; }
+body.view-cafe .ca2 .ca-htext h2 { font-size: clamp(26.8px, 3.06vw, 34.4px); }
+body.view-cafe .ca2 .ca-sub { font-size: 16.6px; }
+body.view-cafe .cpn-cur { font-size: 20.4px; }
+body.view-cafe .cpn-cur i { font-size: 15.3px; }
+body.view-cafe .ca-pager button { font-size: 19.1px; }
+body.view-cafe .ca-pager button { font-size: 15.3px; }
+body.view-cafe .ca-nav button { font-size: 17.2px; }
+body.view-cafe .ca-crumb button { font-size: 18.5px; }
+body.view-cafe .ca-stat-h h3 { font-size: 26.8px; }
+body.view-cafe .ca-stat-h span { font-size: 16.6px; }
+body.view-cafe .ca-share b { font-size: 45.9px; }
+body.view-cafe .ca-share i { font-size: 14.6px; }
+body.view-cafe .ca-note { font-size: 14px; }
+body.view-cafe .ca-vsk { font-size: 15.3px; }
+body.view-cafe .ca-vsbar em { font-size: 15.3px; }
+body.view-cafe .ca-wcard h5 { font-size: 16.6px; }
+body.view-cafe .ca-wcard .big { font-size: 22.3px; }
+body.view-cafe .ca-wcard .sm { font-size: 15.3px; }
+body.view-cafe .ca-tag { font-size: 11.5px; }
+body.view-cafe .ca-rs li { font-size: 16px; }
+body.view-cafe .ca-rs li i { font-size: 12.8px; }
+body.view-cafe .ca-items span { font-size: 14px; }
+body.view-cafe .ca-drilltit { font-size: 15.3px; }
+body.view-cafe .ca-drill { font-size: 17.8px; }
+body.view-cafe .ca-drillgrid.sido .ca-dr b { font-size: 16px; }
+body.view-cafe .ca-drillgrid.sido .ca-dr span { font-size: 13.4px; }
+body.view-cafe .ca-dr b { font-size: 18.5px; }
+body.view-cafe .ca-dr span { font-size: 16px; }
+body.view-cafe .ca-splcol h6 { font-size: 15.3px; }
+body.view-cafe .ca-spl a { font-size: 15.3px; }
+body.view-cafe .ca-splx { font-size: 14px; }
+body.view-cafe .ca-pend-n { font-size: 43.4px; }
+body.view-cafe .ca-pend p { font-size: 16.6px; }
+body.view-cafe .rv-head h3 { font-size: clamp(35.7px, 4.08vw, 51px); }
+body.view-cafe .rv-head span { font-size: 17.2px; }
+body.view-cafe .rv-big b { font-size: clamp(58.6px, 6.63vw, 86.7px); }
+body.view-cafe .rv-big span { font-size: 17.8px; }
+body.view-cafe .rv-vs { font-size: 17.8px; }
+body.view-cafe .rv-vs b { font-size: 21.7px; }
+body.view-cafe .rv-kpis b { font-size: 26.8px; }
+body.view-cafe .rv-kpis span { font-size: 15.3px; }
+body.view-cafe .rv-split span { font-size: 17.2px; }
+body.view-cafe .rv-pick em { font-size: 14.6px; }
+body.view-cafe .rv-pick b { font-size: 18.5px; }
+body.view-cafe .rv-pick span { font-size: 16px; }
+body.view-cafe .rv-rhead h4 { font-size: 19.1px; }
+body.view-cafe .rv-rhead h4 em { font-size: 15.3px; }
+body.view-cafe .rv-leg { font-size: 14px; }
+body.view-cafe .rv-rank { font-size: 14px; }
+body.view-cafe .rv-name { font-size: 17.2px; }
+body.view-cafe .rv-num { font-size: 15.3px; }
+body.view-cafe .rv-sh { font-size: 15.3px; }
+body.view-cafe .sv-verdict { font-size: 16px; }
+body.view-cafe .sv-side b { font-size: 34.4px; }
+body.view-cafe .sv-side span { font-size: 14px; }
+body.view-cafe .sv-mid b { font-size: 25.5px; }
+body.view-cafe .sv-mid span { font-size: 12.8px; }
+body.view-cafe .sv-action { font-size: 17.2px; }
+body.view-cafe .sv-revcols h6 { font-size: 15.3px; }
+body.view-cafe .pe-n { font-size: 16px; }
+body.view-cafe .pe-n em { font-size: 12.8px; }
+body.view-cafe .pe-v { font-size: 15.3px; }
+body.view-cafe .rv-cnt { font-size: 14.6px; }
+body.view-cafe .rv-gap { font-size: 14.6px; }
+body.view-cafe .rv-dhead h4 { font-size: 19.1px; }
+body.view-cafe .rv-oppsum { font-size: 16px; }
+body.view-cafe .rv-oppsum b { font-size: 17.8px; }
+body.view-cafe .rv-dtext { font-size: 17.2px; }
+body.view-cafe .op-n { font-size: 16.6px; }
+body.view-cafe .op-gap { font-size: 14.6px; }
+body.view-cafe .op-gap b { font-size: 16.6px; }
+body.view-cafe .op-sh { font-size: 14px; }
+body.view-cafe .rv-act { font-size: 16.6px; }
+body.view-cafe .rv-act em { font-size: 14px; }
+body.view-cafe .mgr-vs .mv b { font-size: 30.6px; }
+body.view-cafe .mgr-vs .mv span { font-size: 14px; }
+body.view-cafe .mv-mid b { font-size: 24.2px; }
+body.view-cafe .mv-mid span { font-size: 12.8px; }
+body.view-cafe .mgr-nat { font-size: 16px; }
+body.view-cafe .mgr-lb { font-size: 14.6px; }
+body.view-cafe .mgr-name b { font-size: 16.6px; }
+body.view-cafe .mgr-name i { font-size: 14px; }
+body.view-cafe .mgr-none { font-size: 15.3px; }
+body.view-cafe .mgr-tip { font-size: 16.6px; }
+body.view-cafe .mgr-tip em { font-size: 14px; }
+body.view-cafe .mgr-empty { font-size: 16.6px; }
+body.view-cafe .ca-nsumcol .nsc-h h3 { font-size: clamp(30.6px, 3.31vw, 40.8px); }
+body.view-cafe .ca-nsumcol .nsc-total b { font-size: clamp(38.2px, 3.82vw, 51px); }
+body.view-cafe .ca-nsumcol .nsc-vs .nv b { font-size: clamp(33.1px, 3.31vw, 43.4px); }
+body.view-cafe .rv-head h3 { font-size: clamp(28.1px, 3.06vw, 38.2px); }
+body.view-cafe .rv-big b { font-size: clamp(43.4px, 4.59vw, 58.6px); }
+body.view-cafe .rv-kpis b { font-size: 21.7px; }
+body.view-cafe .rv-dtext { font-size: 16px; }
+body.view-cafe .rv-act { font-size: 15.3px; }
+body.view-cafe .ca-ch { font-size: 16.6px; }
+body.view-cafe .sv-action { font-size: 16px; }
+body.view-cafe .mgr-vs .mv b { font-size: 26.8px; }
+body.view-cafe .mgr-tip { font-size: 15.3px; }
+body.view-cafe .fc-title { font-size: clamp(20.4px, 1.87vw, 25.5px); }
+body.view-cafe .fc-mini b { font-size: clamp(33.1px, 3.82vw, 48.4px); }
+body.view-cafe .it-n { font-size: 16px; }
+body.view-cafe .it-v { font-size: 16.6px; }
+body.view-cafe .it-c { font-size: 14px; }
+body.view-cafe .it-tag { font-size: 12.8px; }
+body.view-cafe .fc-plain { font-size: 16.6px; }
+body.view-cafe .pf-kpi b { font-size: 28.1px; }
+body.view-cafe .pf-kpi span { font-size: 13.4px; }
+body.view-cafe .pf-cap { font-size: 12.1px; }
+body.view-cafe .pf-lb { font-size: 14.6px; }
+body.view-cafe .pf-ben { font-size: 14.6px; }
+body.view-cafe .pf-sum { font-size: 16px; }
+body.view-cafe .rv-third .pf-kpi b { font-size: 24.2px; }
+body.view-cafe .rv-third .it-n { font-size: 14.6px; }
+body.view-cafe .rv-third .pf-sum { font-size: 14.6px; }
+body.view-cafe .rv-third .pf-ben { font-size: 14px; }
+body.view-cafe .ca-geonote { font-size: 14px; }
+body.view-cafe .ms-rank { font-size: 13.4px; }
+body.view-cafe .ms-name { font-size: 17.2px; }
+body.view-cafe .ms-cnt { font-size: 16px; }
+body.view-cafe .mgr-star.s1 .ms-name { font-size: 19.1px; }
+body.view-cafe .mgr-star.s1 .ms-cnt { font-size: 17.8px; }
+body.view-cafe .mgr-star.s1 .ms-name { font-size: 17.8px; }
+body.view-cafe .rs-chip em { font-size: 12.8px; }
+body.view-cafe .rs-none { font-size: 14.6px; }
+body.view-cafe .sc-k b { font-size: 24.2px; }
+body.view-cafe .sc-k span { font-size: 13.4px; }
+body.view-cafe .sc-k em { font-size: 13.4px; }
+body.view-cafe .sc-tip { font-size: 16px; }
+body.view-cafe .sv-right > .sc-card .sc-k b { font-size: 21.7px; }
+body.view-cafe .sv-right > .sc-card .sc-tip { font-size: 14.6px; }
+body.view-cafe .sv-right > .sv-actcard .sv-action { font-size: 15.3px; }
+body.view-cafe .sc-k b { font-size: 20.4px; }
+body.view-cafe .sc-tip { font-size: 14px; }
+body.view-cafe .sv-right > .sv-actcard .ca-ch { font-size: 16px; }
+body.view-cafe .sv-right > .sv-actcard .sv-action { font-size: 14.6px; }
 
 /* ===== 1.5배 글씨에 맞춘 여백 압축 — 박스 크기·한 화면 원칙 유지 ===== */
 body.view-cafe .ca-ncard { padding: 8px 11px; }
@@ -1442,24 +1442,24 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
   .sv-right .pf-items .it-row {
     grid-template-columns: minmax(0, 76px) minmax(30px, 1fr) 46px 34px; gap: 8px;
   }
-  body.view-cafe .sv-right .it-n { font-size: 14px; }
-  body.view-cafe .sv-right .it-v { font-size: 14px; }
-  body.view-cafe .sv-right .it-c { font-size: 11.5px; }
-  body.view-cafe .sv-right .pf-kpi b { font-size: 24px; }
-  body.view-cafe .sv-right .pf-kpi span { font-size: 11.5px; }
-  body.view-cafe .sv-right .pf-lb { font-size: 13px; margin-top: 1px; }
-  body.view-cafe .sv-right .pf-ben { font-size: 12.5px; padding: 2px 8px; }
-  body.view-cafe .sv-right .pf-sum { font-size: 13.5px; line-height: 1.45; padding-top: 5px; }
+  body.view-cafe .sv-right .it-n { font-size: 11.9px; }
+  body.view-cafe .sv-right .it-v { font-size: 11.9px; }
+  body.view-cafe .sv-right .it-c { font-size: 11px; }
+  body.view-cafe .sv-right .pf-kpi b { font-size: 20.4px; }
+  body.view-cafe .sv-right .pf-kpi span { font-size: 11px; }
+  body.view-cafe .sv-right .pf-lb { font-size: 11px; margin-top: 1px; }
+  body.view-cafe .sv-right .pf-ben { font-size: 11px; padding: 2px 8px; }
+  body.view-cafe .sv-right .pf-sum { font-size: 11.5px; line-height: 1.45; padding-top: 5px; }
   .sv-right .pf-svg { height: 30px; }
 
   /* (E) 매니저 카드 — 가장 큰 덩어리. 후기 스타 목록을 2열로 접는다. */
   body.view-cafe .sv-right > .mgr-card { gap: 5px; }
-  body.view-cafe .sv-right .mgr-vs .mv b { font-size: 22px; }
+  body.view-cafe .sv-right .mgr-vs .mv b { font-size: 18.7px; }
   body.view-cafe .sv-right .mgr-vs .mv span { font-size: 11px; }
-  body.view-cafe .sv-right .mv-mid b { font-size: 20px; }
-  body.view-cafe .sv-right .mv-mid span { font-size: 10.5px; }
-  body.view-cafe .sv-right .mgr-nat { font-size: 13px; }
-  body.view-cafe .sv-right .mgr-lb { font-size: 12.5px; }
+  body.view-cafe .sv-right .mv-mid b { font-size: 17px; }
+  body.view-cafe .sv-right .mv-mid span { font-size: 11px; }
+  body.view-cafe .sv-right .mgr-nat { font-size: 11px; }
+  body.view-cafe .sv-right .mgr-lb { font-size: 11px; }
   body.view-cafe .sv-right .mgr-lb em { font-size: 11px; }
   .sv-right .mgr-names { gap: 4px; }
   .sv-right .mgr-stars { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 6px; align-content: start; }
@@ -1467,35 +1467,35 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
   .sv-right .mgr-star .ms-bar { display: none; }   /* 2열에선 폭이 없다 — 건수 숫자가 같은 정보를 준다 */
   body.view-cafe .sv-right .ms-rank { font-size: 11px; }
   body.view-cafe .sv-right .ms-name,
-  body.view-cafe .sv-right .mgr-star.s1 .ms-name { font-size: 14px; }
+  body.view-cafe .sv-right .mgr-star.s1 .ms-name { font-size: 11.9px; }
   body.view-cafe .sv-right .ms-cnt,
-  body.view-cafe .sv-right .mgr-star.s1 .ms-cnt { font-size: 13px; }
-  body.view-cafe .sv-right .mgr-tip { font-size: 13.5px; line-height: 1.45; padding-top: 6px; }
-  body.view-cafe .sv-right .mgr-tip em { font-size: 11.5px; padding: 1px 6px; }
-  body.view-cafe .sv-right .mgr-empty { font-size: 14px; line-height: 1.5; }
-  body.view-cafe .sv-right .mgr-name b { font-size: 14px; }
-  body.view-cafe .sv-right .mgr-none { font-size: 13px; }
+  body.view-cafe .sv-right .mgr-star.s1 .ms-cnt { font-size: 11px; }
+  body.view-cafe .sv-right .mgr-tip { font-size: 11.5px; line-height: 1.45; padding-top: 6px; }
+  body.view-cafe .sv-right .mgr-tip em { font-size: 11px; padding: 1px 6px; }
+  body.view-cafe .sv-right .mgr-empty { font-size: 11.9px; line-height: 1.5; }
+  body.view-cafe .sv-right .mgr-name b { font-size: 11.9px; }
+  body.view-cafe .sv-right .mgr-none { font-size: 11px; }
 
   /* (F) 계약 규모·리스크 */
   body.view-cafe .sv-right > .sc-card { gap: 5px; }
-  body.view-cafe .sv-right > .sc-card .sc-k b { font-size: 21px; }
+  body.view-cafe .sv-right > .sc-card .sc-k b { font-size: 17.8px; }
   body.view-cafe .sv-right .sc-k span, body.view-cafe .sv-right .sc-k em { font-size: 11px; }
-  body.view-cafe .sv-right > .sc-card .sc-tip { font-size: 13.5px; line-height: 1.45; padding-top: 5px; }
+  body.view-cafe .sv-right > .sc-card .sc-tip { font-size: 11.5px; line-height: 1.45; padding-top: 5px; }
 
   /* (G) 현장 액션 */
   .sv-right > .sv-actcard { padding: 8px 12px; }
-  body.view-cafe .sv-right > .sv-actcard .ca-ch { font-size: 15px; }
+  body.view-cafe .sv-right > .sv-actcard .ca-ch { font-size: 12.8px; }
   body.view-cafe .sv-right > .sv-actcard .sv-action,
   .sv-right > .sv-actcard .sv-action { font-size: 14px; line-height: 1.5; }
 
   /* (H) 이 매장 후기 — 2열 유지 + 항목 밀도 */
   .sv-right > .sv-rev .sv-revcols { gap: 8px; align-content: start; }
   .sv-right > .sv-rev > .ca-ch { font-size: 14px; margin-bottom: 4px; padding-bottom: 3px; }
-  body.view-cafe .sv-right .sv-revcols h6 { font-size: 12px; margin-bottom: 3px; }
+  body.view-cafe .sv-right .sv-revcols h6 { font-size: 11px; margin-bottom: 3px; }
   .sv-right .sv-revcols a { padding: 3px 6px; margin-bottom: 3px; gap: 4px; align-items: baseline; }
-  body.view-cafe .sv-right .sv-revcols .ca-sm-tag { font-size: 10px; padding: 0 5px; }
-  body.view-cafe .sv-right .sv-revcols .ca-sm-t { font-size: 11.5px; line-height: 1.35; }
-  body.view-cafe .sv-right .ca-splx { font-size: 13px; line-height: 1.5; }
+  body.view-cafe .sv-right .sv-revcols .ca-sm-tag { font-size: 11px; padding: 0 5px; }
+  body.view-cafe .sv-right .sv-revcols .ca-sm-t { font-size: 11px; line-height: 1.35; }
+  body.view-cafe .sv-right .ca-splx { font-size: 11px; line-height: 1.5; }
 }
 
 /* (I) 낮은 화면(1280x800 등) — 4행 배치로도 60px 가량 모자란다. 밀도로 마저 흡수.
@@ -1506,29 +1506,29 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
   body.view-cafe .sv-right > .ca-ncard > .ca-ch,
   .sv-right > .ca-ncard > .ca-ch { font-size: 13.5px; margin-bottom: 4px; padding-bottom: 3px; }
 
-  body.view-cafe .sv-right .pf-kpi b { font-size: 20px; }
-  body.view-cafe .sv-right .pf-kpi span { font-size: 10.5px; }
+  body.view-cafe .sv-right .pf-kpi b { font-size: 17px; }
+  body.view-cafe .sv-right .pf-kpi span { font-size: 11px; }
   .sv-right .pf-svg { height: 24px; }
   .sv-right .pf-items { gap: 3px; }
-  body.view-cafe .sv-right .pf-lb { font-size: 12px; }
-  body.view-cafe .sv-right .pf-ben { font-size: 11.5px; padding: 1px 7px; }
+  body.view-cafe .sv-right .pf-lb { font-size: 11px; }
+  body.view-cafe .sv-right .pf-ben { font-size: 11px; padding: 1px 7px; }
   .sv-right .pf-bens { gap: 4px; }
-  body.view-cafe .sv-right .pf-sum { font-size: 12px; line-height: 1.4; padding-top: 4px; }
+  body.view-cafe .sv-right .pf-sum { font-size: 11px; line-height: 1.4; padding-top: 4px; }
 
-  body.view-cafe .sv-right > .sc-card .sc-k b { font-size: 18px; }
+  body.view-cafe .sv-right > .sc-card .sc-k b { font-size: 15.3px; }
   .sv-right > .sc-card .sc-k { padding: 4px 4px; }
   .sv-right > .sc-card .sc-kpis { gap: 4px; }
-  body.view-cafe .sv-right > .sc-card .sc-tip { font-size: 11.5px; line-height: 1.35; padding-top: 4px; }
-  body.view-cafe .sv-right .it-n { font-size: 12.5px; }
-  body.view-cafe .sv-right .it-v { font-size: 12.5px; }
+  body.view-cafe .sv-right > .sc-card .sc-tip { font-size: 11px; line-height: 1.35; padding-top: 4px; }
+  body.view-cafe .sv-right .it-n { font-size: 11px; }
+  body.view-cafe .sv-right .it-v { font-size: 11px; }
   body.view-cafe .sv-right .it-c { font-size: 11px; }
 
-  body.view-cafe .sv-right .mgr-vs .mv b { font-size: 19px; }
-  body.view-cafe .sv-right .mv-mid b { font-size: 17px; }
-  body.view-cafe .sv-right .mgr-nat { font-size: 12px; }
+  body.view-cafe .sv-right .mgr-vs .mv b { font-size: 16.1px; }
+  body.view-cafe .sv-right .mv-mid b { font-size: 14.4px; }
+  body.view-cafe .sv-right .mgr-nat { font-size: 11px; }
   .sv-right .mgr-star { padding: 2px 6px; }
-  body.view-cafe .sv-right .mgr-tip { font-size: 12px; line-height: 1.4; padding-top: 5px; }
-  body.view-cafe .sv-right .mgr-empty { font-size: 12.5px; line-height: 1.45; }
+  body.view-cafe .sv-right .mgr-tip { font-size: 11px; line-height: 1.4; padding-top: 5px; }
+  body.view-cafe .sv-right .mgr-empty { font-size: 11px; line-height: 1.45; }
 
   body.view-cafe .sv-right > .sv-actcard .sv-action,
   .sv-right > .sv-actcard .sv-action { font-size: 12.5px; line-height: 1.45; }
@@ -1538,9 +1538,9 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
    실측: .rv-third .it-v 칸이 40px 인데 전체화면 글씨가 19.5px 라 "100%" 가 14px 잘렸다.
    말줄임·줄바꿈 대신 칸을 넓히고 수치 글씨만 낮춘다(하한 9.5px 준수). */
 .rv-third .it-row { grid-template-columns: 60px minmax(24px, 1fr) 46px 28px; gap: 6px; }
-body.view-cafe .rv-third .it-v { font-size: 14px; }
+body.view-cafe .rv-third .it-v { font-size: 11.9px; }
 body.view-cafe .rv-third .it-c { font-size: 11px; }
-body.view-cafe .rv-third .it-n { font-size: 13px; }
+body.view-cafe .rv-third .it-n { font-size: 11px; }
 
 /* ===== 지역 화면(.rv-third) 품목 목록도 한 화면에 (2026-08-21) =====
    매장 화면의 우측 열은 4행 재배치로 풀었는데, 지역 화면의 같은 목록은
@@ -1615,18 +1615,20 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .rv-hit.s { color: #1f5fd0; } .rv-hit.l { color: #d23b54; }
 .rv-hit.off { color: #c3cbd8; font-weight: 600; }
 
-/* ===== 전국 요약 칼럼 — 상단 정렬 + 글씨 낮춤 (2026-08-21) =====
+/* ===== 전국 요약 칼럼 — 상단 정렬 + 글씨 낮춤 (2026-08-21, 2026-08-24 개정) =====
+   2026-08-24: 값을 여기서 직접 정하지 않는다. analysis-ui.css 의 활자 계단
+   (--an-title/--an-num/--an-mid)을 가리킨다 — 크기가 두 곳에 적히면 갈라진다.
    사용자 지시: "전국 텍스트가 좌측 상단에 위치하도록", "글씨 크기도 지금 너무 큰 건지".
    제목 30~44px / 총건수 40~58px 는 한 칸에 담기엔 과했다. 숫자가 크다고 잘 읽히는 게
    아니라, 옆 항목들이 밀려나면서 오히려 무슨 수치인지 알기 어려워졌다. */
 .ca-nsumcol { justify-content: flex-start !important; align-self: stretch !important;
   gap: 10px !important; padding-top: 2px !important; }
-.ca-nsumcol .nsc-h h3 { font-size: clamp(22px, 2.2vw, 30px) !important; }
+.ca-nsumcol .nsc-h h3 { font-size: var(--an-title) !important; }
 .ca-nsumcol .nsc-h span { margin-top: 3px; font-size: 12.5px; }
 .ca-nsumcol .nsc-total { padding-bottom: 9px; }
-.ca-nsumcol .nsc-total b { font-size: clamp(28px, 2.8vw, 38px) !important; }
+.ca-nsumcol .nsc-total b { font-size: var(--an-num) !important; }
 .ca-nsumcol .nsc-total i { font-size: 14px; }
-.ca-nsumcol .nsc-side b { font-size: clamp(24px, 2.4vw, 32px) !important; }
+.ca-nsumcol .nsc-side b { font-size: var(--an-mid) !important; }
 .ca-nsumcol .nsc-side span { margin-top: 3px; font-size: 13px; }
 
 /* 이 칸이 무엇을 말하는지 한 줄로 밝힌다 — 숫자만 크게 띄우면 무슨 수치인지 모른다 */
@@ -1884,3 +1886,21 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .ig-sb u { text-decoration: none; font-weight: 700; color: var(--muted); font-size: 11px; }
 /* 표본이 적어 비율 대신 건수만 적는 줄 — 막대가 없으니 위 여백을 스스로 갖는다 */
 .cx-vs.thin { margin-top: 10px; }
+
+/* ── 현장 액션 목록 (채널 화면 공용, 2026-08-24) ──
+   사용자 지시: "분석된 페이지는 인사이트가 있어야해. 삼성스토어에서 참고할
+   만한 내용이 있어야 해." 지표 읽는 법이 아니라 내일 무엇을 다르게 할지를 적는 자리. */
+.yt-act { list-style: none; margin: 0; padding: 0; }
+.yt-act li { position: relative; padding: 6px 0 6px 15px; font-size: 12.6px;
+  line-height: 1.55; font-weight: 600; color: var(--muted); word-break: keep-all;
+  border-bottom: 1px dashed var(--line); }
+.yt-act li:last-child { border-bottom: 0; }
+.yt-act li::before { content: ""; position: absolute; left: 3px; top: 13px;
+  width: 5px; height: 5px; border-radius: 50%; background: #1f5fd0; }
+.yt-act li.warn-li::before { background: #d23b54; }
+.yt-act li b { color: var(--text); font-weight: 800; }
+.yt-act li.warn-li b { color: #b02a41; }
+/* 매장 요약 안 인사이트 — 좌측 칸이 좁아 글자를 한 단계 낮춘다 */
+.cx-act li { font-size: 11.8px; padding: 5px 0 5px 14px; }
+.cx-act li::before { top: 12px; }
+.cx-chip.warn { color: #b02a41; border-color: rgba(210,59,84,.35); background: rgba(210,59,84,.06); }

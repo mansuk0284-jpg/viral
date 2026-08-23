@@ -277,17 +277,70 @@
       `<span class="nr-vsx">vs</span>` +
       `<span class="nr-vsc op"><em data-fit="13,10">${V.name}</em><b>${fmtN(V.total)}</b></span>` +
       `</div>`;
+    /* ── 진단 문장 ─────────────────────────────────────────────────
+       사용자 지시(2026-08-24): "분석된 페이지는 인사이트가 있어야해.
+       사전적 의미로만 참고할 내용 등으로 단락을 만들지는 마."
+
+       여기 있던 문장은 "리뷰 수는 방문 고객이 남긴 흔적의 양입니다" 였다.
+       지표의 사전적 정의라서 **이기든 지든 같은 문장**이 나왔다 —
+       이 매장 고유의 정보가 0이었다.
+
+       화면이 이미 갖고 있는 값(칭찬 키워드·예약 비율·매니저 실명)을
+       상대와 맞대어 "그래서 무엇을 하라"까지 잇는다.
+       후기는 고객이 쓴다 — 매니저가 할 수 있는 일은 요청뿐이다(CLAUDE.md). */
+    const why = [];
+    const gap = Math.abs(S.total - V.total);
+
+    // ① 격차를 '한 달에 몇 건'으로 환산 — 막연한 배수보다 손에 잡힌다
+    if (!win && gap > 0) {
+      const perMo = Math.ceil(gap / 12);
+      /* 격차가 크면 '따라잡기'를 목표로 걸지 않는다.
+         월 601건 같은 수는 사실이지만 실행할 수 없는 수라서, 적어두면
+         액션이 아니라 포기 사유가 된다. 누적을 못 뒤집을 때는
+         **새로 쌓이는 속도**를 목표로 바꾼다. */
+      if (perMo > 60) {
+        why.push(`<li class="warn-li">누적 격차 <b>${fmtN(gap)}건</b>은 단기간에 뒤집히지 않습니다.` +
+          ` 누적 대신 <b>이번 달 새로 쌓인 건수</b>에서 앞서는 것을 목표로 삼으세요 —` +
+          ` 구매 고객에게 <b>후기 작성을 요청</b>하는 것이 유일한 방법입니다.</li>`);
+      } else {
+        why.push(`<li class="warn-li">격차 <b>${fmtN(gap)}건</b> — 1년 안에 따라잡으려면` +
+          ` <b>월 ${fmtN(perMo)}건</b>씩 더 쌓여야 합니다.` +
+          ` 구매 고객에게 <b>후기 작성을 요청</b>하세요.</li>`);
+      }
+    } else if (win && gap > 0) {
+      why.push(`<li><b>${fmtN(gap)}건</b> 앞섭니다 — 이 격차는` +
+        ` <b>검색에서 먼저 보이는 자리</b>로 돌아옵니다. 요청 습관을 놓치면 곧 줄어듭니다.</li>`);
+    }
+
+    // ② 상대는 받는데 우리는 없는 칭찬 — 상담에서 메울 지점
+    const mine = new Set((S.keywords || []).map((k) => k.k));
+    const only = (V.keywords || []).filter((k) => !mine.has(k.k)).slice(0, 2);
+    if (only.length) {
+      why.push(`<li class="warn-li">상대는 <b>${only.map((k) => k.k).join(" · ")}</b>로` +
+        ` 칭찬받는데 우리 매장엔 이 키워드가 없습니다 —` +
+        ` <b>상담에서 그 대목이 비어 있다</b>는 뜻입니다.</li>`);
+    } else if ((S.keywords || []).length) {
+      why.push(`<li>우리 칭찬 키워드는 <b>${S.keywords.slice(0, 2).map((k) => k.k).join(" · ")}</b>입니다 —` +
+        ` 이 강점을 <b>상담 첫머리</b>에 쓰세요.</li>`);
+    }
+
+    // ③ 매니저 실명 — 다음 고객이 찾아오는 단서
+    const mgTop = A.top("mgr");
+    if (mgTop.length) {
+      why.push(`<li>후기에 <b>${mgTop[0][0]}</b> 등 담당자 이름이 남아 있습니다.` +
+        ` 이름이 적힌 후기는 <b>지목 방문</b>을 부릅니다 —` +
+        ` 상담을 마칠 때 이름을 넣어 남겨달라고 요청하세요.</li>`);
+    } else {
+      why.push(`<li class="warn-li">후기에 <b>담당자 이름이 없습니다</b>.` +
+        ` 이름이 없으면 후기가 매장 평판에만 쌓이고` +
+        ` <b>지목 방문</b>으로 이어지지 않습니다.</li>`);
+    }
+
     const verdict = win
       ? { cls: "ok", t: `리뷰에서 ${ratio}배 앞섭니다`,
-          d: scoreRow + `<ul class="nr-why">` +
-             `<li>리뷰 수는 방문 고객이 남긴 <b>흔적의 양</b>입니다.</li>` +
-             `<li>이 우위가 곧 <b>온라인에서 보이는 매장 활성도</b>입니다.</li>` +
-             `</ul>` }
+          d: scoreRow + `<ul class="nr-why">${why.join("")}</ul>` }
       : { cls: "bad", t: `리뷰에서 ${ratio}배 밀립니다`,
-          d: scoreRow + `<ul class="nr-why">` +
-             `<li>리뷰 수는 방문 고객이 남긴 <b>흔적의 양</b>입니다.</li>` +
-             `<li>이 격차가 곧 <b>온라인에서 보이는 매장 활성도의 격차</b>입니다.</li>` +
-             `</ul>` };
+          d: scoreRow + `<ul class="nr-why">${why.join("")}</ul>` };
     const cmpRow = (lab, a, b) => {
       const t = (a || 0) + (b || 0), w = t ? (a / t * 100) : 50;
       return `<div class="nr-cmp"><span class="nr-cl">${lab}</span>` +
