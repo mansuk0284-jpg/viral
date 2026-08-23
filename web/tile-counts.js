@@ -46,18 +46,40 @@
 
     setTile(document.querySelector(".src-lead.src-cafe"), cafe);
 
-    // 리뷰 타일은 '몇 개 매장에서 몇 건' 이 더 정확한 설명이다
+    /* 네이버 리뷰 타일은 이 줄에서 뺐다(2026-08-24) — 방문자 평가는 혼수 후기가 아니다.
+       매장 대시보드에 그대로 있으므로 데이터는 계속 쓴다.
+       혹시 타일이 다시 생기면 이 줄이 채워 준다. */
     const N = window.NAVER_REVIEW;
     const stores = N && N.stores ? Object.keys(N.stores).length : null;
     setTile(document.querySelector('[data-channel="naver-review"]'), rev,
       stores ? stores + "개 매장 " + (rev || 0).toLocaleString("ko-KR") + "건" : null);
 
-    // 히어로의 '누적 N건 센싱' — 채널 건수의 합이라야 타일과 앞뒤가 맞는다
+    // 제이웨딩 — 혼수 채널이므로 이 줄에 든다
+    const J = window.JWEDDING;
+    if (J) setTile(document.querySelector('[data-channel="jwedding"]'), J.total);
+
+    /* 히어로의 '누적 N건 센싱' — **이 줄에 있는 타일의 합**이다.
+       네이버 리뷰를 뺀 뒤로는 혼수 채널만 세므로, 방문자 평가가 섞이지 않는다. */
     const tiles = document.querySelectorAll(".source-mosaic .src[data-count]");
     let sum = 0;
     tiles.forEach((f) => { sum += parseInt(f.getAttribute("data-count"), 10) || 0; });
     const hs = document.querySelector(".hs-num[data-count-to]");
     if (hs && sum > 0) { hs.setAttribute("data-count-to", String(sum)); hs.textContent = "0"; }
+
+    /* 값을 갈아 끼웠으면 카운트업을 다시 돌린다.
+       안 돌리면 방금 "0" 으로 만든 자리가 그대로 남는다(실측: 84,419 인데 화면엔 0). */
+    if (typeof window.VCOUNTUP === "function") {
+      try { window.VCOUNTUP(); } catch (e) { /* 애니메이션 실패해도 값은 아래에서 채운다 */ }
+    }
+    // 애니메이션이 어떤 이유로든 안 돌면 최종값이라도 보이게 한다
+    setTimeout(function () {
+      document.querySelectorAll("[data-count-to]").forEach(function (n) {
+        const want = parseInt(n.getAttribute("data-count-to"), 10) || 0;
+        if (want > 0 && n.textContent.trim() === "0") {
+          n.textContent = want.toLocaleString("ko-KR");
+        }
+      });
+    }, 2600);
   }
 
   // 데이터 스크립트보다 뒤에 실려야 한다. 혹시 앞서 실리더라도 DOM 준비 뒤 한 번 더.

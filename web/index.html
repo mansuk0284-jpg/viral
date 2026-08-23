@@ -12,17 +12,17 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r237" />
-  <link rel="stylesheet" href="cafe-analysis.css?v=2026r237" />
-  <link rel="stylesheet" href="affiliate-view.css?v=2026r237" />
-  <link rel="stylesheet" href="naver-review.css?v=2026r237" />
-  <link rel="stylesheet" href="compete-hint.css?v=2026r237" />
-  <link rel="stylesheet" href="nav.css?v=2026r237" />
+  <link rel="stylesheet" href="styles.css?v=2026r240" />
+  <link rel="stylesheet" href="cafe-analysis.css?v=2026r240" />
+  <link rel="stylesheet" href="affiliate-view.css?v=2026r240" />
+  <link rel="stylesheet" href="naver-review.css?v=2026r240" />
+  <link rel="stylesheet" href="compete-hint.css?v=2026r240" />
+  <link rel="stylesheet" href="nav.css?v=2026r240" />
   <!-- 글자 갈라짐 방지 공용 규칙. 화면별 CSS 뒤에 와야 이긴다 -->
-  <link rel="stylesheet" href="text-fit.css?v=2026r237">
+  <link rel="stylesheet" href="text-fit.css?v=2026r240">
   <!-- 분석 화면 공용 뼈대 — 매장별·채널별이 같은 옷을 입는다.
        화면별 CSS 뒤에 와야 이긴다 -->
-  <link rel="stylesheet" href="analysis-ui.css?v=2026r237">
+  <link rel="stylesheet" href="analysis-ui.css?v=2026r240">
 </head>
 <body>
   <!-- 결과 화면 전용 플로팅 복귀 버튼 (헤더 제거 후 대체) -->
@@ -60,7 +60,7 @@
           <div class="grp grp-left" id="grpLeft" hidden>
             <p class="grp-eyebrow">Channel</p>
             <h2 class="grp-title">혼수 기반 바이럴 채널</h2>
-            <p class="grp-sub">웨딩카페·블로그·SNS에서 오가는 가전 구매후기</p>
+            <p class="grp-sub">혼수 준비 중에 오가는 가전 이야기 — 웨딩카페가 본류, SNS·영상은 넓은 채널에서 혼수가전만 골라 봅니다</p>
           </div>
           <div class="hero-stage stage-left" id="stageLeft" hidden></div>
         </div>
@@ -150,15 +150,10 @@
               <figcaption><b>네이버 블로그</b><small>구매 후기글</small></figcaption>
               <span class="src-count"><i data-count-to="19">0</i><em>건</em></span>
             </figure>
-                        <!-- 네이버 리뷰·예약 (플레이스) — 매장 방문 고객의 평가. 실데이터 -->
-            <figure class="src src-nrev" data-channel="naver-review" data-go="results-nr" data-count="8348" data-unit="건" title="네이버 리뷰·예약 분석 보기 · 56개 매장 8,348건">
-              <span class="src-ping" aria-hidden="true"></span>
-              <span class="src-ic">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.6l2.6 5.7 6.2.7-4.6 4.2 1.3 6.1L12 16.2l-5.5 3.1 1.3-6.1L3.2 9l6.2-.7L12 2.6Z" fill="#fff"/></svg>
-              </span>
-              <figcaption><b>네이버 리뷰·예약</b><small>플레이스 방문 평가</small></figcaption>
-              <span class="src-count"><i data-count-to="8348">0</i><em>건</em></span>
-            </figure>
+                        <!-- 네이버 리뷰 타일은 여기서 뺐다(2026-08-24 사용자 지적).
+                 "네이버 리뷰는 혼수기반 바이럴이 아니야. 네이버 리뷰는 매장별 현황에서
+                  각 매장의 네이버 리뷰를 살펴보는 거야."
+                 방문자 평가는 혼수 후기와 성격이 다르다 — 매장 대시보드에 그대로 있다. -->
             <!-- 맘카페 (카카오 다음) -->
             <figure class="src src-mom" data-channel="busan-mom-cafe" data-go="https://www.google.com/search?q=맘카페 혼수가전 후기" data-count="4" data-unit="건" title="부울경 맘카페 채널 내부 분석 보기 · 센싱 4건">
               <span class="src-ping" aria-hidden="true"></span>
@@ -174,7 +169,7 @@
               <span class="src-ic">
                 <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3.5" fill="#fff"/><path d="M10.5 9.2 15 12l-4.5 2.8V9.2Z" fill="#FF0000"/></svg>
               </span>
-              <figcaption><b>유튜브</b><small>혼수 브이로그</small></figcaption>
+              <figcaption><b>유튜브</b><small>넓은 채널 · 혼수가전 찾기</small></figcaption>
               <span class="src-count"><i data-count-to="1">0</i><em>건</em></span>
             </figure>
             <!-- 오늘의집 -->
@@ -183,7 +178,7 @@
               <span class="src-ic">
                 <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 4 10v9.5h5.5V14h5v5.5H20V10l-8-6.5Z" fill="#fff"/></svg>
               </span>
-              <figcaption><b>오늘의집</b><small>인테리어 앱</small></figcaption>
+              <figcaption><b>오늘의집</b><small>넓은 채널 · 혼수가전 찾기</small></figcaption>
               <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
             </figure>
             <!-- 인스타그램 -->
@@ -192,7 +187,7 @@
               <span class="src-ic">
                 <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="5" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.6" stroke="#fff" stroke-width="2"/><circle cx="16.6" cy="7.4" r="1.1" fill="#fff"/></svg>
               </span>
-              <figcaption><b>인스타그램</b><small>해시태그 후기</small></figcaption>
+              <figcaption><b>인스타그램</b><small>넓은 채널 · 혼수가전 찾기</small></figcaption>
               <span class="src-count"><i data-count-to="0">0</i><em>건</em></span>
             </figure>
           </div>
@@ -222,31 +217,31 @@
     </div>
   </footer>
 
-  <script src="app.js?v=2026r237"></script>
-  <script src="assets/korea-sido.js?v=2026r237"></script>
-  <script src="assets/cafe-data.js?v=2026r237"></script>
-  <script src="assets/cafes-data.js?v=2026r237"></script>
-  <script src="fact.js?v=2026r237"></script>
-  <script src="assets/affiliate-insight.js?v=2026r237"></script>
-  <script src="nav.js?v=2026r237"></script>
+  <script src="app.js?v=2026r240"></script>
+  <script src="assets/korea-sido.js?v=2026r240"></script>
+  <script src="assets/cafe-data.js?v=2026r240"></script>
+  <script src="assets/cafes-data.js?v=2026r240"></script>
+  <script src="fact.js?v=2026r240"></script>
+  <script src="assets/affiliate-insight.js?v=2026r240"></script>
+  <script src="nav.js?v=2026r240"></script>
   <!-- 기간 선택 공용 모듈 — 어느 분석 페이지에서도 같은 것을 쓴다 -->
-  <script src="period.js?v=2026r237"></script>
+  <script src="period.js?v=2026r240"></script>
   <!-- 이름을 줄이지 않고 전부 보여준다(말줄임 대신 글자 축소) -->
-  <script src="text-fit.js?v=2026r237"></script>
-  <script src="cafe-world.js?v=2026r237"></script>
-  <script src="assets/compete-data.js?v=2026r237"></script>
-  <script src="assets/compete-link.js?v=2026r237"></script>
-  <script src="assets/naver-review.js?v=2026r237"></script>
-  <script src="assets/jwedding.js?v=2026r237"></script>
-  <script src="affiliate-view.js?v=2026r237"></script>
-  <script src="naver-review-view.js?v=2026r237"></script>
-  <script src="cafe-analysis.js?v=2026r237"></script>
-  <script src="store-scope.js?v=2026r237"></script>
-  <script src="jwedding-view.js?v=2026r237"></script>
-  <script src="compete-hint.js?v=2026r237"></script>
+  <script src="text-fit.js?v=2026r240"></script>
+  <script src="cafe-world.js?v=2026r240"></script>
+  <script src="assets/compete-data.js?v=2026r240"></script>
+  <script src="assets/compete-link.js?v=2026r240"></script>
+  <script src="assets/naver-review.js?v=2026r240"></script>
+  <script src="assets/jwedding.js?v=2026r240"></script>
+  <script src="affiliate-view.js?v=2026r240"></script>
+  <script src="naver-review-view.js?v=2026r240"></script>
+  <script src="cafe-analysis.js?v=2026r240"></script>
+  <script src="store-scope.js?v=2026r240"></script>
+  <script src="jwedding-view.js?v=2026r240"></script>
+  <script src="compete-hint.js?v=2026r240"></script>
   <!-- 타일 건수를 데이터에서 채운다(하드코딩 금지).
        반드시 cafe-data.js / naver-review.js **뒤에** 와야 값을 읽을 수 있다. -->
-  <script src="tile-counts.js?v=2026r237"></script>
+  <script src="tile-counts.js?v=2026r240"></script>
   <!-- 소스 타일: 크기=센싱 건수 비례 + 살아있는 클러스터 연출 + 클릭 이동 -->
   <script>
     (function () {
@@ -660,6 +655,9 @@
         });
         if (hsNum) setTimeout(function () { countUp(hsNum, 1600); }, 240);
       }
+      /* 타일 숫자를 데이터로 갈아 끼우는 tile-counts.js 가 이걸 다시 부른다.
+         값만 바꾸고 애니메이션을 안 돌리면 화면에 0 이 남는다(실측). */
+      window.VCOUNTUP = runCountUp;
       if (document.hidden) {
         // 백그라운드 탭: rAF 정지 → 최종값 표기, 보일 때 1회 애니메이션
         allNums.forEach(setFinal);
