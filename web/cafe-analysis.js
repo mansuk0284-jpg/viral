@@ -606,26 +606,59 @@
         });
       });
     }
-    const has = Object.keys(seen).filter((k) => seen[k].s + seen[k].l > 0);
-    const win = has.filter((k) => seen[k].s > seen[k].l).length;
-    const tie = has.filter((k) => seen[k].s === seen[k].l).length;
-    if (!has.length) return "";
-    const pct0 = Math.round(win / has.length * 100);
 
-    /* 분모를 조심해야 한다. 후기가 없는 매장은 이기고 지고를 말할 수 없으므로
-       '이 기간 후기가 있는 매장' 이 분모다. 그런데 그것만 적으면 8월처럼 표본이 얇을 때
-       "11개점이 전부인가" 로 읽힌다. 그래서 **명부 전체(양사 입점 71곳)를 함께** 밝힌다.
-       명부는 data/백화점 리스트.xlsx 가 정본이다. */
+    /* ── 비교 가능한 매장만 센다 ─────────────────────────────────────
+       예전엔 후기가 하나라도 있으면 분모에 넣어 **8월이 37/37 = 100% 우위**로 나왔다.
+       LG 가 이기는 매장이 하나도 없다는 뜻처럼 보이지만 사실이 아니다.
+
+       실측(2026-08 원자료): 매장이 특정된 후기가 삼성 251건 / LG 3건.
+       삼성 후기는 45% 가 백화점 지점을 적는데 LG 후기는 5% 도 안 적는다
+       ("LG 디오스 오브제컬렉션 …" 처럼 제품명 위주로 쓴다).
+       한쪽 표본만 있는 매장을 '우위'로 세면 **표본 편향을 성적표로 둔갑**시키는 셈이다.
+
+       그래서 삼성·LG **양쪽 후기가 모두 있는 매장**만 우위/열세를 가린다.
+       그것이 '비교 가능'의 정의다. */
+    /* 분모는 **명부(양사 입점 71곳)** 안에서 센다. 집계에는 한쪽만 입점한 백화점
+       (롯데 광주·신세계 시흥 등)도 들어와 74곳이 되어 명부를 넘었다(실측).
+       명부 이름과 대시보드 표기가 달라(롯데 부산본점 ↔ 롯데부산) 같은 방식으로 정규화한다. */
+    const nrm0 = (t) => String(t || "").replace(/\s+/g, "")
+      .replace("더현대", "현대").replace("갤러리아", "갤");
+    const rosterSet = (window.COMPETE && window.COMPETE.stores)
+      ? new Set(window.COMPETE.stores.map((x) => nrm0(x.key || x.name))) : null;
+
+    const names = Object.keys(seen).filter((k) => !rosterSet || rosterSet.has(nrm0(k)));
+    const both = names.filter((k) => seen[k].s > 0 && seen[k].l > 0);
+    const oneSide = names.filter((k) => (seen[k].s > 0) !== (seen[k].l > 0));
+    if (!both.length) {
+      return `<div class="nsc-win none">` +
+        `<b>-</b><i>비교 가능 매장 없음</i>` +
+        `<span class="nw-sub">이 기간에는 삼성·LG 후기가 <b>모두 있는</b> 매장이 없습니다` +
+        (oneSide.length ? ` · 한쪽만 있는 매장 ${oneSide.length}곳` : "") +
+        ` — 기간을 넓혀 보세요.</span></div>`;
+    }
+    const win = both.filter((k) => seen[k].s > seen[k].l).length;
+    const tie = both.filter((k) => seen[k].s === seen[k].l).length;
+    const pct0 = Math.round(win / both.length * 100);
+    /* 비교 가능 매장이 손에 꼽을 정도면 백분율이 과장으로 읽힌다.
+       실측: 8월은 2곳뿐인데 "100%" 로 떠서 전 매장을 이긴 것처럼 보였다. */
+    const thin = both.length < 5;
+
+    /* 명부(양사 입점 71곳)를 함께 밝힌다 — 분모만 적으면 "이게 전부인가" 로 읽힌다.
+       명부 이름과 대시보드 표기가 달라(롯데 부산본점 ↔ 롯데부산) 같은 방식으로 정규화한다. */
+    const nrm = (t) => String(t || "").replace(/\s+/g, "")
+      .replace("더현대", "현대").replace("갤러리아", "갤");
     const roster = (window.COMPETE && window.COMPETE.stores)
       ? window.COMPETE.stores.length : null;
 
-    return `<div class="nsc-win${pct0 >= 50 ? " up" : ""}">` +
-      `<b>${win}</b><i>/${has.length}개점 우위</i>` +
-      `<span class="nw-p">${pct0}%</span>` +
+    return `<div class="nsc-win${thin ? " thin" : (pct0 >= 50 ? " up" : "")}">` +
+      `<b>${win}</b><i>/${both.length}개점 우위</i>` +
+      (thin ? `<span class="nw-p warn">표본 적음</span>` : `<span class="nw-p">${pct0}%</span>`) +
       `<span class="nw-sub">` +
-      (roster ? `양사 입점 <b>${roster}곳</b> 중 이 기간 후기가 있는 <b>${has.length}곳</b> 기준` +
-                (tie ? ` · 동률 ${tie}곳` : "")
-              : (tie ? `동률 ${tie}곳 · ` : "") + `표본 있는 매장 기준`) +
+      (roster ? `양사 입점 <b>${roster}곳</b> 중 ` : "") +
+      `이 기간 삼성·LG 후기가 <b>모두 있는 ${both.length}곳</b>만 비교했습니다` +
+      (tie ? ` · 동률 ${tie}곳` : "") +
+      (oneSide.length ? ` · 한쪽 후기만 있는 ${oneSide.length}곳 제외` : "") +
+      (thin ? ` — 비교 대상이 적어 비율은 참고만 하세요` : "") +
       `</span></div>`;
   }
 

@@ -1633,3 +1633,14 @@ body.view-cafe .rv-third .it-n { font-size: 13px; }
 .nsc-what { margin: -4px 0 0; font-size: 11.5px; line-height: 1.5; font-weight: 600;
   color: var(--muted); word-break: keep-all; }
 .nsc-what b { color: var(--text); font-weight: 800; }
+
+
+/* 비교 가능한 매장이 없을 때 — 숫자를 지어내지 않고 그렇다고 말한다 */
+.nsc-win.none { border-color: rgba(23,42,66,0.14); background: rgba(23,42,66,0.03); }
+.nsc-win.none > b { color: var(--muted); }
+.nsc-win.none > i { color: var(--muted); font-weight: 700; }
+
+/* 비교 대상이 적을 때 — 비율을 강조하지 않는다 */
+.nsc-win.thin { border-color: rgba(245,158,11,0.34); background: rgba(245,158,11,0.05); }
+.nsc-win.thin > b { color: #b45309; }
+.nw-p.warn { background: rgba(245,158,11,.16); color: #b45309; }

@@ -60,7 +60,8 @@ body.view-cafe .fc-mini span, body.view-cafe .fc-mini > span { font-size: 12px; 
 .rv-act b, .rv-act .warn, .sv-action b, .sv-action .warn,
 .ca-note b, .fc-note b, .cxc-tip b, .mgr-tip b,
 .pf-sum b, .pf-sum .warn, .rv-dtext b, .sv-verdict b,
-.nr-wrap li > b, .nr-why b, .sc-tip b, .mgr-nat b { white-space: nowrap; }
+.nr-wrap li > b, .nr-why b, .sc-tip b, .mgr-nat b,
+.nw-sub b, .nsc-what b { white-space: nowrap; }
 
 /* 8) 제휴카페 모자이크의 '상위로' 헤드 타일 ------------------------------
    타일 크기가 회원수에 비례하는데 헤드 타일은 회원수가 없어 17px 로 쪼그라들었고,
