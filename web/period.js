@@ -121,6 +121,9 @@
       html: html, bind: bind, range: range, label: label,
       period: () => (st.range ? null : st.period),
       setRange(a, b) { st.range = (a && b) ? [a, b] : null; fire(); },
+      /* 표본이 작은 채널은 전체 기간으로 여는 게 맞다 — 현재 월로 열면
+         "이게 다인가" 로 읽힌다. 처음 그리기 전에 부르므로 onChange 는 쏘지 않는다. */
+      setAll() { st.period = "all"; st.range = null; },
       state: st,
     };
     return api;

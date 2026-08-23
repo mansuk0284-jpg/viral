@@ -45,6 +45,8 @@
   const CHANNELS = [
     { key: "dagyeolun", name: "다이렉트결혼준비", sub: "네이버 카페 · 메인", cls: "cx-cafe", live: true },
     { key: "naver-review", name: "네이버 리뷰·예약", sub: "플레이스 방문자 평가", cls: "cx-nrev", live: true },
+    // 채널별 현황과 **같은 자료**를 매장 축으로 본 것이다(사용자 지시 2026-08-23)
+    { key: "jwedding", name: "제이웨딩", sub: "칭찬 · 혼수 선택이유", cls: "cx-jwed", live: true },
     { key: "naver-blog", name: "네이버 블로그", sub: "구매 후기글", cls: "cx-blog" },
     { key: "busan-mom-cafe", name: "맘카페", sub: "지역 커뮤니티", cls: "cx-mom" },
     { key: "youtube", name: "유튜브", sub: "혼수 브이로그", cls: "cx-youtube" },
@@ -175,8 +177,37 @@
   }
 
   /* ── 채널 카드 ── */
+  /* 제이웨딩 — 채널 화면과 같은 자료를 이 매장 것만 잘라 본다.
+     두 화면이 어긋나면 안 되므로 window.JWEDDING 한 곳에서만 읽는다. */
+  function jwCard(ch, name) {
+    const J = window.JWEDDING;
+    const v = J && J.stores ? (J.stores[name] || pick(J.stores, name)) : null;
+    const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
+      `<i class="cx-live-tag">실데이터</i></div>`;
+    if (!v || !(v.s + v.l)) {
+      return `<div class="cx-card ${ch.cls}">${head}` +
+        `<div class="cx-empty"><em>표본 없음</em><span>이 채널에는 이 매장 글이 없습니다</span></div></div>`;
+    }
+    const tot = v.s + v.l, sh = pct(v.s, v.l);
+    const lead = v.s > v.l ? "s" : v.l > v.s ? "l" : "even";
+    const star = (v.mgr || [])[0];
+    return `<div class="cx-card cx-live ${ch.cls}">${head}` +
+      `<div class="cx-main">` +
+      `<div class="cx-big"><b>${fmtN(tot)}</b><span>건</span></div>` +
+      `<div class="cx-mini ${lead}"><b>${sh}%</b><span>삼성 비중</span></div>` +
+      `</div>` +
+      `<div class="cx-bar"><i class="s" style="width:${(v.s / tot * 100).toFixed(1)}%"></i>` +
+      `<i class="l" style="width:${(v.l / tot * 100).toFixed(1)}%"></i></div>` +
+      (star ? `<div class="cx-sub"><span class="cx-lb">이름이 적힌 담당자</span>` +
+        `<span class="cx-chip star">${star.n} ${fmtN(star.c)}건</span></div>` : "") +
+      (v.last ? `<div class="cx-sub"><span class="cx-lb">최신 글</span>` +
+        `<span class="cx-chip">${v.last}</span></div>` : "") +
+      `</div>`;
+  }
+
   function channelCard(ch, name) {
     if (ch.key === "naver-review") return nrCard(ch, name);
+    if (ch.key === "jwedding") return jwCard(ch, name);
     if (!ch.live) {
       return `<div class="cx-card cx-wait ${ch.cls}">` +
         `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +
