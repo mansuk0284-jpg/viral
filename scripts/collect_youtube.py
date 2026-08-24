@@ -57,6 +57,28 @@ QUERIES = [
     "워시타워 후기", "그랑데AI 후기", "트롬 건조기 후기",
 ]
 
+# 성능·리뷰·비교 검색어 (2026-08-26 추가)
+#   사용자 지시: "가전제품 설명·성능 부분의 데이터도 수집하자.
+#                제품 성능과 관련한 전문 유튜버들의 영상 카테고리를 추가해도 좋고"
+#
+# 이 검색어들은 혼수 낱말이 없어도 된다 — 상담에서 고객이 보는 성능·비교
+# 콘텐츠 자체가 신호다. 그래서 keep 필터에서 WEDDING 을 면제한다(가전 신호는 필수).
+# 검색어마다 반드시 가전 낱말·제품명을 넣는다(넓은 말만 쓰면 무관 영상이 끌려온다).
+PERF_QUERIES = [
+    # 품목 성능 비교
+    "TV 비교 리뷰", "냉장고 성능 비교", "세탁기 건조기 비교",
+    "에어컨 성능 리뷰", "청소기 흡입력 비교", "식기세척기 성능 리뷰",
+    # 삼성 vs LG 정면 비교 — 상담에서 가장 많이 받는 질문
+    "삼성 LG TV 비교", "삼성 LG 세탁기 비교", "삼성 LG 냉장고 비교",
+    "비스포크 오브제 비교", "OLED QLED 비교",
+    # 전문 리뷰 채널·전문 리뷰 성격
+    "가전 리뷰", "가전 장단점", "가전 솔직 리뷰",
+    "잇섭 가전", "노써치 가전",
+    # 신모델 반응
+    "2026 TV 추천", "2026 냉장고 신제품",
+    "삼성 신제품 가전", "LG 신제품 가전",
+]
+
 APPLIANCE = re.compile(
     r"가전|냉장고|세탁기|건조기|에어컨|김치냉장고|스타일러|식기세척기|식세기|"
     r"청소기|TV|티비|공기청정기|정수기|인덕션|전자레인지|워시타워|비스포크|오브제|"
@@ -103,7 +125,7 @@ def scrape(pages):
     with sync_playwright() as p:
         ctx = launch(p, True)
         pg = ctx.new_page()
-        for q in QUERIES:
+        for q in QUERIES + PERF_QUERIES:
             try:
                 safe_goto(pg, "https://www.youtube.com/results?search_query=" + q)
                 pg.wait_for_timeout(3200)
@@ -145,16 +167,23 @@ def scrape(pages):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pages", type=int, default=2, help="검색어마다 스크롤 횟수")
+    ap.add_argument("--out", default="", help="산출 경로(기본: artifacts/{오늘}-channel-youtube.json)")
     a = ap.parse_args()
 
     rows = scrape(a.pages)
     print(f"\n긁은 영상 {len(rows):,}개", flush=True)
 
+    perf_set = set(PERF_QUERIES)
     keep = []
     for r in rows:
         txt = (r.get("t") or "") + " " + (r.get("desc") or "")
-        # 넓은 채널에서 **혼수가전만** 골라낸다 — 가전 신호 + 혼수 맥락이 함께 있어야
-        if not (APPLIANCE.search(txt) and WEDDING.search(txt)):
+        # 가전 신호는 어느 검색어로 왔든 필수 — 게임·먹방 등 무관 영상 차단
+        if not APPLIANCE.search(txt):
+            continue
+        from_perf = any(q in perf_set for q in r.get("q", []))
+        # 혼수 검색어로만 온 영상은 종전대로 혼수 맥락(WEDDING)까지 요구.
+        # 성능·리뷰 검색어(PERF_QUERIES)로 온 영상은 혼수 낱말 면제(2026-08-26).
+        if not from_perf and not WEDDING.search(txt):
             continue
         s, l = bool(SAM.search(txt)), bool(LG.search(txt))
         keep.append({
@@ -169,7 +198,7 @@ def main():
     keep.sort(key=lambda x: -x["views"])
 
     stamp = datetime.now().strftime("%Y%m%d")
-    dst = os.path.join(ROOT, "artifacts", f"{stamp}-channel-youtube.json")
+    dst = a.out or os.path.join(ROOT, "artifacts", f"{stamp}-channel-youtube.json")
     io.open(dst, "w", encoding="utf-8").write(
         json.dumps(keep, ensure_ascii=False, separators=(",", ":")))
 

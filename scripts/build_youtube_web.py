@@ -79,6 +79,27 @@ def owner_of(channel):
     return ""            # 일반 창작자
 
 
+# 성능·리뷰 전문 영상 (2026-08-26 사용자 지시: "가전제품 설명이나 가전 성능 등
+# 이러한 부분에 대한 데이터도 수집하자 … 제품성능과 관련한 전문유투버들의
+# 영상 카테고리를 하나 추가해도 좋고")
+# ①전문 리뷰 채널 이름 ②제목의 성능·비교 어휘 — 둘 중 하나면 spec 으로 분류.
+SPEC_CHANNEL = re.compile(r"잇섭|ITSub|리뷰머신|노써치|ITGEAR|잇기어|디에디트|"
+                          r"방구석리뷰|뻘짓연구소|가전주부|테크몽|UNDERkg", re.I)
+SPEC_TITLE = re.compile(r"리뷰|비교|성능|테스트|장단점|솔직|벤치|화질|흡입력|"
+                        r"소음|가성비|전기세|전기요금|스펙|내구|실사용|vs|단점")
+
+
+def cat_of(x):
+    """spec = 성능·리뷰 전문 영상(공식 채널 제외 — 공식은 own 축에서 본다)."""
+    if owner_of(x.get("channel")):
+        return ""
+    if SPEC_CHANNEL.search(x.get("channel") or ""):
+        return "spec"
+    if SPEC_TITLE.search(x.get("title") or ""):
+        return "spec"
+    return ""
+
+
 def ym_of(ago):
     """개월 수 → 근사 월("2026-04").
 
@@ -172,7 +193,7 @@ def main():
         # 화면에서 기간(영상 나이)으로 걸러야 하므로 전량을 싣는다.
         # 54편이라 용량 부담이 없다.
         "vids": [{"id": x["id"], "t": x["title"][:52], "c": (x["channel"] or "")[:14],
-                  "own": owner_of(x["channel"]), "v": x["views"],
+                  "own": owner_of(x["channel"]), "cat": cat_of(x), "v": x["views"],
                   "w": x["when"], "ago": months_ago(x["when"]),
                   "ym": ym_of(months_ago(x["when"])),
                   "u": x["url"], "ad": x["ad"], "b": side(x),

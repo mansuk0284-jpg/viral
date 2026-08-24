@@ -12,6 +12,25 @@ description: "유튜브 혼수 브이로그·가전 리뷰 영상의 제목·설
 - `scripts/youtube_collect.py`가 search.list(영상)+commentThreads.list(상위 댓글)을 호출해 **제목+설명+댓글**을 합산 분석한다(naver_api_collect의 분류·매장매칭 재사용).
 - 키 `YOUTUBE_API_KEY`는 **사용자가 직접 setx로 등록**(코드 미입력). 미설정이면 수집기가 안내 후 중단.
 
+## 키 없이 도는 실경로 — `scripts/collect_youtube.py` (Playwright)
+
+`YOUTUBE_API_KEY` 가 없는 현재 환경의 **정본 경로**. 검색 결과 DOM에서
+제목·채널·조회수·게시시점을 읽어 `artifacts/YYYYMMDD-channel-youtube.json`
+({id,title,channel,views,when,url,samsung,lg,ad,queries})을 만든다.
+빌드(`build_youtube_web.py`)가 이 최신 파일을 집는다.
+
+```
+python scripts/collect_youtube.py --pages 2            # --out 로 산출 경로 지정 가능
+```
+
+검색어는 두 층(2026-08-26 확장, 26 → 46개):
+- `QUERIES` 26개 — 혼수×가전. keep 필터 = 가전 낱말 **그리고** 혼수 맥락(WEDDING).
+- `PERF_QUERIES` 20개 — 성능·비교·전문리뷰·신모델("삼성 LG TV 비교"·"잇섭 가전" 등,
+  사용자 지시: 제품 성능·전문 유튜버 카테고리 추가). 이 검색어로 온 영상은
+  **혼수 낱말 면제**(가전 낱말은 여전히 필수 — 무관 영상 차단).
+- 재수집분은 기존 산출물과 **id 로 중복 제거하며 병합**해 새 날짜 파일로 저장한다
+  (기존 영상의 조회수는 기존값 유지 — 지어내지 않는다, queries 만 union).
+
 ## 사용 도구
 - **`scripts/youtube_collect.py` (1순위, 정본 경로)**: Data API → 표준 산출물 자동 생성.
 - `WebSearch`/`WebFetch`: 키 미발급 시 폴백(영상 설명란·노출 댓글). 표본 빈약 명시.

@@ -542,3 +542,40 @@ body.view-nr .nr-note { padding-bottom: 12px; }
   font-variant-numeric: tabular-nums;
 }
 .ca2.yt-wrap .cx-sum-n b { letter-spacing: -0.035em; }
+
+/* 유튜브 좌측 — 트렌드 요약·바이럴 대비 블록(2026-08-26 재편) */
+.ca2.yt-wrap .yt-trend, .ca2.yt-wrap .yt-cmp {
+  border: 1px solid rgba(23,42,66,0.09); background: #f7f9fc;
+  border-radius: 12px; padding: 8px 11px 9px; margin: 8px 0 0; }
+.ca2.yt-wrap .yt-trend h4, .ca2.yt-wrap .yt-cmp h4 {
+  margin: 0 0 6px; font-size: 13px; font-weight: 900; color: var(--text);
+  letter-spacing: -0.015em; padding-bottom: 4px;
+  border-bottom: 1px dashed rgba(23,42,66,0.13); }
+.ca2.yt-wrap .yt-trend ul { margin: 0; padding: 0 0 0 2px; list-style: none;
+  display: flex; flex-direction: column; gap: 5px; }
+.ca2.yt-wrap .yt-trend li { font-size: 11.5px; line-height: 1.5; font-weight: 600;
+  color: var(--muted); word-break: keep-all; padding-left: 10px; position: relative; }
+.ca2.yt-wrap .yt-trend li::before { content: ""; position: absolute; left: 0; top: 7px;
+  width: 4px; height: 4px; border-radius: 50%; background: #1f5fd0; }
+.ca2.yt-wrap .yt-trend li b { color: #1f5fd0; }
+.ca2.yt-wrap .yc-row { display: grid; grid-template-columns: 62px 1fr; gap: 2px 8px;
+  align-items: center; margin-top: 6px; }
+.ca2.yt-wrap .yc-row em { grid-row: span 2; font-style: normal; font-size: 11px;
+  font-weight: 800; color: var(--text); word-break: keep-all; }
+.ca2.yt-wrap .yc-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden;
+  background: rgba(23,42,66,0.06); }
+.ca2.yt-wrap .yc-bar .s { background: #1f5fd0; } .ca2.yt-wrap .yc-bar .l { background: #d23b54; }
+.ca2.yt-wrap .yc-s, .ca2.yt-wrap .yc-l { font-size: 10.5px; font-weight: 700;
+  color: var(--muted); font-variant-numeric: tabular-nums; }
+.ca2.yt-wrap .yc-s { color: #1f5fd0; } .ca2.yt-wrap .yc-l { color: #d23b54; text-align: right; }
+.ca2.yt-wrap .yc-row { grid-template-areas: "lab s" "lab bar" "lab l"; grid-template-columns: 62px 1fr; }
+.ca2.yt-wrap .yc-row em { grid-area: lab; }
+.ca2.yt-wrap .yc-s { grid-area: s; } .ca2.yt-wrap .yc-bar { grid-area: bar; } .ca2.yt-wrap .yc-l { grid-area: l; }
+.ca2.yt-wrap .yt-cmp .yt-note { margin: 7px 0 0; }
+/* 순위 카드가 3장이 됐다(공식·유튜버·전문 리뷰, 2026-08-26) — 상단을 3열로 */
+@media (min-width: 1081px) {
+  .ca2.yt-wrap .cx-right { grid-template-columns: 1fr 1fr 1fr; }
+  .ca2.yt-wrap .cx-right > .yt-rep { grid-column: 1 / -1; }
+  /* 3열에선 썸네일을 반 단계 줄여야 제목 두 줄이 산다 */
+  .ca2.yt-wrap .ytc-thumb { width: 96px; }
+}
