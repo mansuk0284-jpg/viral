@@ -31,6 +31,32 @@ except Exception:
 from build_web_data import dept_store_of, ITEMS, ITEM_KEYS, STORE_EXCLUDE
 
 
+AGO = re.compile(r"(\d+)\s*(분|시간|일|주|개월|년)\s*전")
+
+
+def months_ago(when):
+    """'4개월 전' 같은 상대 표기를 개월 수로 바꾼다.
+
+    유튜브 목록은 업로드 **날짜를 주지 않는다** — 상대 표기뿐이다.
+    그래서 달력 월로는 못 자르고 '얼마나 오래된 영상인가'로만 자를 수 있다.
+    월 단위 기간 탭을 붙이면 없는 정밀도를 있는 것처럼 보이게 되므로
+    화면에서도 '최근 1년' 같은 나이 구간으로만 고른다.
+    """
+    m = AGO.search(when or "")
+    if not m:
+        return None
+    n, unit = int(m.group(1)), m.group(2)
+    if unit in ("분", "시간"):
+        return 0
+    if unit == "일":
+        return round(n / 30)
+    if unit == "주":
+        return round(n * 7 / 30)
+    if unit == "개월":
+        return n
+    return n * 12
+
+
 def load():
     fs = [f for f in os.listdir(os.path.join(ROOT, "artifacts"))
           if re.match(r"\d{8}-channel-youtube\.json$", f)]
@@ -98,9 +124,14 @@ def main():
         # 화면에 띄울 대표 영상 — 조회수 순, 광고 여부를 함께 싣는다
         # 채널명은 칸이 좁다(64px). "삼성전자 Samsung Korea" 같은 긴 이름은
         # 앞부분만 남긴다 — 어느 채널인지는 앞 몇 글자로 충분히 갈린다.
-        "top": [{"t": x["title"][:46], "c": (x["channel"] or "")[:9], "v": x["views"],
-                 "w": x["when"], "u": x["url"], "ad": x["ad"], "b": side(x)}
-                for x in rows[:12]],
+        # 화면에서 기간(영상 나이)으로 걸러야 하므로 전량을 싣는다.
+        # 54편이라 용량 부담이 없다.
+        "vids": [{"t": x["title"][:52], "c": (x["channel"] or "")[:12], "v": x["views"],
+                  "w": x["when"], "ago": months_ago(x["when"]),
+                  "u": x["url"], "ad": x["ad"], "b": side(x),
+                  "it": next((k for k in ITEM_KEYS
+                              if any(w in x["title"] for w in ITEMS[k])), "")}
+                 for x in rows],
     }
     out = os.path.join(ROOT, "web", "assets", "youtube.js")
     io.open(out, "w", encoding="utf-8").write(

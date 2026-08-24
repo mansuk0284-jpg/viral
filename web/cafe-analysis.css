@@ -1904,3 +1904,57 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
 .cx-act li { font-size: 11.8px; padding: 5px 0 5px 14px; }
 .cx-act li::before { top: 12px; }
 .cx-chip.warn { color: #b02a41; border-color: rgba(210,59,84,.35); background: rgba(210,59,84,.06); }
+
+/* ── 유튜브: 기간 칩 · 1·2·3위 · 삼성 vs LG 대조 (2026-08-24) ──
+   사용자 지시: "기간이 설정되어야 하고", "1위, 2위, 3위가 좀 더 직관적으로
+   빠르게 알 수 있도록", "경쟁사의 영상도 어떤지 대조해서".
+
+   전에는 조회수만 왼쪽에 적혀 있어 **몇 위인지 세어 봐야** 알 수 있었다.
+   순위를 큰 숫자로 세우고, 브랜드 색을 순위 숫자에 입혀 한눈에 갈리게 한다. */
+.yt-spans { display: flex; gap: 6px; margin-left: auto; }
+.yt-sp { font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer;
+  padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--card); white-space: nowrap; transition: all .16s ease; }
+.yt-sp:hover { border-color: #1f5fd0; color: #1f5fd0; }
+.yt-sp.on { background: #1f5fd0; border-color: #1f5fd0; color: #fff; }
+
+.yt-podium { display: flex; flex-direction: column; gap: 6px; }
+.yt-pod { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 10px; align-items: center; padding: 7px 10px; border-radius: 11px;
+  border: 1px solid var(--line); background: var(--card); text-decoration: none; }
+.yt-pod:hover { border-color: #1f5fd0; background: rgba(31, 95, 208, .05); }
+.yp-rank { font-size: 21px; font-weight: 900; line-height: 1; text-align: center;
+  color: #c3cbd8; letter-spacing: -0.04em; }
+.yt-pod.s .yp-rank { color: #1f5fd0; }
+.yt-pod.l .yp-rank { color: #d23b54; }
+.yp-mid { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.yp-mid b { font-size: 12.8px; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; }
+.yp-mid em { font-size: 10.5px; font-style: normal; color: var(--muted); white-space: nowrap; }
+.yp-v { font-size: 13px; font-weight: 900; color: var(--text); white-space: nowrap;
+  display: flex; align-items: center; gap: 5px; }
+.yp-v u { text-decoration: none; font-size: 10px; font-weight: 700; color: var(--muted); }
+
+/* 삼성 vs LG 두 칸 — 같은 자리에 나란히 놓아야 대조가 된다 */
+.yv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.yv-col { border: 1px solid var(--line); border-radius: 12px; padding: 8px 9px;
+  background: var(--card); min-width: 0; }
+.yv-col.s { border-color: rgba(31, 95, 208, .28); }
+.yv-col.l { border-color: rgba(210, 59, 84, .28); }
+.yv-h { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px;
+  padding-bottom: 5px; border-bottom: 1px dashed var(--line); }
+.yv-h span { font-size: 12px; font-weight: 900; }
+.yv-col.s .yv-h span { color: #1f5fd0; }
+.yv-col.l .yv-h span { color: #d23b54; }
+.yv-h b { font-size: 12.5px; font-weight: 900; color: var(--text); white-space: nowrap; }
+.yv-h b:last-child { margin-left: auto; }
+.yv-h u { text-decoration: none; font-size: 9.5px; font-weight: 700; color: var(--muted); }
+.yv-row { display: grid; grid-template-columns: 13px minmax(0, 1fr) auto; gap: 6px;
+  align-items: center; padding: 3px 0; text-decoration: none; }
+.yv-row i { font-style: normal; font-size: 10.5px; font-weight: 900; color: var(--muted); }
+.yv-row b { font-size: 11.5px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; }
+.yv-row em { font-style: normal; font-size: 11px; font-weight: 800; color: var(--muted);
+  white-space: nowrap; }
+.yv-row:hover b { color: #1f5fd0; }
+.yv-none { margin: 4px 0 0; font-size: 11px; color: var(--muted); font-weight: 600; }
