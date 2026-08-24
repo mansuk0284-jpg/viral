@@ -2055,3 +2055,93 @@ body.portal-open .ap-cards { display: none; }
 .hero-art { justify-content: stretch; }
 body:not(.portal-open) .hero-art > .hero-stage { display: none; }   /* 1번 페이지에선 무대 숨김 */
 body.portal-open .hero-art > .hero-stage { display: block; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   첫 화면 — 좌 영상·우 카드를 키우고, 카드 안을 가로로 나눈다
+   (2026-08-24 사용자 지시)
+
+   "좌측 영상과 우측 카드 사이즈를 조금 더 크게 하고
+    우측 카드 안에 있는 영상 또는 이미지를 카드의 좌측에 두고
+    우측에는 카드 설명을 둬서 지금과는 다른 느낌을"
+
+   실측(1440x900) 바꾸기 전:
+     hero-grid 1120px · 좌 영상 490px · 카드 424x274
+     카드 안은 세로 쌓기라 미디어가 77~102px 로 눌려 있었다 —
+     영상인지 무늬인지 모를 높이였다.
+
+   가로로 나누면 미디어가 카드 높이를 그대로 쓴다(274px).
+   같은 카드에서 미디어가 세 배 가까이 커지는 셈이라,
+   카드를 크게 키우지 않고도 '다른 느낌'이 난다.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 무대를 넓히고, 오른쪽에 조금 더 준다 ──
+   반반으로 두면 카드가 546px 이고 미디어 칸이 215x313(세로 0.69)이 된다.
+   그런데 이 영상은 16:9 이고 화면 에너지가 가로 12%~88% 에 고루 퍼져 있어
+   (프레임 열별 경계 에너지 실측) 세로 칸에 넣으면 **가로의 39%만 보인다** —
+   양쪽에 선 사람이 잘려 무슨 장면인지 알 수 없게 된다.
+   오른쪽을 조금 넓혀 미디어 칸을 가로로 눕히면 61%까지 살아난다. */
+.hero-grid {
+  max-width: min(1340px, 94vw);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 3.4vw, 54px);
+}
+
+/* ── 카드: 미디어(좌) · 설명(우) ── */
+.ap-cards { gap: clamp(14px, 1.8vh, 22px); }
+
+.ap-card {
+  flex-direction: row;
+  align-items: stretch;
+  gap: clamp(14px, 1.4vw, 22px);
+  /* 가로 배치에선 좌우 여백이 미디어를 밀어낸다 — 미디어 쪽 안여백을 줄인다 */
+  padding: clamp(14px, 1.5vh, 20px) clamp(18px, 1.8vw, 26px) clamp(14px, 1.5vh, 20px)
+           clamp(14px, 1.4vw, 20px);
+}
+
+/* 미디어 — 카드 높이를 그대로 쓴다. 절대배치 자식(영상·이미지)이 기댈
+   확정 높이가 필요하므로 position:relative 를 유지한다. */
+.ap-card > .ap-media {
+  flex: 0 0 clamp(190px, 21vw, 300px);
+  align-self: stretch;
+  height: auto; min-height: 0;
+}
+
+/* 설명 — 남는 폭을 채우고 세로 중앙에 놓는다 */
+.ap-card > .ap-body {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: clamp(4px, 0.7vh, 9px);
+}
+
+/* 세로로 쌓을 때 쓰던 위 여백은 가로 배치에서 어긋난다 */
+.ap-card > .ap-body > .ap-eyebrow { margin-top: 0; }
+
+/* 미디어가 커진 만큼 라운드도 키워야 카드 모서리와 리듬이 맞는다 */
+.ap-media-film .ap-film-box,
+.ap-media-portal img { border-radius: clamp(14px, 1.4vw, 20px); }
+
+/* 세로일 때 잡아둔 원형 마스크는 가로 칸(세로로 긴 사각형)에선
+   위아래가 잘려 보인다. 세로로 긴 칸에 맞춰 다시 그린다. */
+.ap-media-portal img {
+  object-position: 50% 52%;
+  -webkit-mask-image: radial-gradient(120% 108% at 52% 50%,
+    #000 52%, rgba(0, 0, 0, .74) 74%, transparent 97%);
+  mask-image: radial-gradient(120% 108% at 52% 50%,
+    #000 52%, rgba(0, 0, 0, .74) 74%, transparent 97%);
+}
+
+/* 좁은 화면에선 다시 세로로 — 가로로 두면 설명이 두세 글자씩 끊긴다 */
+@media (max-width: 900px) {
+  .ap-card { flex-direction: column; }
+  .ap-card > .ap-media { flex: 1 1 auto; align-self: auto; }
+}
+
+/* 가로 배치에선 설명 칸이 238px 로 좁아진다. 28px 제목은 "우리 매장 온라인 바이럴"
+   11글자가 안 들어가 두 줄로 갈라지는데, 옆 카드는 한 줄이라 리듬이 어긋난다.
+   어절 단위로 끊고(keep-all) 크기를 한 단계 낮춰 두 카드를 같은 줄 수로 맞춘다. */
+.ap-card > .ap-body > .ap-title {
+  font-size: clamp(18px, 1.62vw, 23px);
+  line-height: 1.2;
+  word-break: keep-all;
+}
+.ap-card > .ap-body > .ap-sub { margin-top: 6px; }
