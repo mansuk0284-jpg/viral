@@ -274,3 +274,11 @@ body.view-cx .yt-own { font-size: 10.5px; }
 
 /* 분석 문단 사이 간격 — 단락을 갈랐으면 눈에도 갈라져 보여야 한다 */
 .ca2 .fc-sec p + p { margin-top: 7px; }
+
+/* 지역 좌측 섹션 밑줄 각주(전국 대비 등) */
+.ca2 .nsc-foot { margin: 6px 0 0; font-size: 11.5px; line-height: 1.5; font-weight: 600;
+  color: var(--muted); word-break: keep-all; }
+.ca2 .nsc-foot b { color: #1f5fd0; } .ca2 .nsc-foot b.warn { color: #d23b54; }
+/* 지역 좌측 칼럼도 섹션 사이 간격을 전국과 같게 */
+.ca2 .rv-left { display: flex; flex-direction: column; gap: 10px; }
+.ca2 .rv-left .nsc-sec .rv-pick { margin-top: 6px; }

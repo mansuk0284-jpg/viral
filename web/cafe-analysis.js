@@ -766,31 +766,86 @@
     /* 도시 액션은 **한 수만** 짚는다. 품목·혜택 같은 세밀한 처방은 매장 화면 몫이다
        (사용자 지시 2026-08-23: "전국은 좀 더 큰 시각에서, 매장의 경우 세밀한 부분까지").
        실측: 도시 액션이 197px 을 먹어 정작 주인공인 매장 목록이 눌렸다. */
+    /* 무의미 문장 방지(2026-08-25, ±0 원칙의 연장):
+       - 열세가 1곳뿐이면 "격차의 100%" 는 자명한 말 — 비중 대신 "유일한 열세"로 말한다.
+       - 격차가 작아 반올림 비중이 안 변하면 "60% → 약 60%" 가 된다 — 그때는
+         전환 효과 대신 "따라잡을 수 있는 거리"로 말한다. */
+    const opGap0 = opps.length ? opps[0].l - opps[0].s : 0;
+    const projSh = opps.length ? pct(c.s + opGap0, c.l) : share;
     const action = opps.length
-      ? `<b>${opps[0].n}</b>부터 공략하세요 — LG가 <b class="warn">${fmtN(opps[0].l - opps[0].s)}건</b> 앞서 ` +
-        `지역 격차의 <b>${Math.round((opps[0].l - opps[0].s) / (oppGap || 1) * 100)}%</b>를 차지합니다. ` +
-        `이 한 곳만 동률로 만들어도 지역 비중이 <b>${share}% → 약 ${pct(c.s + (opps[0].l - opps[0].s), c.l)}%</b>가 됩니다. ` +
+      ? `<b>${opps[0].n}</b>부터 공략하세요 — ` +
+        (opps.length === 1
+          ? `이 지역의 <b>유일한 열세 ${unit}</b>으로, LG가 <b class="warn">${fmtN(opGap0)}건</b> 앞섭니다. `
+          : `LG가 <b class="warn">${fmtN(opGap0)}건</b> 앞서 지역 격차의 <b>${Math.round(opGap0 / (oppGap || 1) * 100)}%</b>를 차지합니다. `) +
+        (projSh > share
+          ? `이 한 곳만 동률로 만들어도 지역 비중이 <b>${share}% → 약 ${projSh}%</b>가 됩니다. `
+          : `격차 ${fmtN(opGap0)}건은 <b>후기 요청을 꾸준히 걸면 따라잡을 수 있는 거리</b>입니다. `) +
         `<em class="rv-more">품목·혜택별 처방은 매장을 눌러 확인하세요.</em>`
       /* 후기는 고객이 쓴다 — 매니저는 요청·독려만 할 수 있다 */
       : `열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두"}</b>(삼성 ${top ? pct(top.s, top.l) : "-"}%)의 ` +
         `상담 방식을 표본이 적은 곳으로 확산하고, <b>구매 고객에게 후기 작성을 요청</b>하세요. ` +
         `<em class="rv-more">매장별 상세는 목록에서 매장을 누르세요.</em>`;
 
+    /* 조회수 — 이 지역 매장들에 귀속된 후기의 조회 합(매장 특정분 기준).
+       지역 전체 조회수라고 말하면 과장이 된다 — 라벨에 기준을 밝힌다. */
+    const rHs = list.reduce((a, x) => a + (x.hs || 0), 0);
+    const rHl = list.reduce((a, x) => a + (x.hl || 0), 0);
+    const rHsh = rHs + rHl ? Math.round(rHs / (rHs + rHl) * 100) : 0;
+
+    /* 전국 안에서의 위치 — 표본 규모 순위·점유(도시 카드에서 좌측 요약으로 승격) */
+    let rank = null, nRg = 0, natShareOf = null;
+    if (!isBu) {
+      const A0r = hasF() ? A() : null;
+      if (A0r && A0r.regions) {
+        const sizes = Object.keys(A0r.regions).map((k) => ({
+          n: k, v: (A0r.regions[k].s || 0) + (A0r.regions[k].l || 0) })).sort((a, b) => b.v - a.v);
+        nRg = sizes.length;
+        const at = sizes.findIndex((x) => x.n === c.title);
+        if (at >= 0) rank = at + 1;
+        if (A0r.total) natShareOf = Math.round((c.s + c.l) / A0r.total * 100);
+      }
+    }
+
+    /* 좌측은 전국 페이지와 같은 "제목 있는 섹션 박스" 양식을 따른다
+       (2026-08-25 사용자 지시: "다른 지역 페이지도 전국 양식을 참고하여").
+       내용은 지역답게 — 매장 우위·열세와 전국 내 위치까지 한 단계 디테일하다. */
     return `<div class="ca-rv">` +
       `<div class="rv-left">` +
       `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
-      `<div class="rv-big"><b>${share}<i>%</i></b><span>삼성 비중</span></div>` +
-      (diff === 0
-        ? `<p class="rv-vs up">전국 ${nat}%와 <b>같은 수준</b></p>`
-        : `<p class="rv-vs ${diff > 0 ? "up" : "down"}">전국 ${nat}% 대비 <b>${diff > 0 ? "+" : ""}${diff}p</b> ${diff > 0 ? "강세" : "약세"}</p>`) +
-      `<div class="rv-kpis">` +
-      `<div><b>${fmtN(c.s + c.l)}</b><span>후기</span></div>` +
-      `<div class="s"><b>${fmtN(c.s)}</b><span>삼성</span></div>` +
-      `<div class="l"><b>${fmtN(c.l)}</b><span>LG</span></div>` +
+      `<div class="nsc-total"><b>${fmtN(c.s + c.l)}</b><i>건 분석</i></div>` +
+
+      `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
+      `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
+      `<div class="nh-bar"><i class="s" style="width:${share}%"></i><i class="l" style="width:${100 - share}%"></i></div>` +
+      `<div class="nsc-nums"><span class="s"><b>${fmtN(c.s)}건</b><i>(${share}%)</i></span>` +
+      `<span class="l"><b>${fmtN(c.l)}건</b><i>(${100 - share}%)</i></span></div>` +
+      `<p class="nsc-foot">` + (diff === 0 ? `전국(${nat}%)과 같은 수준입니다.`
+        : `전국(${nat}%) 대비 <b class="${diff > 0 ? "" : "warn"}">${diff > 0 ? "+" : ""}${diff}p ${diff > 0 ? "강세" : "약세"}</b>입니다.`) + `</p>` +
       `</div>` +
-      `<div class="rv-split"><span class="s">우위 ${win.length}곳</span><span class="l">열세 ${lose.length}곳</span></div>` +
+
+      (rHs + rHl ? `<div class="nsc-sec"><h4 class="nsc-st">조회수<i>매장 특정 후기 기준</i></h4>` +
+        `<div class="nh-top"><b>${fmtN(rHs + rHl)}</b><i>회 조회</i></div>` +
+        `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
+        `<div class="nh-bar"><i class="s" style="width:${rHsh}%"></i><i class="l" style="width:${100 - rHsh}%"></i></div>` +
+        `<div class="nsc-nums"><span class="s"><b>${fmtN(rHs)}회</b><i>(${rHsh}%)</i></span>` +
+        `<span class="l"><b>${fmtN(rHl)}회</b><i>(${100 - rHsh}%)</i></span></div>` +
+        `</div>` : "") +
+
+      `<div class="nsc-sec"><h4 class="nsc-st">${unit} 우위·열세<i>${unit} ${list.length}곳</i></h4>` +
+      `<div class="nw-pair split">` +
+      `<span class="nw-p1"><b>${win.length}</b><i>곳 우위</i></span>` +
+      `<span class="nw-p2"><i>곳 열세</i><b class="warn">${lose.length}</b></span>` +
+      `</div>` +
       (top ? `<div class="rv-pick s"><em>최강</em><b>${top.n}</b><span>삼성 ${pct(top.s, top.l)}%</span></div>` : "") +
       (bot && bot !== top ? `<div class="rv-pick l"><em>공략</em><b>${bot.n}</b><span>삼성 ${pct(bot.s, bot.l)}%</span></div>` : "") +
+      `</div>` +
+
+      (rank ? `<div class="nsc-sec"><h4 class="nsc-st">전국 안에서의 위치</h4>` +
+        `<div class="cy-grid">` +
+        `<div class="cy-k"><b>${rank}<u>위</u></b><span>표본 규모 (${nRg}개 지역)</span></div>` +
+        (natShareOf !== null ? `<div class="cy-k"><b>${natShareOf}<u>%</u></b><span>전국 표본 점유</span></div>` : "") +
+        `</div></div>` : "") +
+
       (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
       `</div>` +
       `<div class="rv-right">` +
@@ -846,17 +901,6 @@
     const sh = pct(c.s, c.l);
     const A0 = hasF() ? A() : null;
 
-    // ① 전국에서의 위치 — 표본 규모 순위
-    let rank = null, nRg = 0;
-    if (A0 && A0.stores) {
-      const sizes = Object.keys(A0.regions || {}).map((k) => ({
-        n: k, v: (A0.regions[k].s || 0) + (A0.regions[k].l || 0) }))
-        .sort((a, b) => b.v - a.v);
-      nRg = sizes.length;
-      const at = sizes.findIndex((x) => x.n === rgName);
-      if (at >= 0) rank = at + 1;
-    }
-    const share = A0 && A0.total ? Math.round((c.s + c.l) / A0.total * 100) : null;
 
     // ② 도시 안 격차 — 표본이 받쳐 주는 매장만(적은 표본은 비율이 요동친다)
     const sized = list.filter((x) => x.s + x.l >= 5)
@@ -886,13 +930,6 @@
     return `<div class="ca-ncard city-card">` +
       `<h4 class="ca-ch">${JOSA(rgName, "은", "는")} 어떤 도시인가 <i class="ca-tag">도시 단위</i></h4>` +
 
-      `<div class="cy-grid">` +
-      `<div class="cy-k"><b>${rank ? rank : "-"}<u>위</u></b><span>표본 규모` +
-      (nRg ? ` (${nRg}개 지역 중)` : "") + `</span></div>` +
-      `<div class="cy-k"><b>${share !== null ? share : "-"}<u>%</u></b><span>전국 표본에서 차지</span></div>` +
-      `<div class="cy-k ${sh >= nat ? "up" : "warn"}"><b>${sh - nat >= 0 ? "+" : ""}${sh - nat}<u>p</u></b>` +
-      `<span>전국 비중(${nat}%) 대비</span></div>` +
-      `</div>` +
 
       // 도시 안 격차 — 평균이 지우는 것
       (spread !== null
@@ -919,6 +956,24 @@
            : headShare >= 30 ? `상위 한 곳이 <b>${headShare}%</b>를 차지합니다.`
            : `여러 매장에 고르게 퍼져 있습니다.`) + `</p></div>`
         : "") +
+
+      /* 조회수 관점 — 건수와 읽힘은 다른 축이다(2026-08-25 깊이 보강).
+         후기 수 1위와 조회수 1위가 다른 매장이면, 바이럴 파급은 후자가 크다. */
+      (function () {
+        const withHits = list.filter((x) => (x.hs || 0) + (x.hl || 0) > 0);
+        if (withHits.length < 2) return "";
+        const volTop = list.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l))[0];
+        const hitTop = withHits.slice().sort((a, b) => ((b.hs || 0) + (b.hl || 0)) - ((a.hs || 0) + (a.hl || 0)))[0];
+        const ht = (hitTop.hs || 0) + (hitTop.hl || 0);
+        const per = (x) => { const t = x.s + x.l; return t ? Math.round(((x.hs || 0) + (x.hl || 0)) / t) : 0; };
+        return `<div class="cy-sec"><h5>조회수 관점</h5>` +
+          (hitTop.n === volTop.n
+            ? `<p class="cy-note">후기도 조회도 <b>${hitTop.n}</b>에 몰립니다(${fmtN(ht)}회). ` +
+              `이 매장의 글이 도시 바이럴의 관문입니다 — 여기서 담당자 실명이 남도록 후기 요청을 거는 것이 가장 효율적입니다.</p>`
+            : `<p class="cy-note">후기 수 1위는 <b>${volTop.n}</b>지만, 조회수 1위는 <b>${hitTop.n}</b>(${fmtN(ht)}회)입니다. ` +
+              `한 건당 <b>${fmtN(per(hitTop))}회</b>씩 읽히는 셈이라, 고객 눈에 실제로 띄는 바이럴 파급은 ${JOSA(hitTop.n, "이", "가")} 더 큽니다.</p>`) +
+          `</div>`;
+      })() +
 
       // 전국과 다른 성격
       (itemDiff.length
