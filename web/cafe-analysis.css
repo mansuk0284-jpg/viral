@@ -1410,10 +1410,16 @@ body.view-cx #channel.section { padding: 20px 0 14px; }
   body.view-cafe .sv-right > .mgr-card .mgr-stars,
   .sv-right > .sc-card .sc-tip,
   body.view-cafe .sv-right > .sc-card .sc-tip,
-  .sv-right > .sv-actcard .sv-action,
+  /* .sv-action 은 여기서 뺐다(2026-08-26) — hidden 이면 액션 마지막 줄이
+     소리 없이 잘린다(실측 9px). 아래 별도 규칙으로 auto 스크롤을 준다. */
+  /* 후기 원문 칼럼도 hidden → auto (동적 샘플이 늘며 잘릴 수 있다) */
   .sv-right > .sv-rev .sv-revcols,
   body.view-cafe .sv-right > .sv-rev .sv-revcols {
-    max-height: none; overflow: hidden; flex: 0 1 auto; min-height: 0;
+    max-height: none; overflow: auto; flex: 0 1 auto; min-height: 0;
+  }
+  .sv-right > .sv-actcard .sv-action,
+  body.view-cafe .sv-right > .sv-actcard .sv-action {
+    max-height: none; overflow: auto; flex: 0 1 auto; min-height: 0;
   }
 
   /* (C) 카드 공통 밀도 */

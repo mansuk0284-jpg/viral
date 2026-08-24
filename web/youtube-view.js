@@ -43,10 +43,16 @@
       months: Y.months || [],
       onChange: () => paint(document.getElementById("channelPanel")),
     });
-    /* 이 채널은 54편이 5년에 걸쳐 흩어져 있다. 현재 월로 열면 0~1편이라
-       화면이 비어 보인다. 표본이 작은 채널은 **전체 기간**으로 연다
-       (제이웨딩에서 같은 이유로 이미 그렇게 하고 있다). */
-    if (PER) PER.setAll();
+    /* 첫 화면은 **최근 3개월**(2026-08-26 사용자 지시: "유튜브는 최근 3개월
+       기간 설정으로 최초 화면을 보여주고"). 지금 도는 이야기를 먼저 보여주고,
+       칩을 누르면 평소 기간 동작으로 돌아간다. */
+    if (PER) {
+      const d = new Date();
+      let y = d.getFullYear(), m = d.getMonth() + 1 - 2;
+      while (m <= 0) { m += 12; y -= 1; }
+      PER.setInit(`${y}-${String(m).padStart(2, "0")}-01`,
+        d.toISOString().slice(0, 10), "최근 3개월");
+    }
     return PER;
   }
   const labOf = () => (per() ? per().label() : "전체");
@@ -151,8 +157,10 @@
     const cur = pickCur(), R = rollup(cur);
     const all = rollup(Y.vids || []);
     const byViews = cur.slice().sort((a, b) => b.v - a.v);
-    const sTop = R.s.slice().sort((a, b) => b.v - a.v);
-    const lTop = R.l.slice().sort((a, b) => b.v - a.v);
+    /* 공식 채널과 유튜버를 갈라 각각 순위를 매긴다(2026-08-26 사용자 지시:
+       "많이 본 영상도 공식채널 영상과 유투버 영상을 구분해서 순위를 매겨주고") */
+    const offTop = byViews.filter((x) => x.own);
+    const creTop = byViews.filter((x) => !x.own);
     const brandN = R.s.length + R.l.length;
     const shN = pct(R.s.length, R.l.length);
     const shV = pct(R.sv, R.lv);
@@ -172,61 +180,81 @@
     const lgAhead = Object.keys(IT).filter((k) => IT[k].l > IT[k].s)
       .sort((a, b) => IT[b].views - IT[a].views).slice(0, 4);
 
-    /* ── 현장 액션 ── 지표 읽는 법이 아니라 내일 무엇을 다르게 할지를 적는다. */
-    const act = [];
-    const allShN = pct(all.s.length, all.l.length);
-    if (cur.length < (Y.vids || []).length && brandN >= 5 && Math.abs(shN - allShN) >= 12) {
-      act.push(shN < allShN
-        ? `<li class="warn-li">전체 기간으로는 삼성 ${allShN}% 인데 <b>${labOf()}만 보면 ${shN}%</b>입니다 —` +
-          ` <b>최근 올라오는 영상은 LG 쪽이 많습니다</b>. 고객이 요즘 보는 설명이 바뀌고 있습니다.</li>`
-        : `<li>전체 ${allShN}% → <b>${labOf()} ${shN}%</b>로 삼성 비중이 올랐습니다 —` +
-          ` 최근 영상이 우리 쪽으로 기울고 있습니다.</li>`);
+    /* ── 종합 진단 — 보고서형 문어체(2026-08-26 사용자 지시:
+       "분석글은 쉽게 이해할 수 있도록 하고 가급적 문어체로 보고서 형태로").
+       각 단락은 ①사실(수치) ②해석 ③시사점 순서로 쓴다. */
+    const secs = [];
+    // ① 공식 채널 동향 — 삼성 vs LG 건수·조회수를 나란히
+    if (R.samOff.length || R.lgOff.length) {
+      let line = `선택 기간의 브랜드 공식 채널 영상은 삼성 <b>${R.samOff.length}편(${man(R.samOffV)}회)</b>, ` +
+        `LG <b class="warn">${R.lgOff.length}편(${man(R.lgOffV)}회)</b>입니다. `;
+      if (R.samOff.length && !R.lgOff.length) {
+        line += `혼수가전 검색에서 LG 공식 영상은 잡히지 않아, 브랜드가 직접 내보내는 노출은 삼성이 앞서 있습니다. ` +
+          `상담에서 해당 영상 시청 여부를 물어 대화를 여는 활용이 가능합니다.`;
+      } else if (R.lgOff.length && !R.samOff.length) {
+        line += `삼성 공식 영상은 잡히지 않았습니다 — 고객이 브랜드 설명을 상대 쪽에서 먼저 접하고 있습니다.`;
+      } else if (R.samOffV !== R.lgOffV) {
+        const w = R.samOffV > R.lgOffV;
+        line += `조회수 기준으로는 ${w ? "삼성" : "LG"} 공식 채널의 도달이 더 큽니다.`;
+      } else {
+        line += `양사 공식 채널의 도달은 같은 수준입니다.`;
+      }
+      secs.push(`<div class="cy-sec"><h5>공식 채널 동향</h5><p class="cy-note">${line}</p></div>`);
+    } else {
+      secs.push(`<div class="cy-sec"><h5>공식 채널 동향</h5><p class="cy-note">` +
+        `선택 기간에는 양사 공식 채널 영상이 수집되지 않았습니다 — 기간을 넓히면 공식 채널 비교가 가능합니다.</p></div>`);
     }
-    /* 이 채널에서 가장 중요한 대비 —
-       삼성은 공식 광고로 도달하는데 일반 창작자 영상은 거의 없다(실측:
-       최근 1년 삼성 일반 2편 3,200회 vs LG 6편 34만회, 100배).
-       광고는 우리가 튼 것이고 일반 영상은 남이 말해 준 것이라,
-       고객이 '남의 이야기'로 만나는 브랜드가 누구인지가 여기서 갈린다. */
-    if (R.sv && R.lv && Math.max(R.sv, R.lv) >= Math.min(R.sv, R.lv) * 4) {
-      const weLose = R.sv < R.lv;
-      act.push(weLose
-        ? `<li class="warn-li">일반 영상 재생수가 <b>삼성 ${man(R.sv)}회 vs LG ${man(R.lv)}회</b>입니다` +
-          (R.samOffV ? ` — 삼성은 <b>공식 채널 ${man(R.samOffV)}회</b>로 도달하지만` +
-            ` <b>남이 말해 주는 영상</b>은 거의 없습니다.` : ` — 격차가 큽니다.`) +
-          ` 고객은 우리를 <b>광고로</b>, 상대를 <b>후기로</b> 만나고 있습니다.</li>`
-        : `<li>일반 영상 재생수가 <b>삼성 ${man(R.sv)}회 vs LG ${man(R.lv)}회</b>로 앞섭니다 —` +
-          ` <b>남이 말해 주는 영상</b>이 우리 쪽에 많습니다. 상담에서 그 영상을 근거로 쓰세요.</li>`);
+    // ② 유튜버 게시물 동향 — 남이 말해 주는 이야기
+    if (R.creator.length) {
+      let line = `일반 유튜버 게시물은 <b>${R.creator.length}편</b>, 누적 조회수는 <b>${man(R.creatorV)}회</b>입니다. `;
+      if (brandN >= 10) {
+        line += `브랜드가 갈리는 영상은 삼성 ${R.s.length}편(${man(R.sv)}회) 대 LG ${R.l.length}편(${man(R.lv)}회)으로, ` +
+          (R.lv > R.sv
+            ? `<b class="warn">시청자가 자발적으로 다루는 이야기는 LG 쪽이 많습니다</b>. 고객은 삼성을 광고로, LG를 후기로 만나는 구조입니다.`
+            : R.sv > R.lv
+            ? `<b>자발적 이야기에서도 삼성이 앞서 있습니다</b> — 상담에서 해당 영상을 근거 자료로 쓸 수 있습니다.`
+            : `양쪽이 같은 수준입니다.`);
+      } else {
+        line += `브랜드가 특정되는 영상은 ${brandN}편으로 표본이 작아 비율 대신 편수로만 적습니다` +
+          (brandN ? `(삼성 ${R.s.length} : LG ${R.l.length})` : "") + `.`;
+      }
+      secs.push(`<div class="cy-sec"><h5>유튜버 게시물 동향</h5><p class="cy-note">${line}</p></div>`);
     }
-    if (byViews.length && (byViews[0].own || byViews[0].ad)) {
-      const w = byViews[0].own === "sam" ? "삼성 공식 채널"
-        : byViews[0].own === "lg" ? "LG 공식 채널" : "협찬";
-      act.push(`<li>이 기간 1위는 <b>${w} 영상</b>입니다 (${man(byViews[0].v)}회).` +
-        ` 고객이 가장 많이 본 것은 <b>브랜드가 만든 것</b>이지 사용 후기가 아닙니다 —` +
-        ` 상담에서 <b>실제 쓴 사람의 이야기</b>를 채워주는 것이 차별점이 됩니다.</li>`);
-    }
-    /* 공식 채널이 한쪽만 잡힌다면 그 자체가 신호다 —
-       실측: 삼성 공식 3편 383만회 vs LG 공식 0편. */
-    if (R.samOff.length && !R.lgOff.length) {
-      act.push(`<li>혼수가전 검색에서 <b>삼성 공식 채널은 ${R.samOff.length}편(${man(R.samOffV)}회)</b>이 잡히는데` +
-        ` <b>LG 공식은 한 편도 없습니다</b>. 브랜드 노출은 우리가 앞서니,` +
-        ` 상담에서 <b>그 영상을 보고 왔는지</b> 물어 대화를 열 수 있습니다.</li>`);
-    } else if (R.lgOff.length && !R.samOff.length) {
-      act.push(`<li class="warn-li">혼수가전 검색에서 <b>LG 공식 채널만 ${R.lgOff.length}편</b> 잡히고` +
-        ` 삼성 공식은 없습니다 — 고객이 브랜드 설명을 <b>상대 쪽에서</b> 먼저 듣습니다.</li>`);
-    }
+    // ③ 고객 관심 트렌드 — 품목별 재생수
     if (hot.length) {
-      act.push(`<li><b>${hot.join(" · ")}</b>${josa(hot[hot.length - 1], "은", "는")} 재생수 상위입니다.` +
-        ` 고객은 이 품목을 <b>영상으로 예습하고</b> 옵니다 —` +
-        ` 스펙 나열보다 <b>영상에 안 나오는 것</b>(설치 조건·AS·실사용 소음)을 준비하세요.</li>`);
+      let line = `재생수 기준 관심 상위 품목은 <b>${hot.join(" · ")}</b>입니다. ` +
+        `고객은 이 품목을 영상으로 예습한 뒤 매장을 찾습니다 — 영상에 나오지 않는 설치 조건·사후관리·실사용 소음을 준비하면 상담의 차별점이 됩니다.`;
+      if (lgAhead.length) {
+        line += ` 다만 <b class="warn">${lgAhead.join(" · ")}</b>${josa(lgAhead[lgAhead.length - 1], "은", "는")} LG 영상이 더 많아, 비교 질문에 대한 답변 준비가 필요합니다.`;
+      }
+      secs.push(`<div class="cy-sec"><h5>고객 관심 트렌드</h5><p class="cy-note">${line}</p></div>`);
     }
-    if (lgAhead.length) {
-      act.push(`<li class="warn-li"><b>${lgAhead.join(" · ")}</b>${josa(lgAhead[lgAhead.length - 1], "은", "는")}` +
-        ` <b>LG 영상이 더 많습니다</b>. 비교 질문에 답할 준비를 미리 해두세요.</li>`);
+    // ④ 최다 조회 영상의 성격
+    if (byViews.length) {
+      const t0 = byViews[0];
+      const w = t0.own === "sam" ? "삼성 공식 채널" : t0.own === "lg" ? "LG 공식 채널" : "일반 유튜버";
+      secs.push(`<div class="cy-sec"><h5>최다 조회 영상</h5><p class="cy-note">` +
+        `이 기간 조회수 1위는 <b>${w}</b>의 영상(${man(t0.v)}회)입니다. ` +
+        (t0.own
+          ? `가장 많이 본 것이 브랜드 제작 영상이므로, 실제 사용자의 경험담은 상담에서 채워 주는 것이 차별점이 됩니다.`
+          : `브랜드가 아닌 시청자 제작 영상이 가장 많이 읽히고 있습니다 — 고객이 이미 접한 정보 수준을 상담 도입부에서 확인할 필요가 있습니다.`) +
+        `</p></div>`);
     }
-    if (brandN && brandN < 10) {
-      act.push(`<li>이 기간 브랜드가 갈리는 영상은 <b>${brandN}편</b>뿐이라 비율은 참고만 하세요 —` +
-        ` <b>어떤 영상이 도는지</b>를 보는 편이 정확합니다.</li>`);
-    }
+
+    /* 순위 카드 — 공식 채널 / 유튜버를 갈라 각각 1~3위 + 썸네일.
+       선택 기간에 없으면 비워 두지 않고 전체 기간 상위를 보여주되 그 사실을
+       밝힌다(매장 후기 원문과 같은 정직 폴백 문법). */
+    const allSorted = (Y.vids || []).slice().sort((a, b) => b.v - a.v);
+    const rankCard = (title, list, fullList, tag) => {
+      const use = list.length ? list : fullList;
+      const note = list.length ? ""
+        : `<p class="ca-splx">이 기간에는 해당 영상이 수집되지 않아 <b>전체 기간 상위</b>를 보여줍니다.</p>`;
+      return `<div class="ca-ncard">` +
+        `<h4 class="ca-ch">${title} <i class="ca-tag">${tag}</i></h4>` + note +
+        (use.length ? `<div class="yt-podium">${podium(use)}</div>`
+          : `<p class="fc-plain">수집된 영상이 없습니다.</p>`) +
+        `</div>`;
+    };
 
     return `<div class="ca2 yt-wrap">` +
       `<div class="cx-top">` +
@@ -239,38 +267,31 @@
       `<div class="cx-body">` +
       `<div class="cx-left">` +
       `<div class="cx-sum">` +
-      `<div class="cx-sum-h"><h3>얼마나 보였나</h3><span>${labOf()} · ${R.n}편</span></div>` +
+      `<div class="cx-sum-h"><h3>재생 현황</h3><span>${labOf()} · ${R.n}편</span></div>` +
       `<div class="cx-sum-n"><b>${man(R.views)}</b><i>회 재생</i></div>` +
 
       ownerBlock(R) +
-      (offPct ? `<p class="yt-note">재생수의 <b>${offPct}%</b>가 <b>브랜드 공식 채널</b>에서 나옵니다. ` +
-        `아래 브랜드 비교는 <b>일반 창작자 영상만</b> 셌습니다 — ` +
-        `공식 채널을 넣으면 자기 홍보를 세게 됩니다.</p>` : "") +
+      `<p class="yt-note">선택 기간에 수집된 혼수가전 영상은 <b>${R.n}편</b>이며, ` +
+      `삼성 공식 <b>${R.samOff.length}편(${man(R.samOffV)}회)</b> · LG 공식 <b>${R.lgOff.length}편(${man(R.lgOffV)}회)</b> · ` +
+      `일반 유튜버 <b>${R.creator.length}편(${man(R.creatorV)}회)</b>으로 구성됩니다.` +
+      (offPct ? ` 재생수의 <b>${offPct}%</b>는 브랜드 공식 채널에서 발생했습니다.` : "") + `</p>` +
 
       (brandN ? bar(R.sv, R.lv) +
         `<div class="cx-vs"><span class="s">삼성 ${R.s.length}편</span>` +
         `<span class="l">LG ${R.l.length}편</span></div>` +
         (brandN >= 10
-          ? `<p class="yt-note">편수 <b>${shN}:${100 - shN}</b> · 재생수 <b>${shV}:${100 - shV}</b> — ` +
-            `한 편당 도달이 갈립니다.</p>`
-          : `<p class="yt-note">브랜드가 갈리는 영상 <b>${brandN}편</b> — 비율은 적지 않습니다.</p>`)
-        : `<p class="yt-note">이 기간에는 브랜드가 갈리는 영상이 없습니다.</p>`) +
+          ? `<p class="yt-note">유튜버 영상 기준 편수 <b>${shN}:${100 - shN}</b> · 재생수 <b>${shV}:${100 - shV}</b>입니다.</p>`
+          : `<p class="yt-note">브랜드가 특정되는 유튜버 영상은 <b>${brandN}편</b>으로, 표본이 작아 비율은 적지 않습니다.</p>`)
+        : `<p class="yt-note">이 기간에는 브랜드가 특정되는 유튜버 영상이 없습니다.</p>`) +
       `<p class="jw-note">유튜브는 업로드 날짜를 주지 않아 “4개월 전” 같은 상대 표기를 <b>월로 환산</b>했습니다 — 월 단위는 <b>근사값</b>입니다. ${Y.note}</p>` +
       `</div></div>` +
 
       `<div class="cx-right">` +
-      `<div class="ca-ncard">` +
-      `<h4 class="ca-ch">많이 본 영상 <i class="ca-tag">${labOf()} · 클릭 → 유튜브</i></h4>` +
-      (byViews.length ? `<div class="yt-podium">${podium(byViews)}</div>`
-        : `<p class="fc-plain">이 기간 영상이 없습니다.</p>`) +
-      `</div>` +
-      `<div class="ca-ncard">` +
-      `<h4 class="ca-ch">삼성 vs LG <i class="ca-tag">각 상위 3편</i></h4>` +
-      `<div class="yv-grid">${vsCol("s", sTop)}${vsCol("l", lTop)}</div>` +
-      `</div>` +
-      `<div class="ca-ncard">` +
-      `<h4 class="ca-ch">현장 액션 <i class="ca-tag">이 채널이 말해주는 것</i></h4>` +
-      `<ul class="yt-act">${act.join("")}</ul>` +
+      rankCard("많이 본 영상 — 공식 채널", offTop, allSorted.filter((x) => x.own), "클릭 → 유튜브") +
+      rankCard("많이 본 영상 — 유튜버", creTop, allSorted.filter((x) => !x.own), "클릭 → 유튜브") +
+      `<div class="ca-ncard yt-rep">` +
+      `<h4 class="ca-ch">종합 진단 <i class="ca-tag">${labOf()}</i></h4>` +
+      secs.join("") +
       `</div>` +
       `</div></div></div>`;
   }

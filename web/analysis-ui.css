@@ -450,3 +450,95 @@ body.view-cx .yt-own { font-size: 10.5px; }
 .ca2 .nsc-foot {
   line-height: 1.55;
 }
+
+/* ── 하단 잘림 방지 (2026-08-26 전수 검수) ──
+   실측: 서울 진단(.rv-diag) 54px, 매장 현장 액션(.sv-action) 9px,
+   네이버리뷰 하단 각주(.nr-note) 10px 이 박스/화면 밖으로 잘렸다.
+   내용이 안 보이는 것보다 얇은 안쪽 스크롤이 낫다 — 잘릴 때만 나타난다. */
+.ca2 .rv-diag { overflow-y: auto; }
+.ca2 .sv-action { overflow-y: auto; max-height: 100%; }
+body.view-nr .nr-note { padding-bottom: 12px; }
+
+/* 유튜브 종합 진단 카드 — 지역 심층분석 카드와 같은 섹션 박스 문법 */
+.ca2 .yt-rep .cy-sec { border: 1px solid rgba(23,42,66,0.09); background: #f7f9fc;
+  border-radius: 12px; padding: 7px 11px 8px; margin: 0 0 7px; }
+.ca2 .yt-rep .cy-sec > h5 { font-size: 13px; font-weight: 900; color: var(--text);
+  letter-spacing: -0.015em; display: flex; align-items: baseline; gap: 6px;
+  padding-bottom: 4px; margin: 0 0 5px; border-bottom: 1px dashed rgba(23,42,66,0.13); }
+.ca2 .yt-rep .cy-note { margin: 0; font-size: 11.5px; line-height: 1.55; font-weight: 600;
+  color: var(--muted); word-break: keep-all; }
+.ca2 .yt-rep .cy-note b { color: #1f5fd0; }
+.ca2 .yt-rep .cy-note b.warn { color: #d23b54; }
+
+/* ══ 유튜브 화면 레이아웃·썸네일 폴리시 (2026-08-25) ══════════════════
+   실측(1440×900): 우측 카드 3장 세로 합 1096px > 가용 776px 로
+   **종합 진단 카드 하단 320px 이 section overflow:hidden 에 잘려 안 보였다.**
+   좌측 요약(.cx-sum)도 그리드 stretch 로 1096px 까지 늘어나 위는 크게 비고
+   아래 방법론 각주는 잘렸다(justify-content:center 가 넘친 만큼 아래로 밀어냄).
+
+   해법 — 우측을 2열 그리드로: 「공식 채널 | 유튜버」 순위 카드를 나란히,
+   종합 진단은 전폭으로 그 아래. 대조 화면(어느 쪽이 더 보이나)이라
+   나란히 놓는 편이 읽기에도 맞다. 전부 .ca2.yt-wrap 스코프 —
+   매장 대시보드의 유튜브 카드(store-scope)나 다른 채널 화면은 건드리지 않는다. */
+@media (min-width: 1081px) {
+  /* 그리드 행을 컨테이너 높이에 못박는다 — 암시 행은 내용만큼 자라 넘친다 */
+  .ca2.yt-wrap .cx-body { grid-template-rows: minmax(0, 1fr); }
+  .ca2.yt-wrap .cx-right { min-height: 0; display: grid;
+    grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px; align-items: stretch; }
+  .ca2.yt-wrap .cx-right > .ca-ncard { margin: 0; min-width: 0; }
+  .ca2.yt-wrap .cx-right > .yt-rep { grid-column: 1 / -1; min-height: 0;
+    overflow-y: auto; }  /* 내용이 안 보이는 것보다 얇은 안쪽 스크롤이 낫다 */
+  /* 종합 진단 4단락도 2열로 — 전폭 한 줄 1,000px 는 읽는 줄로 너무 길다 */
+  .ca2.yt-wrap .yt-rep { display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; align-content: start; }
+  .ca2.yt-wrap .yt-rep > .ca-ch { grid-column: 1 / -1; margin-bottom: 0; }
+  .ca2.yt-wrap .yt-rep .cy-sec { margin: 0; min-width: 0; }
+}
+
+/* ── 좌측 요약: 세로 배분 — 위에서부터 채우고, 방법론 각주만 바닥에 앉힌다.
+   justify-content:center 는 칼럼이 내용보다 훨씬 클 때 위를 크게 비운다. */
+.ca2.yt-wrap .cx-sum { justify-content: flex-start; }
+.ca2.yt-wrap .cx-sum > .jw-note { margin-top: auto; padding-top: 10px;
+  border-top: 1px dashed rgba(23,42,66,0.13); }
+
+/* ── 썸네일 행: 그림에 무게, 정돈된 간격 ──
+   주의: .ytc-thumb 는 aspect-ratio 16/9 라 세로 stretch 되면 폭이
+   그리드 트랙(104px)을 넘어 135px 로 번져 텍스트를 덮는다(실측 사고).
+   반드시 align-self 로 stretch 를 끊고 폭(트랙)에서 높이를 얻게 한다. */
+.ca2.yt-wrap .ytc { padding: 8px; border-radius: 14px; gap: 12px;
+  grid-template-columns: 118px minmax(0, 1fr); align-items: center;
+  border-color: rgba(23,42,66,0.08);
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease; }
+.ca2.yt-wrap .ytc-thumb { align-self: center; width: 118px; }
+.ca2.yt-wrap .ytc:hover { background: rgba(31,95,208,.035);
+  border-color: rgba(31,95,208,.45);
+  box-shadow: 0 3px 12px rgba(31,95,208,.09); }
+.ca2.yt-wrap .ytc-thumb { border-radius: 10px; }
+/* 사진 가장자리 정리 — 밝은 썸네일이 카드 바탕에 뭉개지지 않게 얇은 안쪽 선 */
+.ca2.yt-wrap .ytc-thumb::after { content: ""; position: absolute; inset: 0;
+  border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(15,23,42,.08); }
+
+/* 순위 배지 — 숫자 폭이 달라도 같은 크기, 1위는 반 단계 크게 */
+.ca2.yt-wrap .ytc-rank { left: 6px; top: 6px; min-width: 21px; text-align: center;
+  font-size: 12.5px; padding: 3px 5px; border-radius: 7px;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 1px 4px rgba(15,23,42,.3); }
+.ca2.yt-wrap .yt-podium > .ytc:first-child .ytc-rank { font-size: 14.5px;
+  min-width: 24px; padding: 4px 6px; }
+
+/* 제목 — 말줄임 대신 2줄까지 편다(브리핑 허용 범위). 전체 제목은 title 툴팁에 있다 */
+.ca2.yt-wrap .ytc-body { gap: 4px; }
+.ca2.yt-wrap .ytc-body .yt-t { white-space: normal; display: -webkit-box;
+  -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  line-height: 1.35; word-break: keep-all; }
+.ca2.yt-wrap .ytc-foot { margin-top: 2px; }
+
+/* ── 숫자: 표 숫자꼴 — 조회수·편수·재생 합계 ── */
+.ca2.yt-wrap .ytc-foot u,
+.ca2.yt-wrap .yo-k b,
+.ca2.yt-wrap .cx-sum-n b {
+  font-variant-numeric: tabular-nums;
+}
+.ca2.yt-wrap .cx-sum-n b { letter-spacing: -0.035em; }

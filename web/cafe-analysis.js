@@ -1936,6 +1936,11 @@
       }
     });
     host.addEventListener("click", (e) => {
+      /* 공유 컨테이너 가드(2026-08-26): 이 핸들러는 카페 화면이 떠 있을 때만.
+         #channelPanel 은 유튜브·인스타 등 다른 채널 화면과 공유하는데, 여기서
+         [data-per] 를 처리해 버리면 **유튜브 기간 칩을 누르는 순간 카페 화면이
+         다시 그려지는** 사고가 난다(사용자 "기간 탭을 누르면 오류" 실측 원인). */
+      if (!document.body.classList.contains("view-cafe")) return;
       // 분석 카드 열기/닫기 (상세가 영역 전체를 덮음)
       if (e.target.closest(".fc-open")) {
         const card = e.target.closest(".ca-fcard");

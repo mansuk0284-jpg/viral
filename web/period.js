@@ -31,14 +31,14 @@
     const nowKey = d.getFullYear() + "-" + pad(d.getMonth() + 1);
     const nowM = months.indexOf(nowKey) >= 0 ? nowKey : lastM;
 
-    const st = { period: nowM, navY: nowM.slice(0, 4), range: null };
+    const st = { period: nowM, navY: nowM.slice(0, 4), range: null, rangeLab: "" };
 
     const isAll = () => st.period === "all";
     const curMonth = () => (/^\d{4}-\d\d$/.test(st.period) ? st.period : null);
     const curYear = () => (/^\d{4}$/.test(st.period) ? st.period : null);
 
     function label() {
-      if (st.range) return st.range[0] + " ~ " + st.range[1];
+      if (st.range) return st.rangeLab || (st.range[0] + " ~ " + st.range[1]);
       if (isAll()) return "전체";
       const m = curMonth();
       if (m) return m.slice(0, 4) + "년 " + (+m.slice(5)) + "월";
@@ -142,10 +142,13 @@
     const api = {
       html: html, bar: bar, bind: bind, range: range, label: label,
       period: () => (st.range ? null : st.period),
-      setRange(a, b) { st.range = (a && b) ? [a, b] : null; fire(); },
+      setRange(a, b) { st.range = (a && b) ? [a, b] : null; st.rangeLab = ""; fire(); },
       /* 표본이 작은 채널은 전체 기간으로 여는 게 맞다 — 현재 월로 열면
          "이게 다인가" 로 읽힌다. 처음 그리기 전에 부르므로 onChange 는 쏘지 않는다. */
-      setAll() { st.period = "all"; st.range = null; },
+      setAll() { st.period = "all"; st.range = null; st.rangeLab = ""; },
+      /* 이름 있는 초기 구간(예: "최근 3개월") — 첫 그리기 전에 부르므로 fire 안 함.
+         칩을 누르면 range 가 풀리며 평소 동작으로 돌아간다(2026-08-26, 유튜브). */
+      setInit(a, b, lab) { st.range = [a, b]; st.rangeLab = lab || ""; },
       state: st,
     };
     return api;
