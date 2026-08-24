@@ -658,6 +658,7 @@
         ` — 기간을 넓혀 보세요.</span></div>`;
     }
     const win = both.filter((k) => seen[k].s > seen[k].l).length;
+    const lose = both.filter((k) => seen[k].l > seen[k].s).length;
     const tie = both.filter((k) => seen[k].s === seen[k].l).length;
     const pct0 = Math.round(win / both.length * 100);
     /* 비교 가능 매장이 손에 꼽을 정도면 백분율이 과장으로 읽힌다.
@@ -671,9 +672,15 @@
     const roster = (window.COMPETE && window.COMPETE.stores)
       ? window.COMPETE.stores.length : null;
 
+    /* 사용자 지시(2026-08-25): "점으로도 우위점 00개소 열세점 00개소로 말해줘".
+       예전엔 우위 개점만 적어 열세가 몇 곳인지는 분모를 암산해야 알 수 있었다.
+       우위·열세를 나란히 적는다 — 동률은 둘 다에서 빠지므로 합이 both.length 보다 작을 수 있다. */
     return `<div class="nsc-win${thin ? " thin" : (pct0 >= 50 ? " up" : "")}">` +
-      `<b>${win}</b><i>/${both.length}개점 우위</i>` +
-      (thin ? `<span class="nw-p warn">표본 적음</span>` : `<span class="nw-p">${pct0}%</span>`) +
+      `<div class="nw-pair">` +
+      `<span class="nw-p1"><b>${win}</b><i>개소 우위</i></span>` +
+      `<span class="nw-p2"><b class="warn">${lose}</b><i>개소 열세</i></span>` +
+      `</div>` +
+      (thin ? `<span class="nw-p warn">표본 적음</span>` : `<span class="nw-p">우위율 ${pct0}%</span>`) +
       `<span class="nw-sub">` +
       (roster ? `양사 입점 <b>${roster}곳</b> 중 ` : "") +
       `이 기간 삼성·LG 후기가 <b>모두 있는 ${both.length}곳</b>만 비교했습니다` +
@@ -696,11 +703,44 @@
     const win = arr.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 3);
     const lose = arr.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 3);
     if (!win.length && !lose.length) return "";
-    const chips = (list) => list.map((x) => `<span class="rs-chip" title="표본 ${fmtN(x.tot)}건">${x.rg} <i>${x.sh}%</i><em>${fmtN(x.tot)}</em></span>`).join("");
-    return `<div class="nsc-rsum">` +
+    /* 숫자 표기를 고친다(2026-08-25 사용자 지시: "숫자 표현이 이상한 경우가 있는데 수정").
+       예전엔 "경북 82%977" 처럼 퍼센트 뒤에 표본 건수가 단위·구분 없이 바로 붙어
+       무슨 숫자인지 알 수 없었다. 가운뎃점과 "건"을 붙여 값의 정체를 밝힌다. */
+    const chips = (list) => list.map((x) =>
+      `<span class="rs-chip" title="표본 ${fmtN(x.tot)}건">${x.rg} <i>${x.sh}%</i><em> · ${fmtN(x.tot)}건</em></span>`).join("");
+
+    /* 한 줄 요약 — 사용자 지시: "간단히 전체 시도 가운데 우위 어디이고 열세 어디인지".
+       상·하위 목록은 아래 칩으로 이미 보여주니, 맨 위에는 **1위 하나씩**만 짚어
+       "그래서 결론이 뭔데"에 바로 답한다. */
+    const top1s = win[0], top1l = lose[0];
+    const lead = (top1s || top1l)
+      ? `<p class="rs-lead">전국 ${arr.length}개 시도 가운데 ` +
+        (top1s ? `<b>${top1s.rg}</b>이 삼성 <b>${top1s.sh}%</b>로 가장 우위이고, ` : "") +
+        (top1l ? `<b class="warn">${top1l.rg}</b>은 삼성 <b class="warn">${top1l.sh}%</b>로 가장 열세입니다.` : "") +
+        `</p>`
+      : "";
+
+    /* 우위·열세의 이유를 간단히 — 사용자 지시: "우위 또는 열세에 대한 주요 이유를 분석해서
+       간단히 알려줘". 지역 자체는 이유를 말하지 못하므로(지리는 원인이 아니라 결과다),
+       같은 기간 품목 성적을 근거로 삼는다 — 상세 근거는 우측 '품목 전략' 카드에 있다. */
+    const IT = perData().items || (CD && CD.items) || {};
+    const itAll = Object.keys(IT).map((k) => {
+      const v = IT[k]; return { n: k, tot: v.s + v.l, sh: pct(v.s, v.l) };
+    }).filter((x) => x.tot >= 5);
+    const itWin = itAll.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 2);
+    const itLose = itAll.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 2);
+    const why = (itWin.length || itLose.length)
+      ? `<p class="rs-why">` +
+        (itWin.length ? `우위는 <b>${itWin.map((x) => x.n + " " + x.sh + "%").join("·")}</b> 품목이 끌어올렸고, ` : "") +
+        (itLose.length ? `열세는 <b class="warn">${itLose.map((x) => x.n + " " + x.sh + "%").join("·")}</b> 품목에서 밀린 영향이 큽니다.` : "") +
+        `</p>`
+      : "";
+
+    return `<div class="nsc-rsum">` + lead +
       (win.length ? `<div class="rs-row s"><b>삼성 우위</b>${chips(win)}</div>` : "") +
       (lose.length ? `<div class="rs-row l"><b>열세(LG↑)</b>${chips(lose)}</div>`
                    : `<div class="rs-row l"><b>열세(LG↑)</b><span class="rs-none">표본 기준 없음</span></div>`) +
+      why +
       `<p class="rs-cap">시도 삼성비중 상·하위 · 제목기반 추정</p></div>`;
   }
 
@@ -1224,7 +1264,7 @@
       `<span class="it-bar"><i style="width:${x.sh}%"></i></span>` +
       `<span class="it-v">${x.sh}<em>%</em></span>` +
       `<span class="it-c">${fmtN(x.tot)}건</span></li>`;
-    return fcard("items", "품목 전략", "카테고리별 경쟁 지형", win[0] ? win[0].sh + "%" : "—",
+    return fcard("items", "품목별 분석", "품목별 경쟁 현황", win[0] ? win[0].sh + "%" : "—",
       win[0] ? win[0].n + " 최강" : "",
       `<div class="fc-sec"><h5>우리가 이기는 품목 <i class="it-tag s">방어</i></h5>` +
       `<ul class="it-list">${win.map((x) => bar(x, "s")).join("")}</ul></div>` +
@@ -1259,8 +1299,8 @@
     const low = mk.length ? mk.reduce((a, b) => (byM[a] < byM[b] ? a : b)) : null;
     const ratio = peak && low && byM[low] ? (byM[peak] / byM[low]).toFixed(1) : null;
 
-    return fcard("win", "결정 요인",
-      winsCompare ? "선택이 갈리는 순간" : "밀리는 접점",
+    return fcard("win", "결정 요인 분석",
+      winsCompare ? "비교 상담 우위 요인" : "비교 상담 열세 요인",
       cShare + "%", "비교 후 삼성 선택",
       `<div class="fc-sec"><h5>① 비교 상담의 결과</h5>` +
       `<p class="fc-plain">‘발품·비교·고민’ 언급 <b>${fmtN(CP.s + CP.l)}건</b> 중 삼성 <b${winsCompare ? "" : ' class="warn"'}>${cShare}%</b> : LG ${100 - cShare}% — ` +
@@ -1349,7 +1389,7 @@
       `후기에 <b>“○○매니저”</b>를 넣어달라고 <b>요청</b>하는 것입니다.` +
       `</p></div>`;
 
-    return fcard("mgr", "사람이 남는가", "매니저 실명 후기",
+    return fcard("mgr", "실명 언급 분석", "매니저 실명 언급 현황",
       `${win.length}<u>/${rows.length}</u>`, "삼성 우위 매장",
       detail,
       [natOn !== null ? "전국 " + natOn + "%" : "", "최고 " + rows[0].sh + "%",
@@ -1462,7 +1502,8 @@
         `삼성 후기 쓰는 고객이 <b>매장명을 더 자주 적는다</b>는 뜻이라, ` +
         `매장별 건수 차이를 곧바로 바이럴 우위로 읽으면 안 됩니다. ` +
         `본문은 <b>최근 12개월</b>만 열었습니다(그 이전은 제목·요약 기준).</p>` +
-        `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b></span><span class="nv l">LG <b>${ls}%</b></span></div>` +
+        `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b><i>${fmtN(c.s)}건</i></span>` +
+        `<span class="nv l">LG <b>${ls}%</b><i>${fmtN(c.l)}건</i></span></div>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
         hitsBlock() +
         winCount() +
@@ -1481,8 +1522,8 @@
         // 우: 분석 카드 2×2 (＋클릭 → 상세가 영역 전체를 덮음)
         `<div class="ca-nright">` +
         fcard("reasons",
-          lead0 === "win" ? "우위 진단" : lead0 === "lose" ? "열세 진단" : "접전 진단",
-          lead0 === "win" ? "우위를 만든 구조" : lead0 === "lose" ? "열세를 만든 구조" : "접전의 구조",
+          lead0 === "win" ? "우위 요인 분석" : lead0 === "lose" ? "열세 요인 분석" : "접전 요인 분석",
+          lead0 === "win" ? "우위 형성 요인" : lead0 === "lose" ? "열세 형성 요인" : "접전 형성 요인",
           share0 + "%", "삼성 비중",
           `<ul class="ca-reasons">${reasonLi}</ul>` +
           `<div class="fc-sec tip"><h5>${lead0 === "lose" ? "회복 과제" : "유지 과제"}</h5><p>` +
@@ -1510,8 +1551,8 @@
           }).filter((x) => x.tot >= 200 && x.sh < 50).sort((a, b) => b.gap - a.gap).slice(0, 3);
           const mg = (CD && CD.mgr) || null;
           const mgSh = mg ? pct(mg.s_on, mg.l_on) : null;
-          return fcard("lg", "경쟁 방어",
-            its.length ? "이탈이 일어나는 지점" : "방어가 유지되는 구간",
+          return fcard("lg", "열세 요인 분석",
+            its.length ? "품목별 이탈 현황" : "방어 유지 현황",
             its.length ? fmtN(totGap) : "0", "LG 우위 격차(건)",
             (its.length
               ? `<div class="fc-sec"><h5>품목별 이탈</h5><ul class="fc-pts">` +

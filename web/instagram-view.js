@@ -178,6 +178,7 @@
 
     return `<div class="ca2 yt-wrap">` +
       `<div class="cx-top">` +
+      `${window.VICON ? VICON.html("instagram", "인스타그램") : ""}` +
       `<div class="cx-title"><h2>인스타그램</h2>` +
       `<span>넓은 채널에서 혼수가전만 골라 봤습니다 · 글 ${fmtN(G.total)}건</span></div>` +
       `${per() ? per().bar() : ""}` +

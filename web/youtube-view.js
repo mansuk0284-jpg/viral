@@ -230,6 +230,7 @@
 
     return `<div class="ca2 yt-wrap">` +
       `<div class="cx-top">` +
+      `${window.VICON ? VICON.html("youtube", "유튜브") : ""}` +
       `<div class="cx-title"><h2>유튜브</h2>` +
       `<span>넓은 채널에서 혼수가전만 골라 봤습니다 · 영상 ${fmtN(Y.total)}편</span></div>` +
       `${per() ? per().bar() : ""}` +

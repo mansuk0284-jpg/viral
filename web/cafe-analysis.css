@@ -2025,3 +2025,59 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
 .igp-v { font-size: 13px; font-weight: 900; color: var(--text); white-space: nowrap;
   display: flex; align-items: center; gap: 5px; }
 .igp-v u { text-decoration: none; font-size: 11px; color: #d23b54; margin-left: 1px; }
+
+/* ── 분석 화면 머리글 아이콘의 브랜드 색 (2026-08-24) ──
+   타일에서는 `.src-youtube .src-ic { background: #FF0000 }` 처럼
+   부모 클래스에 색이 걸려 있다. 머리글 아이콘(.ca-ic)은 부모가 없으므로
+   같은 색을 여기서 직접 준다 — 타일과 머리글이 **같은 얼굴**이어야 한다.
+   색을 바꿀 때는 styles.css 의 타일 규칙과 이 규칙을 함께 고친다. */
+.ca-ic.src-cafe { background: #111; }
+.ca-ic.src-jwed { background: #0f172a; }
+.ca-ic.src-youtube { background: #FF0000; }
+.ca-ic.src-insta { background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); }
+.ca-ic.src-blog { background: #1ec800; }
+.ca-ic.src-mom { background: #03C75A; }
+.ca-ic.src-ohou { background: #35C5F0; }
+
+/* 채널 화면 머리글에서는 조금 작게 — 제목(26px) 옆에 54px 은 과하다 */
+body.view-cx .cx-top > .ca-ic { width: 44px; height: 44px; border-radius: 13px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   다이렉트웨딩 전국 페이지 — 2026-08-25 사용자 지시 반영
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ① 삼성/LG % 아래 건수도 함께 — "몇 %" 뿐 아니라 "몇 건"인지 바로 보이게 */
+.ca-nsumcol .nsc-vs .nv i { display: block; margin-top: 1px; font-style: normal;
+  font-size: 11.5px; font-weight: 700; color: var(--muted); }
+
+/* ② winCount — 우위 개소·열세 개소를 나란히
+   예전엔 우위 개점만 적어 열세는 분모를 암산해야 알 수 있었다. */
+.nsc-win .nw-pair { display: flex; align-items: baseline; gap: 14px; }
+.nsc-win .nw-p1, .nsc-win .nw-p2 { display: flex; align-items: baseline; gap: 4px; }
+.nsc-win .nw-p1 b { font-size: 26px; font-weight: 900; color: #1f5fd0; letter-spacing: -0.03em; }
+.nsc-win .nw-p2 b { font-size: 26px; font-weight: 900; color: #d23b54; letter-spacing: -0.03em; }
+.nsc-win .nw-p1 i, .nsc-win .nw-p2 i { font-style: normal; font-size: 12px; font-weight: 700; color: var(--muted); }
+
+/* ③ 지역 요약 — 한 줄 결론(rs-lead) + 이유(rs-why) */
+.rs-lead { margin: 0 0 8px; font-size: 13.5px; line-height: 1.6; font-weight: 600;
+  color: var(--text); word-break: keep-all; }
+.rs-lead b { color: #1f5fd0; font-weight: 900; }
+.rs-lead b.warn { color: #d23b54; font-weight: 900; }
+.rs-why { margin: 8px 0 0; font-size: 12px; line-height: 1.6; font-weight: 600;
+  color: var(--muted); word-break: keep-all; }
+.rs-why b { color: #1f5fd0; font-weight: 800; }
+.rs-why b.warn { color: #d23b54; font-weight: 800; }
+/* rs-chip 안 표본 건수 — 퍼센트 뒤에 단위 없이 바로 붙어 "82%977"로 읽히던 것을 고쳤다.
+   em 은 회색 보조 숫자로, i(퍼센트)와 분명히 갈라 보이게 한다. */
+.rs-chip em { color: #9aa7bd; }
+
+/* ④ 카드 상세 — 긍정=파랑·부정=빨강 기본 원칙 (2026-08-25 사용자 지시)
+   실측 버그: `.ca-reasons li span b` 와 `.fc-sec.tip p b` 는 자기 색(파랑)만 갖고 있어
+   .warn 을 붙여도 씹혔다 — "오븐 39%"(부정)가 파랗게 보였다.
+   여기 한 곳에서 !important 로 못박아, 어느 컴포넌트에서 만든 글자든
+   .warn 이 있으면 무조건 빨강이 이기게 한다. 새 카드를 만들어도 이 원칙을 벗어나지 않는다. */
+.ca2 .fc-dbody b.warn,
+.ca2 .ca-reasons b.warn,
+.ca2 .nsc-what b.warn,
+.ca2 .nsc-bias b.warn { color: #d23b54 !important; }
+.ca2 .fc-sec.tip p b:not(.warn) { color: #1f5fd0; }
