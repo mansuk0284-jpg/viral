@@ -576,10 +576,11 @@
     return `<div class="nsc-sec">` +
       `<h4 class="nsc-st">조회수${per ? `<i>후기당 ${per}회</i>` : ""}</h4>` +
       `<div class="nh-top"><b>${fmtN(h)}</b><i>회 조회</i></div>` +
-      (hs + hl ? `<div class="nh-bar"><i class="s" style="width:${sh}%"></i>` +
+      (hs + hl ? `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
+        `<div class="nh-bar"><i class="s" style="width:${sh}%"></i>` +
         `<i class="l" style="width:${100 - sh}%"></i></div>` +
-        `<div class="nsc-vs2"><span class="s">삼성 <b>${fmtN(hs)}회</b><i>(${sh}%)</i></span>` +
-        `<span class="l">LG <b>${fmtN(hl)}회</b><i>(${100 - sh}%)</i></span></div>` : "") +
+        `<div class="nsc-nums"><span class="s"><b>${fmtN(hs)}회</b><i>(${sh}%)</i></span>` +
+        `<span class="l"><b>${fmtN(hl)}회</b><i>(${100 - sh}%)</i></span></div>` : "") +
       `</div>`;
   }
 
@@ -1207,8 +1208,8 @@
       `<div class="fc-sec tip"><h5>상담 전략</h5><p>강점 품목(<b>${win.map((x) => x.n).join("·")}</b>)으로 상담을 <b>열어 신뢰를 만들고</b>, ` +
       `약점 품목(<b class="warn">${lose.map((x) => x.n).join("·")}</b>)에서 패키지가 깨집니다 — 이 세 품목에서만 LG가 <b class="warn">${fmtN(leak)}건</b> 앞섭니다. ` +
       `해당 품목은 <b>비스포크 대안·묶음 할인</b>을 먼저 제시해 이탈을 막으세요.</p></div>`,
-      [win[0] ? { t: win[0].n + " " + win[0].sh + "%", neg: false } : null,
-       lose[0] ? { t: lose[0].n + " " + lose[0].sh + "%", neg: true } : null].filter(Boolean));
+      [win[0] ? { t: win[0].n + " " + win[0].sh + "% 강세", neg: false } : null,
+       lose[0] ? { t: lose[0].n + " " + lose[0].sh + "% 열세", neg: true } : null].filter(Boolean));
   }
 
   /* ── 승부처 카드 — 비교 상담·혜택·성수기 ── */
@@ -1245,16 +1246,28 @@
       `</p></div>` +
       (bl.length ? `<div class="fc-sec"><h5>② 이 기간 작동한 혜택</h5><ul class="fc-pts">` +
         bl.map((x) => `<li><b>${x.n}</b> ${fmtN(x.tot)}건 · 삼성 <b${x.sh >= 50 ? "" : ' class="warn"'}>${x.sh}%</b></li>`).join("") +
-        `</ul></div>` : "") +
-      (peak ? `<div class="fc-sec"><h5>③ 성수기 (${perLab(st.period)})</h5>` +
-        `<p class="fc-plain">후기는 <b>${+peak}월</b> 최다, ${+low}월 최저 — 최대 <b>${ratio}배</b> 차이.</p></div>` : "") +
+        `</ul>` +
+        `<p class="fc-plain">후기에 언급된 혜택 가운데 <b>${bl[0].n}</b>${hasJong(bl[0].n) ? "이" : "가"} 가장 자주 등장합니다. ` +
+        `고객이 계약을 결심한 뒤 <b>글로 남길 만큼 기억에 남은 혜택</b>이라는 뜻이므로, ` +
+        `상담 마무리 단계에서 이 혜택을 수치와 함께 짚어 주면 계약 전환에 효과가 있습니다.</p></div>` : "") +
+      /* 한 달만 선택하면 최다·최저가 같은 달이 되어 "8월 최다, 8월 최저" 같은
+         무의미한 문장이 나온다(2026-08-25 사용자 지적). 그 경우는 비교가 아니라
+         기간 안내로 바꾸고, 여러 달일 때는 격차의 뜻과 활용까지 두 줄 이상으로 푼다. */
+      (peak ? `<div class="fc-sec"><h5>③ 후기가 몰리는 시기</h5>` +
+        (peak === low
+          ? `<p class="fc-plain">지금은 <b>${+peak}월 한 달</b>만 보고 있어 월별 비교가 없습니다. ` +
+            `기간을 연간이나 전체로 넓히면 후기가 어느 달에 몰리는지 — 즉 <b>혼수 상담의 성수기</b>가 보입니다.</p>`
+          : `<p class="fc-plain">후기는 <b>${+peak}월</b>에 가장 많고 <b>${+low}월</b>에 가장 적습니다(격차 <b>${ratio}배</b>). ` +
+            `후기가 몰리는 달은 곧 혼수 계약이 몰리는 달이므로, <b>${+peak}월 직전부터</b> 구매 고객에게 ` +
+            `후기 작성을 요청해 두면 성수기 검색에서 우리 매장 글이 먼저 보입니다.</p>`) +
+        `</div>` : "") +
       `<div class="fc-sec tip"><h5>실행</h5><p>` +
       (winsCompare ? `① <b>비교 견적</b>을 먼저 제안(승률 ${cShare}%) ` : `① 비교 상담 <b class="warn">패턴 분석</b> 후 대응 논리 보강 `) +
       (bl.length ? `② <b>${bl[0].n}</b>${hasJong(bl[0].n) ? "을" : "를"} 상담 마무리에 수치로 제시 ` : "") +
-      (peak ? `③ <b>${+peak}월</b> 성수기 전 후기 요청 캠페인` : "") +
+      (peak && peak !== low ? `③ <b>${+peak}월</b> 성수기 전 후기 요청 캠페인` : "") +
       `</p></div>`,
-      [{ t: (winsCompare ? "비교 우위 " : "비교 열세 ") + cShare + "%", neg: !winsCompare },
-       peak ? { t: +peak + "월 성수기", neg: false } : null].filter(Boolean),
+      [{ t: "비교 상담 승률 " + cShare + "%", neg: !winsCompare },
+       peak && peak !== low ? { t: "후기 최다 " + (+peak) + "월", neg: false } : null].filter(Boolean),
       !winsCompare);
   }
 
@@ -1336,9 +1349,8 @@
     return fcard("mgr", "실명 언급 분석", "매니저 실명 언급 현황",
       `${win.length}<u>/${rows.length}</u>`, "삼성 우위 매장",
       detail,
-      [natOn !== null ? { t: "전국 " + natOn + "%", neg: natOn < 50 } : null,
-       { t: "최고 " + rows[0].sh + "%", neg: false },
-       { t: "최저 " + rows[rows.length - 1].sh + "%", neg: true }].filter(Boolean),
+      [natOn !== null ? { t: "실명 후기 삼성 " + natOn + "%", neg: natOn < 50 } : null,
+       { t: "매장 간 편차 " + rows[rows.length - 1].sh + "~" + rows[0].sh + "%", neg: false }].filter(Boolean),
       win.length < rows.length / 2);
   }
 
@@ -1459,10 +1471,14 @@
         /* 좌측 칼럼은 "제목 있는 섹션 박스" 네 개로 통일한다(2026-08-25 사용자 지시:
            "제목을 크게 하고 해당 타이틀별로 박스화 하던지 해서 내용 구분을 해주자").
            후기 건수 · 조회수 · 매장 우위·열세 · 우위·열세 지역 — 같은 양식, 같은 흐름. */
+        /* 막대 좌우로 삼성/LG 를 가른다(2026-08-25 사용자 지시:
+           "좌측 파란색 삼성, 우측 빨간색 lg"). 브랜드명은 막대 위 양 끝,
+           수치는 막대 아래 양 끝 — 후기 건수·조회수 두 섹션이 같은 모양. */
         `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
+        `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
-        `<div class="nsc-vs2"><span class="s">삼성 <b>${fmtN(c.s)}건</b><i>(${ss}%)</i></span>` +
-        `<span class="l">LG <b>${fmtN(c.l)}건</b><i>(${ls}%)</i></span></div></div>` +
+        `<div class="nsc-nums"><span class="s"><b>${fmtN(c.s)}건</b><i>(${ss}%)</i></span>` +
+        `<span class="l"><b>${fmtN(c.l)}건</b><i>(${ls}%)</i></span></div></div>` +
         hitsBlock() +
         winCount() +
         regionSummary() +
@@ -1492,8 +1508,9 @@
             : `${itWin.length ? `<b>${itWin.map((x) => x.n).join("·")}</b>의 우위를 유지하고, ` : ""}` +
               (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>는 패키지 판매로 방어하세요.` : `약점 품목이 없습니다 — <b>구매 고객에게 후기 작성을 요청</b>해 표본을 넓히는 것이 다음 과제입니다.`)) +
           `</p></div>`,
-          [{ t: (lead0 === "lose" ? "열세 " : "우위 ") + share0 + "%", neg: lead0 === "lose" },
-           dSh !== null ? { t: "직전 대비 " + (dSh >= 0 ? "+" : "") + dSh + "p", neg: dSh < 0 } : null]
+          [{ t: "삼성 비중 " + share0 + "% " + (lead0 === "win" ? "우위" : lead0 === "lose" ? "열세" : "접전"),
+             neg: lead0 === "lose" },
+           dSh !== null ? { t: "직전 기간보다 " + Math.abs(dSh) + "p " + (dSh >= 0 ? "상승" : "하락"), neg: dSh < 0 } : null]
             .filter(Boolean),
           lead0 === "lose") +
         itemCard() +
@@ -1521,7 +1538,7 @@
                 its.map((x) => `<li><b class="warn">${x.n}</b> 삼성 ${x.sh}% — LG <b class="warn">+${fmtN(x.gap)}건</b>` +
                   ` <span style="color:#9aa7bd">(표본 ${fmtN(x.tot)})</span></li>`).join("") +
                 `</ul></div>`
-              : `<div class="fc-sec"><p class="fc-plain">이 기간에는 <b>LG가 앞선 품목이 없습니다</b>.</p></div>`) +
+              : `<div class="fc-sec"><p class="fc-plain">이 기간에는 <b>LG가 앞선 품목이 없습니다</b> — 전 품목에서 삼성이 앞서거나 동률이라는 뜻입니다. 현재의 상담 구성과 혜택 안내를 유지하되, 우위가 좁은 품목이 없는지 품목별 분석 카드에서 함께 확인하세요.</p></div>`) +
             (rg.length ? `<div class="fc-sec"><h5>LG 우위 지역</h5><ul class="fc-pts">` +
               rg.map((x) => `<li><b class="warn">${x.rg}</b> 삼성 ${x.sh}% · LG +${fmtN(x.gap)}건 (표본 ${fmtN(x.tot)})</li>`).join("") +
               `</ul></div>` : "") +
@@ -1531,8 +1548,8 @@
             (its.length ? `<b class="warn">${its[0].n}</b>부터 대응 — 이 품목만 동률로 만들어도 격차의 <b>${Math.round(its[0].gap / (totGap || 1) * 100)}%</b>가 해소됩니다. 삼성 대안 모델·묶음 견적을 먼저 제시하세요. `
                         : `현재 방어가 유지되고 있습니다. `) +
             `계약 시 <b>담당자 이름을 넣은 후기</b>를 요청해 실명 후기 열세를 좁히세요.</p></div>`,
-            [its.length ? { t: its[0].n + " " + its[0].sh + "%", neg: true } : { t: "이탈 없음", neg: false },
-             rg.length ? { t: rg[0].rg + " " + rg[0].sh + "%", neg: true } : null].filter(Boolean),
+            [its.length ? { t: its[0].n + " 이탈 최다", neg: true } : { t: "이탈 품목 없음", neg: false },
+             rg.length ? { t: rg[0].rg + " 열세 " + rg[0].sh + "%", neg: true } : null].filter(Boolean),
             its.length > 0);
         })() +
 

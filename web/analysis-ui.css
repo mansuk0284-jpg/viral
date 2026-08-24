@@ -232,9 +232,16 @@ body.view-cx .yt-own { font-size: 10.5px; }
 .ca2 .nsc-sec .nw-sub { display: block; margin-top: 2px; font-size: 10.8px; line-height: 1.5;
   font-weight: 600; color: var(--muted); word-break: keep-all; }
 
-/* 박스 안 브랜드 줄 — 칼럼이 264px 로 좁아, 일곱 자리 조회수 두 개를
-   한 줄에 나란히 두면 오른쪽이 박스를 뚫는다(실측 28px 초과).
-   두 줄로 쌓는다 — 후기 건수 쪽도 같은 모양으로 맞춰 네 섹션의 흐름을 통일한다. */
-.ca2 .nsc-sec .nsc-vs2 { flex-direction: column; align-items: stretch; gap: 1px; margin-top: 5px; }
-.ca2 .nsc-sec .nsc-vs2 span { font-size: 12px; display: flex; justify-content: space-between; }
-.ca2 .nsc-sec .nsc-vs2 span b { font-size: 13px; }
+/* 막대 좌우 삼성/LG 분리 (2026-08-25 사용자 지시: "좌측 파란색 삼성, 우측 빨간색 lg").
+   브랜드명은 막대 위 양 끝, 수치는 막대 아래 양 끝 — 후기 건수·조회수 공통.
+   칼럼 실폭 264px 에서 "삼성 10,799,027회(51%)" 처럼 이름+수치를 한 덩이로 두면
+   뚫리지만(실측 28px), 이름과 수치를 위·아래로 가르면 수치만으로는 들어간다. */
+.ca2 .nsc-ends { display: flex; justify-content: space-between; margin: 2px 0 3px; }
+.ca2 .nsc-ends .s { font-size: 12.5px; font-weight: 900; color: #1f5fd0; }
+.ca2 .nsc-ends .l { font-size: 12.5px; font-weight: 900; color: #d23b54; }
+.ca2 .nsc-nums { display: flex; justify-content: space-between; margin-top: 4px; gap: 8px; }
+.ca2 .nsc-nums span { white-space: nowrap; }
+.ca2 .nsc-nums .s b, .ca2 .nsc-nums .s i { color: #1f5fd0; }
+.ca2 .nsc-nums .l b, .ca2 .nsc-nums .l i { color: #d23b54; }
+.ca2 .nsc-nums b { font-size: 12.5px; font-weight: 900; }
+.ca2 .nsc-nums i { font-style: normal; font-size: 10.5px; font-weight: 700; margin-left: 1px; }
