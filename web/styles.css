@@ -2037,9 +2037,20 @@ body.portal-open .ap-cards { display: none; }
 /* 클릭존과 큐는 **그림 속 소용돌이 자리**에 놓는다(가로 54% · 세로 61%).
    그림만 바꾸고 이걸 두고 오면 눈에 보이는 것과 눌리는 자리가 어긋난다 —
    전에 원 바깥 빈 여백이 눌리는 클릭존이 된 적이 있다. */
-.ap-media-portal .portal-hole { position: absolute; left: 54%; top: 61%; transform: translate(-50%, -50%);
-  height: 62%; width: auto; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
-.ap-cue { position: absolute; left: 54%; top: 61%; transform: translate(-50%, -50%);
+/* 2026-08-24 사용자 지시: "클릭하는 부분이 조금 더 넓게 인식되도록",
+   "효과가 들어간 부분을 이미지 중앙부분부터 퍼져나가도록".
+
+   54%/61% 는 카드가 가로로 넓던 시절 그림 속 소용돌이에 맞춘 값이다.
+   카드를 가로로 나누면서 미디어 칸이 300x313(거의 정사각)이 되어
+   그 좌표가 더는 중앙이 아니다 — 파동이 오른쪽 아래로 치우쳐 퍼졌다.
+   칸 한가운데(50%/50%)에서 퍼지게 되돌린다.
+
+   누르는 자리는 62% → 84% 로 넓힌다. 보이는 원보다 클릭존이 작으면
+   "눌리는 것 같은데 안 눌린다"가 되는데, 지금은 그림 전체가 하나의 문처럼
+   읽히므로 넉넉한 편이 맞다. */
+.ap-media-portal .portal-hole { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  height: 84%; width: auto; aspect-ratio: 1/1; border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
+.ap-cue { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: grid; place-items: center; pointer-events: none; z-index: 4; }
 .ap-cue .pc-ring { position: absolute; width: 74px; height: 74px; top: 50%; left: 50%;
   transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,.75); border-radius: 50%;
@@ -2136,12 +2147,46 @@ body.portal-open .hero-art > .hero-stage { display: block; }
   .ap-card > .ap-media { flex: 1 1 auto; align-self: auto; }
 }
 
-/* 가로 배치에선 설명 칸이 238px 로 좁아진다. 28px 제목은 "우리 매장 온라인 바이럴"
-   11글자가 안 들어가 두 줄로 갈라지는데, 옆 카드는 한 줄이라 리듬이 어긋난다.
-   어절 단위로 끊고(keep-all) 크기를 한 단계 낮춰 두 카드를 같은 줄 수로 맞춘다. */
+/* 제목을 짧게 줄였으니(2026-08-24 사용자 지시) 그만큼 크게 키운다.
+   "우리 매장 온라인 바이럴" 11글자였을 땐 238px 칸에 안 들어가 두 줄로 갈라져
+   크기를 낮춰야 했다. "우리 매장 바이럴" 8글자는 28px 로도 한 줄에 들어간다 —
+   같은 칸에서 글자만 커지는 셈이라 카드가 시원해진다. */
 .ap-card > .ap-body > .ap-title {
-  font-size: clamp(18px, 1.62vw, 23px);
+  font-size: clamp(21px, 2.0vw, 28px);
   line-height: 1.2;
   word-break: keep-all;
 }
-.ap-card > .ap-body > .ap-sub { margin-top: 6px; }
+.ap-card > .ap-body > .ap-sub {
+  margin-top: 7px;
+  font-size: clamp(13px, 1.12vw, 16px);
+}
+.ap-card > .ap-body > .ap-eyebrow { font-size: 12.5px; margin-bottom: 8px; }
+.ap-card > .ap-body > .ap-cta { margin-top: 13px; font-size: 14.5px; }
+
+/* 파동이 이미지 한가운데서 퍼지도록 — 이미지 마스크 중심도 같이 옮긴다.
+   버튼만 50%/50% 로 옮기고 마스크를 52%/50% 에 두면, 밝게 살아 있는 부분과
+   파동이 나오는 지점이 2% 어긋나 미묘하게 흐트러져 보인다. */
+.ap-media-portal img {
+  object-position: 50% 50%;
+  -webkit-mask-image: radial-gradient(120% 108% at 50% 50%,
+    #000 52%, rgba(0, 0, 0, .74) 74%, transparent 97%);
+  mask-image: radial-gradient(120% 108% at 50% 50%,
+    #000 52%, rgba(0, 0, 0, .74) 74%, transparent 97%);
+}
+
+/* 링을 이미지 폭에 맞춰 키운다 — 74px 고정이면 300px 그림 한가운데
+   작은 동그라미만 깜빡여, '이미지에서 퍼진다'가 아니라 '아이콘이 뛴다'로 읽힌다.
+   칸 크기를 따라가게 두면 그림 전체가 숨 쉬는 것처럼 보인다. */
+.ap-cue .pc-ring {
+  width: clamp(96px, 42%, 150px);
+  height: auto; aspect-ratio: 1 / 1;
+}
+.ap-media-portal .ap-cue { width: 100%; height: 100%; }
+
+/* 바깥으로 한 겹 더 — 중심에서 시작해 그림 가장자리까지 퍼진다 */
+.ap-cue .pc-ring::after {
+  content: ""; position: absolute; inset: -34%;
+  border: 1.5px solid rgba(255, 255, 255, .38); border-radius: 50%;
+  animation: pcRing 2.2s ease-out .55s infinite;
+}
+.ap-cue .pc-ring { position: absolute; }
