@@ -570,14 +570,17 @@
     if (!h) return "";
     const sh = hs + hl ? Math.round(hs / (hs + hl) * 100) : 0;
     const per = A0 && A0.total ? Math.round(h / A0.total) : 0;
+    /* "hit 건수"는 '몇 명이 읽었나'로 오해되기 쉽다(사용자 지적 2026-08-25) —
+       실제로는 같은 사람이 여러 번 열어도 더해지는 **누적 조회 횟수**다.
+       업계 표준 용어 "조회수"로 부른다 — 무엇을 세는지 과장 없이 정확하다. */
     return `<div class="nsc-hits">` +
-      `<div class="nh-top"><b>${fmtN(h)}</b><i>회 읽힘</i>` +
+      `<div class="nh-top"><b>${fmtN(h)}</b><i>회 조회</i>` +
       (per ? `<span class="nh-per">후기당 ${per}회</span>` : "") + `</div>` +
-      (hs + hl ? `<span class="nsc-barlb">읽은 횟수</span>` +
+      (hs + hl ? `<span class="nsc-barlb">조회수</span>` +
         `<div class="nh-bar"><i class="s" style="width:${sh}%"></i>` +
         `<i class="l" style="width:${100 - sh}%"></i></div>` +
-        `<div class="nh-vs"><span class="s">삼성 ${fmtN(hs)}회 <b>${sh}%</b></span>` +
-        `<span class="l">LG ${fmtN(hl)}회 <b>${100 - sh}%</b></span></div>` : "") +
+        `<div class="nsc-vs2"><span class="s">삼성 <b>${fmtN(hs)}회</b><i>(${sh}%)</i></span>` +
+        `<span class="l">LG <b>${fmtN(hl)}회</b><i>(${100 - sh}%)</i></span></div>` : "") +
       `</div>`;
   }
 
@@ -633,19 +636,26 @@
     }
     const win = names.filter((k) => seen[k].s > seen[k].l).length;
     const lose = names.filter((k) => seen[k].l > seen[k].s).length;
+    /* 71개점 중 37개점 우위인데 열세가 0이면 나머지 34개점은 뭐냐는 지적(2026-08-25).
+       답은 둘 중 하나다 — 이 기간에 그 매장을 적은 후기가 아예 없거나(표본 없음),
+       삼성·LG 건수가 정확히 같다(동률). 세 수의 합이 전체 백화점 수와 맞아떨어져야
+       "나머지는 뭐야"가 안 나온다. */
+    const base = roster || names.length;
+    const none = Math.max(0, base - win - lose);
 
-    /* 사용자 지시: "전체 백화점 00개점 가운데 00개점 후기 건수 우위라고 간단히 표시".
-       퍼센트·동률·제외 각주는 걷어내고 한 문장으로 말한다. */
     return `<div class="nsc-win${win >= lose ? " up" : ""}">` +
       `<div class="nw-pair">` +
       `<span class="nw-p1"><b>${win}</b><i>개점 우위</i></span>` +
       `<span class="nw-p2"><b class="warn">${lose}</b><i>개점 열세</i></span>` +
+      (none ? `<span class="nw-p3"><b>${none}</b><i>개점 표본 없음</i></span>` : "") +
       `</div>` +
-      (roster ? `<span class="nw-sub">전체 백화점 <b>${roster}개점</b> 가운데 후기 건수를 비교한 결과입니다</span>` : "") +
+      (roster ? `<span class="nw-sub">전체 백화점 <b>${roster}개점</b> 가운데 후기 건수를 비교한 결과입니다` +
+        (none ? ` — 나머지 ${none}개점은 이 기간에 매장이 적힌 후기가 없거나 동률입니다.` : "") +
+        `</span>` : "") +
       `</div>`;
   }
 
-  // 전국 현황 박스 하단  // 전국 현황 박스 하단 — 우위/열세 지역 요약(제목기반 추정, 표본 충분 시도만)
+  // 전국 현황 박스 하단 — 우위/열세 지역 요약(제목기반 추정, 표본 충분 시도만)
   function regionSummary() {
     const R = geoRegions();
     const arr = Object.keys(R).map((rg) => {
@@ -1128,7 +1138,7 @@
     const winLine = sWin.length ? ` 강점: <b>${sWin.map((x) => x.n + " " + pct(x.s, x.l) + "%").join("·")}</b>.` : "";
     const action = lead === "s"
       ? `삼성 <b>${share}%</b> 우위(지역평균 ${rShare}% 대비 ${diff >= 0 ? "+" : ""}${diff}p).${winLine}` +
-        (sLose.length ? loseLine + ` 취약 품목은 <b>패키지 묶음</b>으로 방어.` : ` 이 방식을 열세 매장에 전파.`)
+        (sLose.length ? loseLine + ` 취약 품목은 <b>패키지 판매</b>로 방어.` : ` 이 방식을 열세 매장에 전파.`)
       : lead === "l"
         ? `LG가 <b class="warn">${fmtN(gap)}건</b> 앞섭니다 — 동률까지 <b>${fmtN(gap)}건</b> 필요.${loseLine}` +
           ` <b>담당자 이름을 넣은 후기</b>를 요청하세요.`
@@ -1199,7 +1209,8 @@
       `<div class="fc-sec tip"><h5>상담 전략</h5><p>강점 품목(<b>${win.map((x) => x.n).join("·")}</b>)으로 상담을 <b>열어 신뢰를 만들고</b>, ` +
       `약점 품목(<b class="warn">${lose.map((x) => x.n).join("·")}</b>)에서 패키지가 깨집니다 — 이 세 품목에서만 LG가 <b class="warn">${fmtN(leak)}건</b> 앞섭니다. ` +
       `해당 품목은 <b>비스포크 대안·묶음 할인</b>을 먼저 제시해 이탈을 막으세요.</p></div>`,
-      [win[0] ? win[0].n + " " + win[0].sh + "%" : "", lose[0] ? lose[0].n + " " + lose[0].sh + "%" : ""].filter(Boolean));
+      [win[0] ? { t: win[0].n + " " + win[0].sh + "%", neg: false } : null,
+       lose[0] ? { t: lose[0].n + " " + lose[0].sh + "%", neg: true } : null].filter(Boolean));
   }
 
   /* ── 승부처 카드 — 비교 상담·혜택·성수기 ── */
@@ -1244,7 +1255,9 @@
       (bl.length ? `② <b>${bl[0].n}</b>${hasJong(bl[0].n) ? "을" : "를"} 상담 마무리에 수치로 제시 ` : "") +
       (peak ? `③ <b>${+peak}월</b> 성수기 전 후기 요청 캠페인` : "") +
       `</p></div>`,
-      [(winsCompare ? "비교 우위 " : "비교 열세 ") + cShare + "%", peak ? +peak + "월 성수기" : ""].filter(Boolean));
+      [{ t: (winsCompare ? "비교 우위 " : "비교 열세 ") + cShare + "%", neg: !winsCompare },
+       peak ? { t: +peak + "월 성수기", neg: false } : null].filter(Boolean),
+      !winsCompare);
   }
 
   // 애플식 분석 카드 — 앞면(라벨·제목·미니수치·＋) + 상세(영역 전체 덮음)
@@ -1325,20 +1338,31 @@
     return fcard("mgr", "실명 언급 분석", "매니저 실명 언급 현황",
       `${win.length}<u>/${rows.length}</u>`, "삼성 우위 매장",
       detail,
-      [natOn !== null ? "전국 " + natOn + "%" : "", "최고 " + rows[0].sh + "%",
-       "최저 " + rows[rows.length - 1].sh + "%"].filter(Boolean));
+      [natOn !== null ? { t: "전국 " + natOn + "%", neg: natOn < 50 } : null,
+       { t: "최고 " + rows[0].sh + "%", neg: false },
+       { t: "최저 " + rows[rows.length - 1].sh + "%", neg: true }].filter(Boolean),
+      win.length < rows.length / 2);
   }
 
-  function fcard(key, label, title, mini, miniLab, detail, keys) {
+  /* 사용자 지시(2026-08-25): "카드 위 텍스트나 상세로 진입한 내용에서 부정적이거나
+     부족한 것에 대해서는 글자색상을 빨간색으로 표현해줘". 상세 본문은 이미
+     .warn 원칙이 있지만, 카드 앞면(미니 수치·칩)은 늘 파랑 고정이었다 —
+     "열세 61%"·"LG 우위 격차 1,360건"도 파랗게 보였다. miniNeg 와 keys 의
+     {t,neg} 로 앞면도 같은 원칙을 따르게 한다. keys 는 문자열(중립·파랑)과
+     {t,neg} 객체(neg=true 면 빨강)를 섞어 쓸 수 있다. */
+  function fcard(key, label, title, mini, miniLab, detail, keys, miniNeg) {
     const chips = (keys || []).length
-      ? `<div class="fc-keys">` + keys.map((k) => `<span class="fc-key">${k}</span>`).join("") + `</div>`
+      ? `<div class="fc-keys">` + keys.map((k) => {
+          const o = (k && typeof k === "object") ? k : { t: k, neg: false };
+          return `<span class="fc-key${o.neg ? " warn" : ""}">${o.t}</span>`;
+        }).join("") + `</div>`
       : "";
     return `<div class="ca-fcard" data-card="${key}">` +
       `<div class="fc-front">` +
       `<span class="fc-label">${label}</span>` +
       `<h4 class="fc-title">${title}</h4>` +
       chips +
-      `<div class="fc-mini"><b>${mini}</b><span>${miniLab}</span></div>` +
+      `<div class="fc-mini${miniNeg ? " warn" : ""}"><b>${mini}</b><span>${miniLab}</span></div>` +
       `</div>` +
       `<button type="button" class="fc-open" aria-label="${title} 자세히 보기">+</button>` +
       `<div class="fc-detail">` +
@@ -1401,9 +1425,12 @@
         `${perLab(st.period)} 삼성 <b${lead0 === "lose" ? ' class="warn"' : ""}>${share0}%</b> : LG ${100 - share0}%` +
         (dSh !== null ? ` — 직전 기간 대비 <b${dSh >= 0 ? "" : ' class="warn"'}>${dSh >= 0 ? "+" : ""}${dSh}p</b>` : "") +
         ` (분석 ${fmtN(c.total)}건)`, "ev"]);
-      if (itWin.length) REASONS_M.push(["이기는 품목",
+      if (itWin.length) REASONS_M.push(["우위 품목",
         itWin.map((x) => `<b>${x.n} ${x.sh}%</b>`).join(" · ") + ` — 이 품목이 이 기간 우위를 떠받칩니다`, "ev"]);
-      if (itLose.length) REASONS_M.push(["새는 품목",
+      /* 사용자 지시(2026-08-25): "새는 품목이 뭐야? 좀 문어적 표현으로 변경해줘" —
+         "새는"(누수 비유)은 구어체 은유라 뜻을 바로 못 읽는다. "우위 품목"과 짝이 되는
+         문어체 용어로 바꾼다. */
+      if (itLose.length) REASONS_M.push(["열세 품목",
         itLose.map((x) => `<b class="warn">${x.n} ${x.sh}%</b>`).join(" · ") +
         ` — 합산 LG <b class="warn">+${fmtN(loseGap)}건</b>, 이 구간 손실의 핵심`, "ev"]);
       if (cpP.s + cpP.l >= 20) REASONS_M.push(["비교 상담 결과",
@@ -1431,10 +1458,11 @@
            잘못 읽힌다. 문장은 줄이되 핵심 수치(회수율 7.7% vs 3.8%)는 반드시 남긴다. */
         `<p class="nsc-bias">매장이 특정된 후기는 <b>삼성이 더 많이 잡힙니다</b>(회수율 삼성 ` +
         `<b>7.7%</b> vs LG <b>3.8%</b>)</p>` +
-        `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b><i>${fmtN(c.s)}건</i></span>` +
-        `<span class="nv l">LG <b>${ls}%</b><i>${fmtN(c.l)}건</i></span></div>` +
         `<span class="nsc-barlb">후기 건수</span>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
+        /* 사용자 지시(2026-08-25): "삼성 000건(%), LG 000건(%)로 표현을 해줘". */
+        `<div class="nsc-vs2"><span class="s">삼성 <b>${fmtN(c.s)}건</b><i>(${ss}%)</i></span>` +
+        `<span class="l">LG <b>${fmtN(c.l)}건</b><i>(${ls}%)</i></span></div>` +
         hitsBlock() +
         winCount() +
         regionSummary() +
@@ -1462,10 +1490,12 @@
               (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>에서 합산 ${fmtN(loseGap)}건을 내주고 있어, 이 품목의 대안 제시가 회복의 출발점입니다. ` : "") +
               (cpSh > share0 ? `다만 비교 상담에서는 ${cpSh}%로 이기고 있어 <b>매장 방문·비교 견적 유도</b>가 유효합니다.` : `비교 상담에서도 밀리므로 <b>상담 스크립트·혜택 안내</b>부터 점검이 필요합니다.`)
             : `${itWin.length ? `<b>${itWin.map((x) => x.n).join("·")}</b>의 우위를 유지하고, ` : ""}` +
-              (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>는 패키지 묶음으로 방어하세요.` : `약점 품목이 없습니다 — <b>구매 고객에게 후기 작성을 요청</b>해 표본을 넓히는 것이 다음 과제입니다.`)) +
+              (itLose.length ? `<b class="warn">${itLose.map((x) => x.n).join("·")}</b>는 패키지 판매로 방어하세요.` : `약점 품목이 없습니다 — <b>구매 고객에게 후기 작성을 요청</b>해 표본을 넓히는 것이 다음 과제입니다.`)) +
           `</p></div>`,
-          [lead0 === "lose" ? "열세 " + share0 + "%" : "우위 " + share0 + "%",
-           dSh !== null ? "직전 대비 " + (dSh >= 0 ? "+" : "") + dSh + "p" : ""].filter(Boolean)) +
+          [{ t: (lead0 === "lose" ? "열세 " : "우위 ") + share0 + "%", neg: lead0 === "lose" },
+           dSh !== null ? { t: "직전 대비 " + (dSh >= 0 ? "+" : "") + dSh + "p", neg: dSh < 0 } : null]
+            .filter(Boolean),
+          lead0 === "lose") +
         itemCard() +
         mgrCard() +
         winCard() +
@@ -1501,8 +1531,9 @@
             (its.length ? `<b class="warn">${its[0].n}</b>부터 대응 — 이 품목만 동률로 만들어도 격차의 <b>${Math.round(its[0].gap / (totGap || 1) * 100)}%</b>가 해소됩니다. 삼성 대안 모델·묶음 견적을 먼저 제시하세요. `
                         : `현재 방어가 유지되고 있습니다. `) +
             `계약 시 <b>담당자 이름을 넣은 후기</b>를 요청해 실명 후기 열세를 좁히세요.</p></div>`,
-            [its.length ? its[0].n + " " + its[0].sh + "%" : "이탈 없음",
-             rg.length ? rg[0].rg + " " + rg[0].sh + "%" : ""].filter(Boolean));
+            [its.length ? { t: its[0].n + " " + its[0].sh + "%", neg: true } : { t: "이탈 없음", neg: false },
+             rg.length ? { t: rg[0].rg + " " + rg[0].sh + "%", neg: true } : null].filter(Boolean),
+            its.length > 0);
         })() +
 
         `</div>`;

@@ -223,10 +223,6 @@ body.view-channel .site-footer { display: none; }
 .ca-nsumcol .ca-distbar { margin: 4px 0; height: 16px; border-radius: 8px; }
 .ca-nsumcol .nsc-etc { font-size: 13px; font-weight: 600; color: var(--muted); }
 /* 심플 삼성 vs LG 한 줄 */
-.ca-nsumcol .nsc-vs { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.ca-nsumcol .nsc-vs .nv { font-size: 15px; font-weight: 800; color: var(--muted); display: flex; align-items: baseline; gap: 4px; }
-.ca-nsumcol .nsc-vs .nv b { font-size: clamp(34px, 3.6vw, 50px); font-weight: 900; letter-spacing: -0.04em; margin-left: 2px; line-height: 1; }
-.ca-nsumcol .nsc-vs .nv.s b { color: #1f5fd0; } .ca-nsumcol .nsc-vs .nv.l b { color: #d23b54; }
 /* 우위/열세 지역 요약 */
 .nsc-rsum { margin-top: 8px; padding-top: 16px; border-top: 1px dashed rgba(23,42,66,0.14); display: flex; flex-direction: column; gap: 8px; }
 .rs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -274,6 +270,9 @@ body.view-channel .site-footer { display: none; }
 .fc-mini { margin-top: auto; display: flex; align-items: baseline; gap: 6px; }
 .fc-mini b { font-size: clamp(30px, 3.4vw, 46px); font-weight: 900; letter-spacing: -0.03em; color: #1f5fd0; line-height: 1; }
 .fc-mini span { font-size: 13px; font-weight: 700; color: var(--muted); }
+/* 카드 앞면도 긍정=파랑·부정=빨강 원칙을 따른다(2026-08-25 사용자 지시) */
+.fc-key.warn { color: #d23b54; background: rgba(210,59,84,0.1); }
+.fc-mini.warn b { color: #d23b54; }
 /* ＋ 버튼 (우하단) */
 .fc-open { position: absolute; right: 14px; bottom: 14px; width: 30px; height: 30px; border-radius: 50%;
   border: 0; background: #1f2330; color: #fff; font-size: 20px; line-height: 1; font-weight: 400;
@@ -780,7 +779,6 @@ body.view-cafe .back-float { display: none !important; }
   .ca-nsumcol { padding: 18px 16px; gap: 12px; }
   .ca-nsumcol .nsc-h h3 { font-size: clamp(24px, 2.6vw, 32px); }
   .ca-nsumcol .nsc-total b { font-size: clamp(30px, 3vw, 40px); }
-  .ca-nsumcol .nsc-vs .nv b { font-size: clamp(26px, 2.6vw, 34px); }
   .nsc-rsum { margin-top: 4px; padding-top: 10px; gap: 6px; }
 
   .rv-left, .sv-left { padding: 18px 16px; gap: 9px; }
@@ -998,8 +996,6 @@ body.view-cafe .ca-nsumcol .nsc-total i { font-size: 21.7px; }
 body.view-cafe .ca-nsumcol .nsc-side b { font-size: clamp(43.4px, 4.84vw, 63.8px); }
 body.view-cafe .ca-nsumcol .nsc-side span { font-size: 19.1px; }
 body.view-cafe .ca-nsumcol .nsc-etc { font-size: 16.6px; }
-body.view-cafe .ca-nsumcol .nsc-vs .nv { font-size: 19.1px; }
-body.view-cafe .ca-nsumcol .nsc-vs .nv b { font-size: clamp(43.4px, 4.59vw, 63.8px); }
 body.view-cafe .rs-row > b { font-size: 17.2px; }
 body.view-cafe .rs-cap { font-size: 14.6px; }
 body.view-cafe .gt-donut b { font-size: 15.3px; }
@@ -1131,7 +1127,6 @@ body.view-cafe .mgr-tip em { font-size: 14px; }
 body.view-cafe .mgr-empty { font-size: 16.6px; }
 body.view-cafe .ca-nsumcol .nsc-h h3 { font-size: clamp(30.6px, 3.31vw, 40.8px); }
 body.view-cafe .ca-nsumcol .nsc-total b { font-size: clamp(38.2px, 3.82vw, 51px); }
-body.view-cafe .ca-nsumcol .nsc-vs .nv b { font-size: clamp(33.1px, 3.31vw, 43.4px); }
 body.view-cafe .rv-head h3 { font-size: clamp(28.1px, 3.06vw, 38.2px); }
 body.view-cafe .rv-big b { font-size: clamp(43.4px, 4.59vw, 58.6px); }
 body.view-cafe .rv-kpis b { font-size: 21.7px; }
@@ -1596,10 +1591,6 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
   background: rgba(23,42,66,.06); }
 .nh-bar i.s { background: linear-gradient(90deg, #1f5fd0, #4f86e6); }
 .nh-bar i.l { background: linear-gradient(90deg, #e87186, #d23b54); }
-.nh-vs { display: flex; justify-content: space-between; gap: 8px; }
-.nh-vs span { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
-.nh-vs span b { font-weight: 900; }
-.nh-vs .s b { color: #1f5fd0; } .nh-vs .l b { color: #d23b54; }
 
 
 /* 조회수 칸 — 건수 옆에서 '몇 명이 읽었나'를 말한다 */
@@ -2041,13 +2032,13 @@ body.view-cx .cx-top > .ca-ic { width: 44px; height: 44px; border-radius: 13px; 
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ① 삼성/LG % 아래 건수도 함께 — "몇 %" 뿐 아니라 "몇 건"인지 바로 보이게 */
-.ca-nsumcol .nsc-vs .nv i { display: block; margin-top: 1px; font-style: normal;
-  font-size: 11.5px; font-weight: 700; color: var(--muted); }
 
 /* ② winCount — 우위 개소·열세 개소를 나란히
    예전엔 우위 개점만 적어 열세는 분모를 암산해야 알 수 있었다. */
 .nsc-win .nw-pair { display: flex; align-items: baseline; gap: 14px; }
-.nsc-win .nw-p1, .nsc-win .nw-p2 { display: flex; align-items: baseline; gap: 4px; }
+.nsc-win .nw-p1, .nsc-win .nw-p2, .nsc-win .nw-p3 { display: flex; align-items: baseline; gap: 4px; }
+.nsc-win .nw-p3 b { font-size: 26px; font-weight: 900; color: var(--muted); letter-spacing: -0.03em; }
+.nsc-win .nw-p3 i { font-style: normal; font-size: 12px; font-weight: 700; color: var(--muted); }
 .nsc-win .nw-p1 b { font-size: 26px; font-weight: 900; color: #1f5fd0; letter-spacing: -0.03em; }
 .nsc-win .nw-p2 b { font-size: 26px; font-weight: 900; color: #d23b54; letter-spacing: -0.03em; }
 .nsc-win .nw-p1 i, .nsc-win .nw-p2 i { font-style: normal; font-size: 12px; font-weight: 700; color: var(--muted); }
@@ -2078,3 +2069,12 @@ body.view-cx .cx-top > .ca-ic { width: 44px; height: 44px; border-radius: 13px; 
 .ca2 .nsc-what b.warn,
 .ca2 .nsc-bias b.warn { color: #d23b54 !important; }
 .ca2 .fc-sec.tip p b:not(.warn) { color: #1f5fd0; }
+
+/* "건수(퍼센트)" 한 줄 표기 — 사용자 지시(2026-08-25):
+   "삼성 000건(%), lg 000건(%)로 표현을 해줘". 후기 건수·조회수 두 곳에서 같이 쓴다. */
+.nsc-vs2 { display: flex; justify-content: space-between; gap: 10px; margin-top: 6px; }
+.nsc-vs2 span { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.nsc-vs2 span b { font-weight: 900; font-size: 14px; }
+.nsc-vs2 span i { font-style: normal; font-weight: 700; margin-left: 1px; }
+.nsc-vs2 .s b, .nsc-vs2 .s i { color: #1f5fd0; }
+.nsc-vs2 .l b, .nsc-vs2 .l i { color: #d23b54; }
