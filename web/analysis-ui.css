@@ -245,3 +245,32 @@ body.view-cx .yt-own { font-size: 10.5px; }
 .ca2 .nsc-nums .l b, .ca2 .nsc-nums .l i { color: #d23b54; }
 .ca2 .nsc-nums b { font-size: 12.5px; font-weight: 900; }
 .ca2 .nsc-nums i { font-style: normal; font-size: 10.5px; font-weight: 700; margin-left: 1px; }
+
+/* ═══ 2026-08-25 추가 지시 반영 ═══ */
+
+/* 좌측 섹션 글씨 확대 — "글씨 크기도 조금 키워줘" */
+.ca2 .nsc-st { font-size: 15.5px; }
+.ca2 .nsc-st i { font-size: 11.5px; }
+.ca2 .nsc-ends .s, .ca2 .nsc-ends .l { font-size: 14px; }
+/* 14px 로 키우면 일곱 자리 조회수가 다시 박스를 뚫는다(실측) —
+   13.5px + 자간 축소가 이 칼럼 폭(264px)에서의 상한이다 */
+.ca2 .nsc-nums b { font-size: 13.5px; letter-spacing: -0.02em; }
+.ca2 .nsc-nums i { font-size: 11px; }
+.ca2 .nsc-nums { gap: 6px; }
+.ca2 .nsc-sec .nw-sub { font-size: 11.5px; }
+
+/* 매장 우위·열세 — 우위(좌·파랑) / 열세(우·빨강) 좌우 정렬.
+   후기 건수·조회수 막대의 좌우 문법과 같은 결이다. */
+.ca2 .nsc-sec .nw-pair.split { justify-content: space-between; }
+.ca2 .nsc-sec .nw-pair.split .nw-p1 b, .ca2 .nsc-sec .nw-pair.split .nw-p2 b { font-size: 28px; }
+
+/* 우위·열세 지역 — 지도 아래 가로 스트립(지도 읽기 설명) */
+.ca2 .geo-rsum { display: flex; justify-content: center; gap: 22px; flex-wrap: wrap;
+  margin: 6px 0 2px; }
+.ca2 .geo-rsum .gr { font-size: 13.5px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.ca2 .geo-rsum .gr b { font-weight: 900; margin-right: 7px; }
+.ca2 .geo-rsum .gr.s b { color: #1f5fd0; }
+.ca2 .geo-rsum .gr.l b { color: #d23b54; }
+
+/* 분석 문단 사이 간격 — 단락을 갈랐으면 눈에도 갈라져 보여야 한다 */
+.ca2 .fc-sec p + p { margin-top: 7px; }
