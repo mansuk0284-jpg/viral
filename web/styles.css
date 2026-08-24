@@ -2117,12 +2117,25 @@ body.portal-open .hero-art > .hero-stage { display: block; }
   height: auto; min-height: 0;
 }
 
-/* 설명 — 남는 폭을 채우고 세로 중앙에 놓는다 */
+/* 설명 — 남는 폭을 채운다.
+   세로 가운데 정렬은 쓰지 않는다(2026-08-24 실측으로 바로잡음).
+
+   가운데로 두면 **내용 높이가 다른 만큼 제목선이 어긋난다.**
+   매장 카드는 선택바가 바닥에 붙어(margin-top:auto) 내용이 위로 밀리고,
+   채널 카드는 내용이 83px뿐이라 진짜 한가운데 놓였다 —
+   그 결과 제목이 카드 상단에서 30px vs 122px, 92px 차이로 어긋나 있었다.
+   나란히 놓인 두 카드에서 제목선이 안 맞는 것은 가장 먼저 눈에 걸린다.
+
+   위(제목)를 맞추고, 아래(액션)는 둘 다 바닥에 붙여 함께 맞춘다 —
+   나란한 블록은 상단·하단 라인을 모두 맞춘다는 이 하네스의 정렬 원칙 그대로다. */
 .ap-card > .ap-body {
   flex: 1 1 auto; min-width: 0;
-  display: flex; flex-direction: column; justify-content: center;
+  display: flex; flex-direction: column; justify-content: flex-start;
   gap: clamp(4px, 0.7vh, 9px);
 }
+/* 액션(매장 선택바 · 눌러 보기)은 카드 바닥에 나란히 */
+.ap-card > .ap-body > .store-pick,
+.ap-card > .ap-body > .ap-cta { margin-top: auto; }
 
 /* 세로로 쌓을 때 쓰던 위 여백은 가로 배치에서 어긋난다 */
 .ap-card > .ap-body > .ap-eyebrow { margin-top: 0; }
@@ -2161,7 +2174,7 @@ body.portal-open .hero-art > .hero-stage { display: block; }
   font-size: clamp(13px, 1.12vw, 16px);
 }
 .ap-card > .ap-body > .ap-eyebrow { font-size: 12.5px; margin-bottom: 8px; }
-.ap-card > .ap-body > .ap-cta { margin-top: 13px; font-size: 14.5px; }
+.ap-card > .ap-body > .ap-cta { font-size: 14.5px; }
 
 /* 파동이 이미지 한가운데서 퍼지도록 — 이미지 마스크 중심도 같이 옮긴다.
    버튼만 50%/50% 로 옮기고 마스크를 52%/50% 에 두면, 밝게 살아 있는 부분과
