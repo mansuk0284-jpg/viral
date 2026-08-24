@@ -784,13 +784,33 @@
       `<span class="rv-none"><u class="full">이 기간 후기 0건 — 구매 고객 후기 요청부터</u><u class="mini">후기 0건</u></span></button>`).join("");
     const rows = list.map((x, i) => rowOf(x, i + 1)).join("") + ghostRows;
 
+    /* 전국 안에서의 위치 — 표본 규모 순위·점유. 좌측 박스가 아니라 진단 문장에 쓴다 */
+    let rank = null, nRg = 0, natShareOf = null;
+    if (!isBu) {
+      const A0r = hasF() ? A() : null;
+      if (A0r && A0r.regions) {
+        const sizes = Object.keys(A0r.regions).map((k) => ({
+          n: k, v: (A0r.regions[k].s || 0) + (A0r.regions[k].l || 0) })).sort((a, b) => b.v - a.v);
+        nRg = sizes.length;
+        const at = sizes.findIndex((x) => x.n === c.title);
+        if (at >= 0) rank = at + 1;
+        if (A0r.total) natShareOf = Math.round((c.s + c.l) / A0r.total * 100);
+      }
+    }
+
     // ── 자동 진단 문장 (데이터에서 도출) · 한글 조사 자동 처리 ──
     const hasJong = (w) => { const ch = (w || "").replace(/[^가-힣]/g, "").slice(-1); return ch ? (ch.charCodeAt(0) - 0xac00) % 28 !== 0 : false; };
     const josa = (w, a, b) => w + (hasJong(w) ? a : b);   // 예: josa("경기","은","는")
     const diag = [];
-    diag.push(diff === 0
+    /* "전국 안에서의 위치"는 좌측 박스에서 진단 문장으로 옮겼다(2026-08-26 사용자 지시
+       — 좌측 칼럼 하단이 화면 밖으로 나가던 원인이기도 하다). 첫 줄에 붙여
+       진단이 몇 줄로 잘려도 반드시 보이게 한다. */
+    const posLine = (rank && natShareOf !== null)
+      ? ` 표본 규모는 전국 ${nRg}개 지역 중 <b>${rank}위</b>(전국 점유 ${natShareOf}%)입니다.`
+      : "";
+    diag.push((diff === 0
       ? `${josa(c.title, "은", "는")} 삼성 비중 <b>${share}%</b>로 전국(${nat}%)과 <b>같은 수준</b>입니다.`
-      : `${josa(c.title, "은", "는")} 삼성 비중 <b>${share}%</b>로 전국(${nat}%) 대비 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : ""}${diff}p ${diff > 0 ? "강세" : "약세"}</b>입니다.`);
+      : `${josa(c.title, "은", "는")} 삼성 비중 <b>${share}%</b>로 전국(${nat}%) 대비 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : ""}${diff}p ${diff > 0 ? "강세" : "약세"}</b>입니다.`) + posLine);
     /* 명부 기준으로 말한다 — "부산 5개점 중 …" 이 "표본 잡힌 4곳 중 …" 보다
        현장이 아는 사실과 맞다. 후기 0건 매장은 이름까지 불러 후기 요청 액션으로 잇는다. */
     if (rosterRg.length) diag.push(
@@ -849,20 +869,6 @@
     const rHl = list.reduce((a, x) => a + (x.hl || 0), 0);
     const rHsh = rHs + rHl ? Math.round(rHs / (rHs + rHl) * 100) : 0;
 
-    /* 전국 안에서의 위치 — 표본 규모 순위·점유(도시 카드에서 좌측 요약으로 승격) */
-    let rank = null, nRg = 0, natShareOf = null;
-    if (!isBu) {
-      const A0r = hasF() ? A() : null;
-      if (A0r && A0r.regions) {
-        const sizes = Object.keys(A0r.regions).map((k) => ({
-          n: k, v: (A0r.regions[k].s || 0) + (A0r.regions[k].l || 0) })).sort((a, b) => b.v - a.v);
-        nRg = sizes.length;
-        const at = sizes.findIndex((x) => x.n === c.title);
-        if (at >= 0) rank = at + 1;
-        if (A0r.total) natShareOf = Math.round((c.s + c.l) / A0r.total * 100);
-      }
-    }
-
     /* 좌측은 전국 페이지와 같은 "제목 있는 섹션 박스" 양식을 따른다
        (2026-08-25 사용자 지시: "다른 지역 페이지도 전국 양식을 참고하여").
        내용은 지역답게 — 매장 우위·열세와 전국 내 위치까지 한 단계 디테일하다. */
@@ -900,12 +906,8 @@
       (bot && bot !== top ? `<div class="rv-pick l"><em>공략</em><b>${bot.n}</b><span>삼성 ${pct(bot.s, bot.l)}%</span></div>` : "") +
       `</div>` +
 
-      (rank ? `<div class="nsc-sec"><h4 class="nsc-st">전국 안에서의 위치</h4>` +
-        `<div class="cy-grid">` +
-        `<div class="cy-k"><b>${rank}<u>위</u></b><span>표본 규모 (${nRg}개 지역)</span></div>` +
-        (natShareOf !== null ? `<div class="cy-k"><b>${natShareOf}<u>%</u></b><span>전국 표본 점유</span></div>` : "") +
-        `</div></div>` : "") +
-
+      /* "전국 안에서의 위치" 박스는 진단 첫 줄 문장으로 옮겼다(2026-08-26) —
+         이 박스까지 두면 좌측 칼럼 하단이 900px 화면 밖으로 나갔다(실측). */
       (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
       `</div>` +
       `<div class="rv-right">` +
@@ -991,7 +993,9 @@
     const gapCls = spread === null ? "" : spread >= 50 ? "warn" : spread >= 25 ? "even" : "up";
 
     return `<div class="ca-ncard city-card">` +
-      `<h4 class="ca-ch">${JOSA(rgName, "은", "는")} 어떤 도시인가 <i class="ca-tag">도시 단위</i></h4>` +
+      /* "부산은 어떤 도시인가"는 바이럴 분석 페이지와 안 어울린다는 지적(2026-08-26)
+         — 다른 카드 제목("우위 형성 요인"·"품목별 경쟁 현황")과 같은 문어체 분석 어휘로 */
+      `<h4 class="ca-ch">${rgName} 바이럴 심층 분석 <i class="ca-tag">지역 단위</i></h4>` +
 
 
       // 도시 안 격차 — 평균이 지우는 것
