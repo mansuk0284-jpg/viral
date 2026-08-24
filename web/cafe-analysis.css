@@ -232,9 +232,6 @@ body.view-channel .site-footer { display: none; }
 .rs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .rs-row > b { font-size: 13.5px; font-weight: 800; margin-right: 2px; }
 .rs-row.s > b { color: #1f5fd0; } .rs-row.l > b { color: #d23b54; }
-.rs-chip { font-size: 13.5px; font-weight: 700; color: var(--text); background: #fff; border: 1px solid rgba(23,42,66,0.1); border-radius: 8px; padding: 4px 9px; }
-.rs-chip i { font-style: normal; font-weight: 800; }
-.rs-row.s .rs-chip i { color: #1f5fd0; } .rs-row.l .rs-chip i { color: #d23b54; }
 .rs-cap { margin: 3px 0 0; font-size: 11.5px; color: var(--muted); }
 @media (max-width: 900px) { .ca2 > .ca-nation { grid-template-columns: 1fr; } }
 .ca-nleft { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding-left: 0; }
@@ -914,7 +911,6 @@ body.view-cafe .back-float { display: none !important; }
   .mgr-star { padding: 4px 8px; grid-template-columns: 68px minmax(58px, auto) minmax(0, 1fr) 46px; }
   .mgr-star.s1 .ms-name { font-size: 14px; }
 }
-.rs-chip em { font-style: normal; font-size: 10px; font-weight: 700; color: #9aa7bd; margin-left: 4px; }
 .rs-none { font-size: 11.5px; font-weight: 700; color: var(--muted); }
 
 /* ── 계약 규모·리스크 카드 ── */
@@ -1005,7 +1001,6 @@ body.view-cafe .ca-nsumcol .nsc-etc { font-size: 16.6px; }
 body.view-cafe .ca-nsumcol .nsc-vs .nv { font-size: 19.1px; }
 body.view-cafe .ca-nsumcol .nsc-vs .nv b { font-size: clamp(43.4px, 4.59vw, 63.8px); }
 body.view-cafe .rs-row > b { font-size: 17.2px; }
-body.view-cafe .rs-chip { font-size: 17.2px; }
 body.view-cafe .rs-cap { font-size: 14.6px; }
 body.view-cafe .gt-donut b { font-size: 15.3px; }
 body.view-cafe .gt-rg { font-size: 17.8px; }
@@ -1170,7 +1165,6 @@ body.view-cafe .ms-cnt { font-size: 16px; }
 body.view-cafe .mgr-star.s1 .ms-name { font-size: 19.1px; }
 body.view-cafe .mgr-star.s1 .ms-cnt { font-size: 17.8px; }
 body.view-cafe .mgr-star.s1 .ms-name { font-size: 17.8px; }
-body.view-cafe .rs-chip em { font-size: 12.8px; }
 body.view-cafe .rs-none { font-size: 14.6px; }
 body.view-cafe .sc-k b { font-size: 24.2px; }
 body.view-cafe .sc-k span { font-size: 13.4px; }
@@ -1636,12 +1630,6 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
   color: var(--muted); word-break: keep-all; }
 .nsc-what b { color: var(--text); font-weight: 800; }
 
-/* 시도 우위/열세 칩 — 위쪽 "글씨 1.5배" 구간(line ~1007)이 17.2px 로 키워 한 화면을
-   넘치게 했다(2026-08-25 실측: 전국 좌측 카드가 900px 뷰포트를 200px 넘게 넘침).
-   나머지 요약 카드 항목들처럼 여기서도 크기를 낮춰 이긴다. */
-.rs-row > b { font-size: 12.5px !important; }
-.rs-chip { font-size: 12.5px !important; padding: 3px 8px !important; }
-
 
 /* 비교 가능한 매장이 없을 때 — 숫자를 지어내지 않고 그렇다고 말한다 */
 .nsc-win.none { border-color: rgba(23,42,66,0.14); background: rgba(23,42,66,0.03); }
@@ -2064,18 +2052,21 @@ body.view-cx .cx-top > .ca-ic { width: 44px; height: 44px; border-radius: 13px; 
 .nsc-win .nw-p2 b { font-size: 26px; font-weight: 900; color: #d23b54; letter-spacing: -0.03em; }
 .nsc-win .nw-p1 i, .nsc-win .nw-p2 i { font-style: normal; font-size: 12px; font-weight: 700; color: var(--muted); }
 
-/* ③ 지역 요약 — 한 줄 결론(rs-lead) + 이유(rs-why) */
-.rs-lead { margin: 0 0 8px; font-size: 13.5px; line-height: 1.6; font-weight: 600;
-  color: var(--text); word-break: keep-all; }
-.rs-lead b { color: #1f5fd0; font-weight: 900; }
-.rs-lead b.warn { color: #d23b54; font-weight: 900; }
-.rs-why { margin: 8px 0 0; font-size: 12px; line-height: 1.6; font-weight: 600;
-  color: var(--muted); word-break: keep-all; }
-.rs-why b { color: #1f5fd0; font-weight: 800; }
-.rs-why b.warn { color: #d23b54; font-weight: 800; }
-/* rs-chip 안 표본 건수 — 퍼센트 뒤에 단위 없이 바로 붙어 "82%977"로 읽히던 것을 고쳤다.
-   em 은 회색 보조 숫자로, i(퍼센트)와 분명히 갈라 보이게 한다. */
-.rs-chip em { color: #9aa7bd; }
+/* ③ 지역 요약 — 지역 이름만, 줄바꿈으로 우위/열세를 나눈다 (2026-08-25 사용자 지시)
+   "우위 지역은 지역만 간단히 표시해줘. 줄바꿈 표시나 이런걸로 해서 명확히
+   이해되도록 해줘야 해." 퍼센트·건수·방법론 각주를 걷어내고 라벨과 지역명만
+   남긴다 — 그룹마다 줄을 나눠 한눈에 갈리게 한다. */
+.nsc-rsum { display: flex; flex-direction: column; gap: 9px; margin-top: 10px;
+  padding-top: 10px; border-top: 1px dashed var(--line); }
+.nsc-rsum .rs-row { display: flex; flex-direction: column; gap: 2px; }
+.nsc-rsum .rs-row > b { font-size: 11px; font-weight: 800; letter-spacing: -0.01em; }
+.nsc-rsum .rs-row.s > b { color: #1f5fd0; }
+.nsc-rsum .rs-row.l > b { color: #d23b54; }
+.nsc-rsum .rs-names { font-size: 14.5px; font-weight: 700; color: var(--text); word-break: keep-all; }
+
+/* 막대그래프 라벨 — "위(후기 건수)/아래(읽은 횟수)"가 안 밝혀져 있었다(2026-08-25 사용자 지적) */
+.nsc-barlb { display: block; margin: 8px 0 3px; font-size: 10.5px; font-weight: 700;
+  color: var(--muted); }
 
 /* ④ 카드 상세 — 긍정=파랑·부정=빨강 기본 원칙 (2026-08-25 사용자 지시)
    실측 버그: `.ca-reasons li span b` 와 `.fc-sec.tip p b` 는 자기 색(파랑)만 갖고 있어

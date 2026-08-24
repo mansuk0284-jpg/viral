@@ -573,7 +573,8 @@
     return `<div class="nsc-hits">` +
       `<div class="nh-top"><b>${fmtN(h)}</b><i>회 읽힘</i>` +
       (per ? `<span class="nh-per">후기당 ${per}회</span>` : "") + `</div>` +
-      (hs + hl ? `<div class="nh-bar"><i class="s" style="width:${sh}%"></i>` +
+      (hs + hl ? `<span class="nsc-barlb">읽은 횟수</span>` +
+        `<div class="nh-bar"><i class="s" style="width:${sh}%"></i>` +
         `<i class="l" style="width:${100 - sh}%"></i></div>` +
         `<div class="nh-vs"><span class="s">삼성 ${fmtN(hs)}회 <b>${sh}%</b></span>` +
         `<span class="l">LG ${fmtN(hl)}회 <b>${100 - sh}%</b></span></div>` : "") +
@@ -607,68 +608,44 @@
       });
     }
 
-    /* ── 비교 가능한 매장만 센다 ─────────────────────────────────────
-       예전엔 후기가 하나라도 있으면 분모에 넣어 **8월이 37/37 = 100% 우위**로 나왔다.
-       LG 가 이기는 매장이 하나도 없다는 뜻처럼 보이지만 사실이 아니다.
+    /* 사용자 지시(2026-08-25): "한쪽만 있는 경우 그 있는 쪽이 우위 아니야?
+       예를 들면 1:0이라는 말인데 그러면 1인쪽이 우위잖아."
 
-       실측(2026-08 원자료): 매장이 특정된 후기가 삼성 251건 / LG 3건.
-       삼성 후기는 45% 가 백화점 지점을 적는데 LG 후기는 5% 도 안 적는다
-       ("LG 디오스 오브제컬렉션 …" 처럼 제품명 위주로 쓴다).
-       한쪽 표본만 있는 매장을 '우위'로 세면 **표본 편향을 성적표로 둔갑**시키는 셈이다.
+       예전엔 표본 편향(삼성 후기가 매장명을 더 자주 적는다)을 우려해 한쪽만
+       있는 매장(1:0 등)을 우위/열세 집계에서 뺐다. 지시대로 되돌린다 —
+       건수가 많은 쪽을 그 매장의 우위로 그대로 센다. 편향 자체는 위 nsc-bias
+       문구로 이미 밝혀 두었으니, 이 집계는 "있는 그대로의 건수 비교"로 둔다. */
 
-       그래서 삼성·LG **양쪽 후기가 모두 있는 매장**만 우위/열세를 가린다.
-       그것이 '비교 가능'의 정의다. */
-    /* 분모는 **명부(양사 입점 71곳)** 안에서 센다. 집계에는 한쪽만 입점한 백화점
-       (롯데 광주·신세계 시흥 등)도 들어와 74곳이 되어 명부를 넘었다(실측).
-       명부 이름과 대시보드 표기가 달라(롯데 부산본점 ↔ 롯데부산) 같은 방식으로 정규화한다. */
+    /* 분모는 **명부(양사 입점 매장)** 안에서 센다. 명부 이름과 대시보드 표기가
+       달라(롯데 부산본점 ↔ 롯데부산) 같은 방식으로 정규화한다. */
     const nrm0 = (t) => String(t || "").replace(/\s+/g, "")
       .replace("더현대", "현대").replace("갤러리아", "갤");
     const rosterSet = (window.COMPETE && window.COMPETE.stores)
       ? new Set(window.COMPETE.stores.map((x) => nrm0(x.key || x.name))) : null;
+    const roster = (window.COMPETE && window.COMPETE.stores) ? window.COMPETE.stores.length : null;
 
-    const names = Object.keys(seen).filter((k) => !rosterSet || rosterSet.has(nrm0(k)));
-    const both = names.filter((k) => seen[k].s > 0 && seen[k].l > 0);
-    const oneSide = names.filter((k) => (seen[k].s > 0) !== (seen[k].l > 0));
-    if (!both.length) {
+    const names = Object.keys(seen).filter((k) =>
+      (!rosterSet || rosterSet.has(nrm0(k))) && (seen[k].s + seen[k].l > 0));
+    if (!names.length) {
       return `<div class="nsc-win none">` +
-        `<b>-</b><i>비교 가능 매장 없음</i>` +
-        `<span class="nw-sub">이 기간에는 삼성·LG 후기가 <b>모두 있는</b> 매장이 없습니다` +
-        (oneSide.length ? ` · 한쪽만 있는 매장 ${oneSide.length}곳` : "") +
-        ` — 기간을 넓혀 보세요.</span></div>`;
+        `<b>-</b><i>표본 있는 매장 없음</i>` +
+        `<span class="nw-sub">이 기간에는 매장이 특정된 후기가 없습니다 — 기간을 넓혀 보세요.</span></div>`;
     }
-    const win = both.filter((k) => seen[k].s > seen[k].l).length;
-    const lose = both.filter((k) => seen[k].l > seen[k].s).length;
-    const tie = both.filter((k) => seen[k].s === seen[k].l).length;
-    const pct0 = Math.round(win / both.length * 100);
-    /* 비교 가능 매장이 손에 꼽을 정도면 백분율이 과장으로 읽힌다.
-       실측: 8월은 2곳뿐인데 "100%" 로 떠서 전 매장을 이긴 것처럼 보였다. */
-    const thin = both.length < 5;
+    const win = names.filter((k) => seen[k].s > seen[k].l).length;
+    const lose = names.filter((k) => seen[k].l > seen[k].s).length;
 
-    /* 명부(양사 입점 71곳)를 함께 밝힌다 — 분모만 적으면 "이게 전부인가" 로 읽힌다.
-       명부 이름과 대시보드 표기가 달라(롯데 부산본점 ↔ 롯데부산) 같은 방식으로 정규화한다. */
-    const nrm = (t) => String(t || "").replace(/\s+/g, "")
-      .replace("더현대", "현대").replace("갤러리아", "갤");
-    const roster = (window.COMPETE && window.COMPETE.stores)
-      ? window.COMPETE.stores.length : null;
-
-    /* 사용자 지시(2026-08-25): "점으로도 우위점 00개소 열세점 00개소로 말해줘".
-       예전엔 우위 개점만 적어 열세가 몇 곳인지는 분모를 암산해야 알 수 있었다.
-       우위·열세를 나란히 적는다 — 동률은 둘 다에서 빠지므로 합이 both.length 보다 작을 수 있다. */
-    return `<div class="nsc-win${thin ? " thin" : (pct0 >= 50 ? " up" : "")}">` +
+    /* 사용자 지시: "전체 백화점 00개점 가운데 00개점 후기 건수 우위라고 간단히 표시".
+       퍼센트·동률·제외 각주는 걷어내고 한 문장으로 말한다. */
+    return `<div class="nsc-win${win >= lose ? " up" : ""}">` +
       `<div class="nw-pair">` +
-      `<span class="nw-p1"><b>${win}</b><i>개소 우위</i></span>` +
-      `<span class="nw-p2"><b class="warn">${lose}</b><i>개소 열세</i></span>` +
+      `<span class="nw-p1"><b>${win}</b><i>개점 우위</i></span>` +
+      `<span class="nw-p2"><b class="warn">${lose}</b><i>개점 열세</i></span>` +
       `</div>` +
-      (thin ? `<span class="nw-p warn">표본 적음</span>` : `<span class="nw-p">우위율 ${pct0}%</span>`) +
-      `<span class="nw-sub">` +
-      (roster ? `입점 ${roster}곳 중 ` : "") +
-      `<b>${both.length}곳</b> 비교` +
-      (tie ? ` · 동률 ${tie}` : "") +
-      (oneSide.length ? ` · 한쪽만 ${oneSide.length}곳 제외` : "") +
-      `</span></div>`;
+      (roster ? `<span class="nw-sub">전체 백화점 <b>${roster}개점</b> 가운데 후기 건수를 비교한 결과입니다</span>` : "") +
+      `</div>`;
   }
 
-  // 전국 현황 박스 하단 — 우위/열세 지역 요약(제목기반 추정, 표본 충분 시도만)
+  // 전국 현황 박스 하단  // 전국 현황 박스 하단 — 우위/열세 지역 요약(제목기반 추정, 표본 충분 시도만)
   function regionSummary() {
     const R = geoRegions();
     const arr = Object.keys(R).map((rg) => {
@@ -677,38 +654,23 @@
     }).filter((x) => x.tot >= 200);   // 소표본(제주 25건 등)이 1위로 오르는 왜곡 방지
     if (arr.length < 2) return "";
     // 우위=삼성 50% 초과, 열세=50% 미만으로 갈라 중복을 원천 차단
-    // (상·하위 N개를 따로 뽑으면 지역 수가 적을 때 같은 지역이 양쪽에 나온다)
-    const win = arr.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 2);
-    const lose = arr.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 2);
+    const win = arr.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 3);
+    const lose = arr.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 3);
     if (!win.length && !lose.length) return "";
-    /* 숫자 표기를 고친다(2026-08-25 사용자 지시: "숫자 표현이 이상한 경우가 있는데 수정").
-       예전엔 "경북 82%977" 처럼 퍼센트 뒤에 표본 건수가 단위·구분 없이 바로 붙어
-       무슨 숫자인지 알 수 없었다. 가운뎃점과 "건"을 붙여 값의 정체를 밝힌다. */
-    const chips = (list) => list.map((x) =>
-      `<span class="rs-chip" title="표본 ${fmtN(x.tot)}건">${x.rg} <i>${x.sh}%</i><em> · ${fmtN(x.tot)}건</em></span>`).join("");
 
-    /* 한 줄 요약 — 사용자 지시: "간단히 전체 시도 가운데 우위 어디이고 열세 어디인지".
-       상·하위 목록은 아래 칩으로 이미 보여주니, 맨 위에는 **1위 하나씩**만 짚어
-       "그래서 결론이 뭔데"에 바로 답한다. */
-    const top1s = win[0], top1l = lose[0];
-    const lead = (top1s || top1l)
-      ? `<p class="rs-lead">시도 최고·최저(제목기반 추정) — ` +
-        (top1s ? `<b>${top1s.rg} ${top1s.sh}%</b>` : "") +
-        (top1s && top1l ? " · " : "") +
-        (top1l ? `<b class="warn">${top1l.rg} ${top1l.sh}%</b>` : "") +
-        `</p>`
-      : "";
-
-    /* 우위·열세의 이유(품목 근거)는 좁은 좌측 요약 칸에서는 뺀다 — 한 화면 안에 담아야 하고,
-       같은 근거가 우측 '품목 전략' 카드에 이미 있다(2026-08-25: 좌측 칸 재정리로 자리 확보). */
-    return `<div class="nsc-rsum">` + lead +
-      (win.length ? `<div class="rs-row s"><b>삼성 우위</b>${chips(win)}</div>` : "") +
-      (lose.length ? `<div class="rs-row l"><b>열세(LG↑)</b>${chips(lose)}</div>`
-                   : `<div class="rs-row l"><b>열세(LG↑)</b><span class="rs-none">표본 기준 없음</span></div>`) +
+    /* 사용자 지시(2026-08-25): "우위 지역은 지역만 간단히 표시해줘.
+       줄바꿈 표시나 이런걸로 해서 명확히 이해되도록 해줘야 해."
+       퍼센트·건수·방법론 각주를 다 빼고 지역 이름만 남긴다.
+       "우위 지역" 라벨과 이름 목록을 줄을 나눠(각 그룹이 자기 줄) 놓아
+       한눈에 갈린다. */
+    const names = (list) => list.map((x) => x.rg).join(" · ");
+    return `<div class="nsc-rsum">` +
+      (win.length ? `<div class="rs-row s"><b>우위 지역</b><span class="rs-names">${names(win)}</span></div>` : "") +
+      (lose.length ? `<div class="rs-row l"><b>열세 지역</b><span class="rs-names">${names(lose)}</span></div>` : "") +
       `</div>`;
   }
 
-  /* ── 지역 페이지 — 매장(또는 하위지역) 랭킹 + 우위/열세 진단 ── */
+  /* ── 지역 페이지   /* ── 지역 페이지 — 매장(또는 하위지역) 랭킹 + 우위/열세 진단 ── */
   function regionView(c) {
     // 부울경 단계에서는 지역 목록을, 지역 단계에서는 매장 목록을 랭킹으로 보여준다
     const isBu = !c.stores && !!c.regions;
@@ -1468,9 +1430,10 @@
         /* 매장 비교를 읽는 데 꼭 필요한 편향 고지(2026-08-24 실측). 지우면 "삼성이 많다 = 바이럴 우위"로
            잘못 읽힌다. 문장은 줄이되 핵심 수치(회수율 7.7% vs 3.8%)는 반드시 남긴다. */
         `<p class="nsc-bias">매장이 특정된 후기는 <b>삼성이 더 많이 잡힙니다</b>(회수율 삼성 ` +
-        `<b>7.7%</b> vs LG <b>3.8%</b>) — 매장별 건수 차를 바이럴 우위로 읽지 마세요.</p>` +
+        `<b>7.7%</b> vs LG <b>3.8%</b>)</p>` +
         `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b><i>${fmtN(c.s)}건</i></span>` +
         `<span class="nv l">LG <b>${ls}%</b><i>${fmtN(c.l)}건</i></span></div>` +
+        `<span class="nsc-barlb">후기 건수</span>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
         hitsBlock() +
         winCount() +
