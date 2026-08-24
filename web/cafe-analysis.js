@@ -1154,22 +1154,37 @@
     const prev = mon.slice(0, half).reduce((a, x) => a + x[1], 0);
     const recent = mon.slice(half).reduce((a, x) => a + x[1], 0);
     const mom = prev ? Math.round((recent - prev) / prev * 100) : 0;
-    const cp = d.cmp || { s: 0, l: 0 }, cShare = pct(cp.s, cp.l);
+    /* 단일 월이면 "26-08 → 26-08" 추이와 "+0%" 가 나온다(실측) — 비교형 템플릿은
+       비교가 성립하지 않는 경계에서 반드시 분기한다(2026-08-25 원칙). */
+    const hasTrend = mon.length >= 2 && prev > 0;
+    const momKpi = hasTrend
+      ? `<div class="pf-kpi ${mom > 0 ? "up" : mom < 0 ? "down" : ""}"><b>${mom > 0 ? "+" : ""}${mom}<i>%</i></b><span>최근 추이</span></div>`
+      : `<div class="pf-kpi off"><b>—</b><span>추이 확인 불가</span></div>`;
+    /* 비교 승률 — 표본 10건 미만이면 퍼센트 대신 건수로(±1건에 수치가 요동) */
+    const cp = d.cmp || { s: 0, l: 0 }, cTot = cp.s + cp.l, cShare = pct(cp.s, cp.l);
+    const cmpKpi = cTot >= 10
+      ? `<div class="pf-kpi ${cShare >= 50 ? "up" : "down"}"><b>${cShare}<i>%</i></b><span>비교 승률</span></div>`
+      : cTot > 0
+      ? `<div class="pf-kpi"><b>${cp.s}<i>:${cp.l}</i></b><span>비교 상담(표본 적음)</span></div>`
+      : `<div class="pf-kpi off"><b>—</b><span>비교 상담 없음</span></div>`;
     const bens = (d.ben || []).slice(0, 3).map((b) => `<span class="pf-ben">${b.n}<i>${b.c}</i></span>`).join("");
+    /* 품목 데이터가 없는데 "열세 품목 없음 — 방어 양호" 라고 말하면 안 된다 —
+       데이터 없음과 열세 없음은 다른 사실이다. */
+    const sum = !its.length
+      ? `이 기간에는 품목이 특정된 후기가 없습니다 — 품목별 승패는 기간을 넓히면 보입니다.`
+      : (win.length ? `<b>${win.map((x) => x.n).slice(0, 2).join("·")}</b> 강세` : `뚜렷한 강세 품목 없음`) +
+        (lose.length ? `, <b class="warn">${lose.map((x) => x.n).slice(0, 2).join("·")}</b>는 LG 우위 — 대안 제시 필요`
+          : `, 열세 품목 없음 — <b>패키지 방어 양호</b>`);
     return `<div class="ca-ncard sv-profile">` +
       `<h4 class="ca-ch">${opt.title} <i class="ca-tag">품목·혜택·추이</i></h4>` +
       `<div class="pf-top">` +
-      `<div class="pf-kpi ${mom >= 0 ? "up" : "down"}"><b>${mom >= 0 ? "+" : ""}${mom}<i>%</i></b><span>최근 6개월</span></div>` +
-      `<div class="pf-spark">${mon.length ? sparkline(mon) : ""}</div>` +
-      `<div class="pf-kpi ${cShare >= 50 ? "up" : "down"}"><b>${cShare}<i>%</i></b><span>비교 승률</span></div>` +
+      momKpi +
+      `<div class="pf-spark">${hasTrend ? sparkline(mon) : `<span class="pf-nospark">월별 추이를 확인할 수 없습니다 — 기간을 넓혀 보세요.</span>`}</div>` +
+      cmpKpi +
       `</div>` +
       (its.length ? `<p class="pf-lb">품목별 승패 <em>삼성 비중</em></p><ul class="it-list pf-items">${bars}</ul>` : "") +
       (bens ? `<div class="pf-bens">${bens}</div>` : "") +
-      `<p class="pf-sum">` +
-      (win.length ? `<b>${win.map((x) => x.n).slice(0, 2).join("·")}</b> 강세` : "뚜렷한 강세 품목 없음") +
-      (lose.length ? `, <b class="warn">${lose.map((x) => x.n).slice(0, 2).join("·")}</b>는 LG 우위 — 대안 제시 필요`
-        : `, 열세 품목 없음 — <b>패키지 방어 양호</b>`) +
-      `</p></div>`;
+      `<p class="pf-sum">${sum}</p></div>`;
   }
 
   function regionDetailOf(rg) {
@@ -1227,6 +1242,14 @@
         negRate: +(vals.reduce((a, x) => a + x.negRate, 0) / vals.length).toFixed(1),
       };
     }
+    /* 묶음 표본이 아예 없으면(pkgAvg 0) "평균보다 작습니다"가 아니라 "읽을 표본이
+       없습니다"가 사실이다 — 데이터 없음과 열세를 섞지 않는다(2026-08-26). */
+    if (!d.pkgAvg && !d.pkgBig) {
+      return `<div class="ca-ncard sc-card">` +
+        `<h4 class="ca-ch">계약 규모 · 리스크 <i class="ca-tag">객단가 프록시</i></h4>` +
+        `<p class="sc-tip">이 기간에는 묶음 구성이 적힌 후기가 없어 계약 규모를 읽을 수 없습니다. ` +
+        `기간을 넓히면 평균 묶음 품목·대형 패키지 비중이 보입니다.</p></div>`;
+    }
     const dPkg = base ? +(d.pkgAvg - base.pkgAvg).toFixed(1) : 0;
     const dNeg = base ? +(d.negRate - base.negRate).toFixed(1) : 0;
     const baseLab = kind === "store" ? (regionKey || "지역") + " 평균" : "전국 평균";
@@ -1236,17 +1259,22 @@
       : dPkg <= -0.3
         ? `묶음 규모가 ${baseLab}보다 <b class="warn">작습니다</b> — 단품 계약 비중이 높습니다. <b>세트 할인·묶음 견적</b>을 먼저 제시해 객단가를 올리세요.`
         : `묶음 규모는 ${baseLab} 수준입니다. <b>4개 이상 대형 패키지</b>(현재 ${bigRate}%) 비중을 늘리는 것이 객단가 개선 포인트입니다.`;
+    /* ±0 원칙 — "+0p로 관리" 같은 무의미 수치 문장을 만들지 않는다(삼지선다) */
     const negTip = dNeg > 0.5
       ? ` 불만 언급이 ${baseLab} 대비 <b class="warn">+${dNeg}p</b> 높습니다 — 설치·배송 일정 안내를 강화하세요.`
-      : ` 불만 언급은 ${baseLab} 대비 ${dNeg >= 0 ? "+" : ""}${dNeg}p로 관리되고 있습니다.`;
+      : dNeg < 0
+      ? ` 불만 언급은 ${baseLab}보다 ${-dNeg}p 낮게 관리되고 있습니다.`
+      : dNeg === 0
+      ? ` 불만 언급은 ${baseLab}과 같은 수준입니다.`
+      : ` 불만 언급은 ${baseLab} 대비 +${dNeg}p로 관리 범위 안입니다.`;
     return `<div class="ca-ncard sc-card">` +
       `<h4 class="ca-ch">계약 규모 · 리스크 <i class="ca-tag">객단가 프록시</i></h4>` +
       `<div class="sc-kpis">` +
       `<div class="sc-k"><b>${d.pkgAvg}<i>개</i></b><span>평균 묶음 품목</span>` +
-      `<em class="${dPkg >= 0 ? "up" : "down"}">${dPkg >= 0 ? "+" : ""}${dPkg}</em></div>` +
+      `<em class="${dPkg > 0 ? "up" : dPkg < 0 ? "down" : ""}">${dPkg === 0 ? "평균 수준" : (dPkg > 0 ? "+" : "") + dPkg}</em></div>` +
       `<div class="sc-k"><b>${bigRate}<i>%</i></b><span>4개↑ 대형 패키지</span><em>${fmtN(d.pkgBig)}건</em></div>` +
       `<div class="sc-k ${dNeg > 0.5 ? "warn" : ""}"><b>${d.negRate}<i>%</i></b><span>불만 언급</span>` +
-      `<em class="${dNeg <= 0 ? "up" : "down"}">${dNeg >= 0 ? "+" : ""}${dNeg}p</em></div>` +
+      `<em class="${dNeg < 0 ? "up" : dNeg > 0 ? "down" : ""}">${dNeg === 0 ? "평균 수준" : (dNeg > 0 ? "+" : "") + dNeg + "p"}</em></div>` +
       (d.priceMid ? `<div class="sc-k"><b>${fmtN(d.priceMid)}<i>만</i></b><span>계약 중앙값</span><em>${d.priceN}건</em></div>` : "") +
       `</div>` +
       `<p class="sc-tip">${tip}${negTip}</p></div>`;
@@ -1301,7 +1329,7 @@
     const tip = lead === "l"
       ? `이 매장은 <b class="warn">LG 매니저 실명 후기가 ${fmtN(d.l - d.s)}건 더 많습니다</b>. LG는 <b>‘명장’ 호칭</b>으로 담당자를 브랜딩해 후기에 이름이 남습니다. ` +
         `계약 시 <b>담당 매니저 성함을 안내</b>하고, 후기 요청 문구에 <b>“○○매니저”를 넣어달라</b>고 구체적으로 요청하면 실명 후기가 늘어납니다.`
-      : `이 매장은 삼성 실명 후기가 우위입니다(<b>${mShare}%</b>). <b>${names[0] ? names[0].n : "상위 매니저"}</b>의 응대 방식(상담 기록·견적 설명·사후 연락)을 매장 표준으로 삼고, ` +
+      : `이 매장은 삼성 실명 후기가 우위입니다(<b>${mTot >= 10 ? mShare + "%" : fmtN(d.s) + ":" + fmtN(d.l)}</b>). <b>${names[0] ? names[0].n : "상위 매니저"}</b>의 응대 방식(상담 기록·견적 설명·사후 연락)을 매장 표준으로 삼고, ` +
         `신규 매니저도 <b>후기에 이름이 남도록</b> 상담 마무리에 후기 요청을 습관화하세요.`;
 
     return `<div class="ca-ncard mgr-card">` +
@@ -1344,29 +1372,52 @@
       ? ` 취약: <b class="warn">${sLose.map((x) => x.n + " " + pct(x.s, x.l) + "%").join("·")}</b>.`
       : "";
     const winLine = sWin.length ? ` 강점: <b>${sWin.map((x) => x.n + " " + pct(x.s, x.l) + "%").join("·")}</b>.` : "";
+    /* 우위 매장의 액션 — 지역평균 대비를 삼지선다로 가른다. 예전엔 -3p 인데도
+       "이 방식을 열세 매장에 전파"가 나왔다(우위이지만 지역 안에서는 상대 열세인
+       매장에 확산 처방을 주는 모순, 실측 2026-08-26). */
+    /* 표본 10건 미만이면 문장에서 퍼센트로 단정하지 않는다 — "2건으로 100% 우위"는
+       한 건만 뒤집혀도 무너진다(steward 검수 지적 2026-08-26). */
+    const shareLab = tot >= 10 ? `<b>${share}%</b>` : `<b>${fmtN(c.s)} : ${fmtN(c.l)}</b>(표본 ${fmtN(tot)}건)`;
     const action = lead === "s"
-      ? `삼성 <b>${share}%</b> 우위(지역평균 ${rShare}% 대비 ${diff >= 0 ? "+" : ""}${diff}p).${winLine}` +
-        (sLose.length ? loseLine + ` 취약 품목은 <b>패키지 판매</b>로 방어.` : ` 이 방식을 열세 매장에 전파.`)
+      ? (diff > 0
+          ? `삼성 ${shareLab} 우위 — 지역평균(${rShare}%)보다 <b>+${diff}p 높습니다</b>.${winLine}` +
+            (sLose.length ? loseLine + ` 취약 품목은 <b>패키지 판매</b>로 방어하세요.`
+              : ` 이 매장의 상담 방식을 지역의 열세 매장으로 전파할 만합니다.`)
+          : diff === 0
+          ? `삼성 ${shareLab} 우위 — 지역평균과 같은 수준입니다.${winLine}${loseLine}` +
+            ` 우위를 굳히려면 <b>담당자 이름이 남는 후기 요청</b>을 이어가세요.`
+          : `삼성 ${shareLab} 우위지만 지역평균(${rShare}%)보다 <b class="warn">${-diff}p 낮습니다</b> — 우위에 가려진 상대 열세입니다.` +
+            (sLose.length ? loseLine + ` 이 품목부터 대안 모델을 준비하세요.`
+              : `${winLine} 이웃 매장이 더 잘하고 있는 이유를 아래 지역 내 비교에서 확인하세요.`))
       : lead === "l"
         ? `LG가 <b class="warn">${fmtN(gap)}건</b> 앞섭니다 — 동률까지 <b>${fmtN(gap)}건</b> 필요.${loseLine}` +
           ` <b>담당자 이름을 넣은 후기</b>를 요청하세요.`
         : `백중(${share}%) — <b>후기 ${fmtN(Math.max(1, Math.ceil(tot * 0.02)))}건</b>이면 우위 전환.${loseLine}`;
     return `<div class="ca-sv">` +
+      /* 좌측은 전국·지역과 같은 "제목 있는 섹션 박스" 문법(2026-08-26 사용자:
+         "매장 상세 페이지도 같은 양식으로") — 총량 → 후기 건수 박스 → 위치 박스. */
       `<div class="sv-left">` +
       `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
       `<div class="sv-verdict ${lead}">${verdict}</div>` +
-      `<div class="sv-vs">` +
-      `<div class="sv-side s"><b>${fmtN(c.s)}</b><span>삼성</span></div>` +
-      `<div class="sv-mid"><b>${share}%</b><span>삼성 비중</span></div>` +
-      `<div class="sv-side l"><b>${fmtN(c.l)}</b><span>LG</span></div>` +
-      `</div>` +
-      `<div class="sv-bar"><i class="s" style="width:${tot ? (c.s / tot * 100).toFixed(1) : 50}%"></i>` +
+      `<div class="nsc-total"><b>${fmtN(tot)}</b><i>건 분석</i></div>` +
+
+      `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
+      `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
+      `<div class="nh-bar"><i class="s" style="width:${tot ? (c.s / tot * 100).toFixed(1) : 50}%"></i>` +
       `<i class="l" style="width:${tot ? (c.l / tot * 100).toFixed(1) : 50}%"></i></div>` +
-      `<div class="rv-kpis">` +
-      `<div><b>${fmtN(tot)}</b><span>후기</span></div>` +
-      `<div><b>${rank || "-"}<i>위</i></b><span>${st.region || ""} 내</span></div>` +
-      `<div class="${diff >= 0 ? "s" : "l"}"><b>${diff >= 0 ? "+" : ""}${diff}<i>p</i></b><span>지역평균 대비</span></div>` +
+      `<div class="nsc-nums"><span class="s"><b>${fmtN(c.s)}건</b><i>(${share}%)</i></span>` +
+      `<span class="l"><b>${fmtN(c.l)}건</b><i>(${100 - share}%)</i></span></div>` +
       `</div>` +
+
+      `<div class="nsc-sec"><h4 class="nsc-st">${st.region || "지역"} 안에서의 위치</h4>` +
+      `<div class="cy-grid">` +
+      `<div class="cy-k"><b>${rank || "-"}<u>위</u></b><span>${st.region || ""} 내 표본</span></div>` +
+      `<div class="cy-k"><b class="${diff > 0 ? "" : diff < 0 ? "wn" : ""}">${diff > 0 ? "+" : ""}${diff}<u>p</u></b><span>지역평균 대비</span></div>` +
+      `</div>` +
+      `<p class="nsc-foot">` + (diff === 0 ? `지역평균(${rShare}%)과 같은 수준입니다.`
+        : `지역평균(${rShare}%)보다 <b class="${diff > 0 ? "" : "warn"}">${diff > 0 ? "+" : ""}${diff}p ${diff > 0 ? "높습니다" : "낮습니다"}</b>.`) + `</p>` +
+      `</div>` +
+
       (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
       `</div>` +
       `<div class="sv-right">` +

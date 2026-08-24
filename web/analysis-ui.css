@@ -328,3 +328,30 @@ body.view-cx .yt-own { font-size: 10.5px; }
 .ca2 .rv-third .cy-sec { padding: 7px 11px 8px; }
 .ca2 .rv-third .cy-sec > h5 { padding-bottom: 4px; margin-bottom: 5px; }
 .ca2 .rv-third .cy-note { margin-top: 4px; line-height: 1.45; }
+
+/* ── 매장 상세 — 전국·지역과 같은 섹션 박스 문법 (2026-08-26 사용자:
+   "매장 상세 페이지도 같은 양식으로 맞춰줘") ──
+   좌측은 nsc-sec 박스(마크업에서 재사용), 우측 카드들은 내용 덩어리를
+   지역 심층분석 카드와 같은 연회색 박스에 담는다. */
+.ca2 .sv-left { display: flex; flex-direction: column; gap: 10px; }
+.ca2 .ca-sv .pf-top, .ca2 .ca-sv .pf-items, .ca2 .ca-sv .pf-sum,
+.ca2 .ca-sv .sc-kpis, .ca2 .ca-sv .sc-tip,
+.ca2 .ca-sv .mgr-names, .ca2 .ca-sv .mgr-tip,
+.ca2 .ca-sv .sv-action, .ca2 .ca-sv .sv-peers, .ca2 .ca-sv .sv-revcols {
+  border: 1px solid rgba(23,42,66,0.09); background: rgba(23,42,66,0.03);
+  border-radius: 12px; padding: 8px 11px; margin: 0; }
+.ca2 .ca-sv .pf-top { margin-bottom: 8px; }
+.ca2 .ca-sv .pf-sum, .ca2 .ca-sv .sc-tip, .ca2 .ca-sv .mgr-tip { margin-top: 8px; }
+.ca2 .ca-sv .mgr-names { margin-top: 8px; }
+/* 품목 리스트 라벨을 섹션 제목 문법(진한 제목+점선 밑줄+우측 보조라벨)으로 */
+.ca2 .ca-sv .pf-lb { font-size: 13px; font-weight: 900; color: var(--text);
+  display: flex; align-items: baseline; gap: 6px; padding-bottom: 4px;
+  margin: 8px 0 5px; border-bottom: 1px dashed rgba(23,42,66,0.12); }
+.ca2 .ca-sv .pf-lb em { font-style: normal; font-size: 10.5px; font-weight: 700;
+  color: var(--muted); margin-left: auto; }
+/* 추이·비교 표본이 없는 KPI — 지어내지 않고 회색으로 비운다 */
+.ca2 .pf-kpi.off b { color: var(--muted); }
+.ca2 .pf-nospark { font-size: 11px; font-weight: 700; color: var(--muted);
+  line-height: 1.4; word-break: keep-all; }
+/* 지역평균 대비 음수는 빨강(카드 앞면 색 원칙) */
+.ca2 .cy-k b.wn { color: #d23b54; }
