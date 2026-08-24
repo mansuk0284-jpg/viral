@@ -818,7 +818,7 @@
       /* 이름은 3곳까지만 부른다 — 서울처럼 10곳이면 한 문장이 세 줄을 먹는다(실측) */
       (ghosts.length ? ` — <b class="down">${ghosts.slice(0, 3).join("·")}</b>${ghosts.length > 3 ? " 등 " + ghosts.length + "곳" : ghosts.length > 1 ? " " + ghosts.length + "곳" : ""}은 이 기간 후기가 <b class="down">한 건도 없습니다</b>.` : `.`));
     else if (list.length) diag.push(`${unit} ${list.length}곳 중 <b>${win.length}곳 우위</b>, <b class="down">${lose.length}곳 열세</b>.`);
-    if (headShare >= 40 && list[0]) diag.push(`표본이 <b>${list[0].n}</b>에 ${headShare}% 쏠려 있어 이 ${unit}의 성적이 지역 전체를 좌우합니다.`);
+    if (headShare >= 40 && list[0]) diag.push(`표본이 <b>${list[0].n}</b>에 ${headShare}% 집중돼 있어 이 ${unit}의 성적이 지역 전체를 좌우합니다.`);
     if (opps.length) diag.push(`열세 ${unit}에서 LG가 누적 <b class="down">${fmtN(oppGap)}건</b> 앞서며, 이 격차가 지역 순위의 실질 손실분입니다.`);
     else if (list.length) diag.push(`열세 ${josa(unit, "이", "가")} 없어 <b>방어 국면</b> — 현 우위를 유지하며 <b>고객 후기 요청</b>을 꾸준히 이어가는 것이 과제입니다.`);
 
@@ -998,30 +998,49 @@
       `<h4 class="ca-ch">${rgName} 바이럴 심층 분석 <i class="ca-tag">지역 단위</i></h4>` +
 
 
-      // 도시 안 격차 — 평균이 지우는 것
+      /* 문장 원칙(2026-08-26 사용자 지적 반영): 질문형·구어체 제목을 버리고
+         문어체 명사구로, 본문은 지표 설명이 아니라 **그래서 어느 매장·무엇을**
+         이 나오는 인사이트형으로 쓴다. 승패가 뒤바뀌면 문장도 바뀌어야 한다. */
+      // 매장 간 격차 — 도시 평균이 가리는 차이
       (spread !== null
-        ? `<div class="cy-sec"><h5>도시 안에서 얼마나 벌어져 있나</h5>` +
-          `<div class="cy-spread ${gapCls}">` +
-          `<span class="cs-hi">${sized[0].n} <b>${sized[0].sh}%</b></span>` +
-          `<span class="cs-line"></span>` +
-          `<span class="cs-lo">${sized[sized.length - 1].n} <b>${sized[sized.length - 1].sh}%</b></span>` +
-          `<span class="cs-gap">${spread}<u>p</u></span></div>` +
-          `<p class="cy-note">표본 5건 이상 <b>${sized.length}곳</b> 기준. ` +
-          (spread >= 50 ? `같은 도시인데 <b class="warn">${spread}p</b>나 갈립니다 — 도시 평균(${sh}%)으로는 안 보이는 차이입니다.`
-           : spread >= 25 ? `매장 간 <b>${spread}p</b> 차이가 있습니다.`
-           : `매장끼리 고르게 붙어 있습니다(<b>${spread}p</b>).`) + `</p></div>`
-        : `<p class="ca-splx">표본이 받쳐 주는 매장이 2곳 미만이라 격차를 말할 수 없습니다.</p>`) +
+        ? (function () {
+            const hi = sized[0], lo = sized[sized.length - 1];
+            const note = spread < 25
+              ? `표본 5건 이상 ${sized.length}곳이 <b>${spread}p</b> 안에 모여 있습니다. ` +
+                `특정 매장의 문제가 아니라 도시 공통의 흐름이 성적을 만들고 있다는 뜻입니다 — 처방도 도시 공통(품목·비교 상담 대비)으로 접근하는 것이 맞습니다.`
+              : lo.sh >= 50
+              ? `가장 낮은 <b>${lo.n}</b>(삼성 ${lo.sh}%)도 우위여서, ${spread}p 격차는 <b>우위 안의 편차</b>입니다. ` +
+                `다만 ${lo.n}의 표본 ${fmtN(lo.tot)}건은 ${hi.n}(${fmtN(hi.tot)}건)보다 얇습니다 — 격차를 굳히려면 이 매장의 후기 요청부터 늘려야 합니다.`
+              : spread >= 50
+              ? `같은 도시에서 <b class="warn">${lo.n}</b>(삼성 ${lo.sh}%)만 ${hi.n}(${hi.sh}%)보다 <b class="warn">${spread}p</b> 뒤처져 있습니다. ` +
+                `도시 평균(${sh}%)이 가려 온 격차입니다 — ${lo.n}의 열세 품목을 매장 페이지에서 먼저 확인하세요.`
+              : `<b>${hi.n}</b>(${hi.sh}%)과 <b class="warn">${lo.n}</b>(${lo.sh}%) 사이가 ${spread}p 벌어져 있습니다. ` +
+                `잘 되는 매장의 상담 방식이 ${JOSA(lo.n, "으로", "로")} 아직 옮겨지지 않았다는 신호입니다 — 두 매장의 품목 구성을 나란히 비교해 보세요.`;
+            return `<div class="cy-sec"><h5>매장 간 격차</h5>` +
+              `<div class="cy-spread ${gapCls}">` +
+              `<span class="cs-hi">${hi.n} <b>${hi.sh}%</b></span>` +
+              `<span class="cs-line"></span>` +
+              `<span class="cs-lo">${lo.n} <b>${lo.sh}%</b></span>` +
+              `<span class="cs-gap">${spread}<u>p</u></span></div>` +
+              `<p class="cy-note">${note}</p></div>`;
+          })()
+        : `<p class="ca-splx">표본 5건 이상 매장이 2곳 미만이라 매장 간 격차를 말할 수 없습니다 — 기간을 넓히면 비교가 가능해집니다.</p>`) +
 
-      // 쏠림
+      // 표본 집중도 — 어느 매장의 후기가 도시 지표를 움직이는가
       (byVol[0]
-        ? `<div class="cy-sec"><h5>쏠림</h5>` +
+        ? `<div class="cy-sec"><h5>표본 집중도</h5>` +
           `<div class="cy-head"><span class="ch-nm">${byVol[0].n}</span>` +
           `<span class="ch-bar"><i style="width:${headShare}%"></i></span>` +
           `<span class="ch-v">${headShare}<u>%</u></span></div>` +
           `<p class="cy-note">` +
-          (headShare >= 50 ? `이 도시 표본의 절반 이상이 <b>한 매장</b>에서 나옵니다 — 이 매장이 도시 성적을 좌우합니다.`
-           : headShare >= 30 ? `상위 한 곳이 <b>${headShare}%</b>를 차지합니다.`
-           : `여러 매장에 고르게 퍼져 있습니다.`) + `</p></div>`
+          (headShare >= 50
+            ? `도시 표본의 <b>${headShare}%</b>가 <b>${byVol[0].n}</b> 한 곳에서 나옵니다 — 이 매장의 후기 요청 습관이 곧 도시 지표입니다. ` +
+              `나머지 매장은 후기 자체가 적어 잘하고 있어도 수치에 드러나지 않습니다 — 그쪽의 후기 요청부터 채워야 도시 전체가 읽힙니다.`
+            : headShare >= 30
+            ? `<b>${byVol[0].n}</b>이 표본의 <b>${headShare}%</b>를 차지합니다. ` +
+              `이 매장의 성적이 흔들리면 도시 수치가 함께 흔들리는 구조라, 도시 지표를 읽을 때 이 매장의 변동을 먼저 확인해야 합니다.`
+            : `표본이 여러 매장에 고르게 퍼져 있어(1위 비중 ${headShare}%) 한 매장의 부침이 도시 지표를 좌우하지 않습니다. ` +
+              `도시 수치를 매장 전체의 흐름으로 읽어도 되는 상태입니다.`) + `</p></div>`
         : "") +
 
       /* 조회수 관점 — 건수와 읽힘은 다른 축이다(2026-08-25 깊이 보강).
@@ -1033,7 +1052,7 @@
         const hitTop = withHits.slice().sort((a, b) => ((b.hs || 0) + (b.hl || 0)) - ((a.hs || 0) + (a.hl || 0)))[0];
         const ht = (hitTop.hs || 0) + (hitTop.hl || 0);
         const per = (x) => { const t = x.s + x.l; return t ? Math.round(((x.hs || 0) + (x.hl || 0)) / t) : 0; };
-        return `<div class="cy-sec"><h5>조회수 관점</h5>` +
+        return `<div class="cy-sec"><h5>조회수 파급</h5>` +
           (hitTop.n === volTop.n
             ? `<p class="cy-note">후기도 조회도 <b>${hitTop.n}</b>에 몰립니다(${fmtN(ht)}회). ` +
               `이 매장의 글이 도시 바이럴의 관문입니다 — 여기서 담당자 실명이 남도록 후기 요청을 거는 것이 가장 효율적입니다.</p>`
@@ -1094,15 +1113,26 @@
         return `<div class="cy-sec"><h5>비교 상담</h5><p class="cy-note">${line}</p></div>`;
       })() +
 
-      // 전국과 다른 성격
+      // 품목 편차(전국 대비) — 이 도시에서만 유독 강하거나 약한 품목
       (itemDiff.length
-        ? `<div class="cy-sec"><h5>전국과 다른 점</h5>` +
-          itemDiff.map((x) => `<div class="cy-diff ${x.d >= 0 ? "up" : "warn"}">` +
-            `<span class="cd-n">${x.n}</span>` +
-            `<span class="cd-v">${x.city}<u>%</u></span>` +
-            `<span class="cd-d">전국 ${x.nat}% 대비 <b>${x.d >= 0 ? "+" : ""}${x.d}p</b></span>` +
-            `</div>`).join("") +
-          `<p class="cy-note">품목별 삼성 비중을 전국과 견줬습니다(표본 5건 이상).</p></div>`
+        ? (function () {
+            const t0 = itemDiff[0];
+            const j0 = JOSA(t0.n, "은", "는").slice(t0.n.length);   // 조사만 떼어 <b> 밖에 붙인다
+            const note = t0.d === 0
+              ? `품목 구성이 전국과 같은 수준입니다 — 도시 고유의 품목 전략보다 전국 공통 처방이 유효합니다.`
+              : t0.d < 0
+              ? `<b class="warn">${t0.n}</b>${j0} 이 도시에서 전국보다 <b class="warn">${-t0.d}p 낮습니다</b>. ` +
+                `다른 도시보다 이 품목의 비교 질문을 받을 때 대안 모델 제시가 더 절실한 곳입니다.`
+              : `<b>${t0.n}</b>${j0} 전국보다 <b>${t0.d}p 높은</b> 이 도시의 강점 품목입니다. ` +
+                `상담 도입부에서 먼저 앞세울 카드입니다 — 강점 품목에서 신뢰를 만들면 열세 품목 상담도 쉬워집니다.`;
+            return `<div class="cy-sec"><h5>품목 편차 <i>전국 대비</i></h5>` +
+              itemDiff.map((x) => `<div class="cy-diff ${x.d >= 0 ? "up" : "warn"}">` +
+                `<span class="cd-n">${x.n}</span>` +
+                `<span class="cd-v">${x.city}<u>%</u></span>` +
+                `<span class="cd-d">전국 ${x.nat}% 대비 <b>${x.d >= 0 ? "+" : ""}${x.d}p</b></span>` +
+                `</div>`).join("") +
+              `<p class="cy-note">${note}</p></div>`;
+          })()
         : "") +
       `</div>`;
   }
