@@ -654,6 +654,32 @@
       `</div>`;
   }
 
+  /* ── 명부(백화점 리스트) ↔ 대시보드 지역 매핑 ──────────────────────
+     명부의 team 필드는 **영업팀**이라 시도 구분이 안 된다(부산·울산 매장이
+     전부 '경남' 팀 — 실측 2026-08-25). 그래서 전 기간 매장→지역 데이터
+     (CD.stores)로 이름을 이어 시도를 얻는다. 전 기간 후기가 0건이라 지역을
+     못 잇는 명부 매장 4곳(현대부산·롯데메종동부산점·대백프라자·현대동구)은
+     폐점·특수관 이력이 있어 목록에서 제외한다 — 사용자 기준 "부산 5개점"과
+     정확히 일치한다. 결과: [{key(명부 표기), disp(화면 표기)}] */
+  const NRM0 = (t) => String(t || "").replace(/\s+/g, "")
+    .replace("더현대", "현대").replace("갤러리아", "갤");
+  function rosterOfRegion(rg) {
+    if (!rosterOfRegion._m) {
+      const m = {};
+      const n2 = {};   // nrm → { rg, disp }
+      const RS = (CD && CD.stores) || {};
+      Object.keys(RS).forEach((r) => (RS[r] || []).forEach((x) => {
+        const nm = x.n || x.name; n2[NRM0(nm)] = { rg: r, disp: nm };
+      }));
+      ((window.COMPETE && window.COMPETE.stores) || []).forEach((x) => {
+        const k = x.key || x.name, hit = n2[NRM0(k)];
+        if (hit) (m[hit.rg] = m[hit.rg] || []).push({ key: k, disp: hit.disp });
+      });
+      rosterOfRegion._m = m;
+    }
+    return rosterOfRegion._m[rg] || [];
+  }
+
   // 전국 현황 박스 하단 — 우위/열세 지역 요약(제목기반 추정, 표본 충분 시도만)
   function regionSummary() {
     const R = geoRegions();
@@ -692,18 +718,33 @@
                                    hs: x.hs || 0, hl: x.hl || 0 }))
       .sort((a, b) => (b.s + b.l) - (a.s + a.l));
     // 표본 하한은 지역 규모에 비례(고정 20건이면 지방 소도시 매장이 통째로 사라진다)
+    /* 단, **명부(백화점 리스트) 매장은 하한과 무관하게 남긴다**(2026-08-25 사용자:
+       "부산지역 백화점은 5개점이고 그 가운데 우위 열세를 표현하는게 더 낫지 않을까").
+       명부는 SSOT다 — 표본이 적다고 명부 매장이 목록에서 사라지면 안 된다. */
+    const rosterRg = !isBu ? rosterOfRegion(c.title) : [];
+    const rosterKeys = new Set(rosterRg.map((r) => NRM0(r.key)));
     if (!isBu && list.length) {
       const big = list[0].s + list[0].l;
       const floor = Math.max(3, Math.min(20, Math.round(big * 0.06)));
-      const kept = list.filter((x) => x.s + x.l >= floor);
+      const kept = list.filter((x) => x.s + x.l >= floor || rosterKeys.has(NRM0(x.n)));
       if (kept.length) list.length = 0, kept.forEach((x) => list.push(x));
     }
+    /* 명부에 있는데 이 기간 후기가 0건인 매장 — 숨기지 않고 "후기 0건" 행으로
+       드러낸다. "아예 후기가 없는 매장은 후기가 나오도록 하던지, 혼수를 팔도록
+       노력을 하던지 이런 인사이트도 찾아낼 수 있는거고"(2026-08-25). */
+    const ghosts = rosterRg.filter((r) => !list.some((x) => NRM0(x.n) === NRM0(r.key)))
+      .map((r) => r.disp || r.key);
     const share = pct(c.s, c.l);
     const nat = natShare();          // 기준선도 선택 기간의 전국 비중이어야 한다
     const diff = share - nat;
     const max = Math.max(1, ...list.map((x) => x.s + x.l));
     // ── 진단: 우위/열세/기회 분류 ──
     const win = list.filter((x) => x.s > x.l), lose = list.filter((x) => x.l > x.s);
+    /* 명부 스코프 집계 — "백화점 5개점 중"이라고 말할 때의 분자는 명부 매장만 세야
+       산술이 맞다(목록에는 한쪽만 입점한 백화점 등 명부 밖 매장도 있을 수 있다). */
+    const winR = rosterRg.length ? win.filter((x) => rosterKeys.has(NRM0(x.n))).length : win.length;
+    const loseR = rosterRg.length ? lose.filter((x) => rosterKeys.has(NRM0(x.n))).length : lose.length;
+    const noneR = rosterRg.length ? Math.max(0, rosterRg.length - winR - loseR) : 0;
     const sized = list.filter((x) => x.s + x.l >= 10);
     const top = sized.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l))[0];
     // 기회 = 표본이 큰데 삼성이 지는 곳(격차가 클수록 우선). 여기를 잡으면 지역 순위가 바뀐다.
@@ -735,7 +776,13 @@
         `<span class="rv-sh ${lead}">${sh}%</span>` +
         `<span class="rv-gap ${gap >= 0 ? "s" : "l"}">${gap >= 0 ? "+" : ""}${fmtN(gap)}</span></button>`;
     };
-    const rows = list.map((x, i) => rowOf(x, i + 1)).join("");
+    const ghostRows = ghosts.map((g) =>
+      `<button type="button" class="rv-row none" ${attr}="${g}" title="${g} · 이 기간 매장이 적힌 후기 0건">` +
+      `<span class="rv-rank">–</span>` +
+      `<span class="rv-name">${g}</span>` +
+      /* 2열(매장 12곳 초과)에서는 칸이 절반이라 긴 안내가 뚫는다 — 짧은 표기로 전환(CSS) */
+      `<span class="rv-none"><u class="full">이 기간 후기 0건 — 구매 고객 후기 요청부터</u><u class="mini">후기 0건</u></span></button>`).join("");
+    const rows = list.map((x, i) => rowOf(x, i + 1)).join("") + ghostRows;
 
     // ── 자동 진단 문장 (데이터에서 도출) · 한글 조사 자동 처리 ──
     const hasJong = (w) => { const ch = (w || "").replace(/[^가-힣]/g, "").slice(-1); return ch ? (ch.charCodeAt(0) - 0xac00) % 28 !== 0 : false; };
@@ -744,7 +791,13 @@
     diag.push(diff === 0
       ? `${josa(c.title, "은", "는")} 삼성 비중 <b>${share}%</b>로 전국(${nat}%)과 <b>같은 수준</b>입니다.`
       : `${josa(c.title, "은", "는")} 삼성 비중 <b>${share}%</b>로 전국(${nat}%) 대비 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : ""}${diff}p ${diff > 0 ? "강세" : "약세"}</b>입니다.`);
-    if (list.length) diag.push(`${unit} ${list.length}곳 중 <b>${win.length}곳 우위</b>, <b class="down">${lose.length}곳 열세</b>.`);
+    /* 명부 기준으로 말한다 — "부산 5개점 중 …" 이 "표본 잡힌 4곳 중 …" 보다
+       현장이 아는 사실과 맞다. 후기 0건 매장은 이름까지 불러 후기 요청 액션으로 잇는다. */
+    if (rosterRg.length) diag.push(
+      `백화점 ${rosterRg.length}개점 중 <b>${winR}곳 우위</b>, <b class="down">${loseR}곳 열세</b>` +
+      /* 이름은 3곳까지만 부른다 — 서울처럼 10곳이면 한 문장이 세 줄을 먹는다(실측) */
+      (ghosts.length ? ` — <b class="down">${ghosts.slice(0, 3).join("·")}</b>${ghosts.length > 3 ? " 등 " + ghosts.length + "곳" : ghosts.length > 1 ? " " + ghosts.length + "곳" : ""}은 이 기간 후기가 <b class="down">한 건도 없습니다</b>.` : `.`));
+    else if (list.length) diag.push(`${unit} ${list.length}곳 중 <b>${win.length}곳 우위</b>, <b class="down">${lose.length}곳 열세</b>.`);
     if (headShare >= 40 && list[0]) diag.push(`표본이 <b>${list[0].n}</b>에 ${headShare}% 쏠려 있어 이 ${unit}의 성적이 지역 전체를 좌우합니다.`);
     if (opps.length) diag.push(`열세 ${unit}에서 LG가 누적 <b class="down">${fmtN(oppGap)}건</b> 앞서며, 이 격차가 지역 순위의 실질 손실분입니다.`);
     else if (list.length) diag.push(`열세 ${josa(unit, "이", "가")} 없어 <b>방어 국면</b> — 현 우위를 유지하며 <b>고객 후기 요청</b>을 꾸준히 이어가는 것이 과제입니다.`);
@@ -782,9 +835,13 @@
           : `격차 ${fmtN(opGap0)}건은 <b>후기 요청을 꾸준히 걸면 따라잡을 수 있는 거리</b>입니다. `) +
         `<em class="rv-more">품목·혜택별 처방은 매장을 눌러 확인하세요.</em>`
       /* 후기는 고객이 쓴다 — 매니저는 요청·독려만 할 수 있다 */
-      : `열세 ${josa(unit, "이", "가")} 없습니다. <b>${top ? top.n : "선두"}</b>(삼성 ${top ? pct(top.s, top.l) : "-"}%)의 ` +
-        `상담 방식을 표본이 적은 곳으로 확산하고, <b>구매 고객에게 후기 작성을 요청</b>하세요. ` +
-        `<em class="rv-more">매장별 상세는 목록에서 매장을 누르세요.</em>`;
+      : top
+        ? `열세 ${josa(unit, "이", "가")} 없습니다. <b>${top.n}</b>(삼성 ${pct(top.s, top.l)}%)의 ` +
+          `상담 방식을 표본이 적은 곳으로 확산하고, <b>구매 고객에게 후기 작성을 요청</b>하세요. ` +
+          `<em class="rv-more">매장별 상세는 목록에서 매장을 누르세요.</em>`
+        /* 울산 8월처럼 매장이 특정된 후기가 아예 없는 구간 — "선두(삼성 -%)" 가 되지 않게 */
+        : `<b class="warn">매장이 특정된 후기가 없는 구간</b>입니다. 후기에 매장이 안 적히면 ` +
+          `매장 단위 비교 자체가 성립하지 않습니다 — <b>구매 고객에게 매장명과 담당자 이름이 함께 남도록 후기 요청</b>을 시작하세요.`;
 
     /* 조회수 — 이 지역 매장들에 귀속된 후기의 조회 합(매장 특정분 기준).
        지역 전체 조회수라고 말하면 과장이 된다 — 라벨에 기준을 밝힌다. */
@@ -831,11 +888,14 @@
         `<span class="l"><b>${fmtN(rHl)}회</b><i>(${100 - rHsh}%)</i></span></div>` +
         `</div>` : "") +
 
-      `<div class="nsc-sec"><h4 class="nsc-st">${unit} 우위·열세<i>${unit} ${list.length}곳</i></h4>` +
+      /* 분모 = 명부(백화점 리스트) — 전국 좌측의 "전체 백화점 71개점"과 같은 문법.
+         명부가 없는 단계(부울경 지역 목록 등)만 목록 곳수로 말한다. */
+      `<div class="nsc-sec"><h4 class="nsc-st">${unit} 우위·열세<i>${rosterRg.length ? `백화점 ${rosterRg.length}개점` : `${unit} ${list.length}곳`}</i></h4>` +
       `<div class="nw-pair split">` +
-      `<span class="nw-p1"><b>${win.length}</b><i>곳 우위</i></span>` +
-      `<span class="nw-p2"><i>곳 열세</i><b class="warn">${lose.length}</b></span>` +
+      `<span class="nw-p1"><b>${winR}</b><i>곳 우위</i></span>` +
+      `<span class="nw-p2"><i>곳 열세</i><b class="warn">${loseR}</b></span>` +
       `</div>` +
+      (noneR ? `<span class="nw-sub">그 외 ${noneR}개점은 이 기간 후기가 없거나 동률입니다.</span>` : "") +
       (top ? `<div class="rv-pick s"><em>최강</em><b>${top.n}</b><span>삼성 ${pct(top.s, top.l)}%</span></div>` : "") +
       (bot && bot !== top ? `<div class="rv-pick l"><em>공략</em><b>${bot.n}</b><span>삼성 ${pct(bot.s, bot.l)}%</span></div>` : "") +
       `</div>` +
@@ -863,10 +923,12 @@
          같은 화면에 두 번 두면 자리만 먹고(97px), 정작 목록이 눌린다(실측). */
       `<div class="rv-act"><em>액션</em>${para(action)}</div>` +
       `</div>` +
-      `<div class="rv-rhead"><h4>${unit}별 경쟁력 <em>${list.length}곳</em></h4>` +
+      `<div class="rv-rhead"><h4>${unit}별 경쟁력 <em>${list.length + ghosts.length}곳</em></h4>` +
       `<span class="rv-leg"><i class="s"></i>삼성<i class="l"></i>LG · 클릭 시 ${unit} 상세</span></div>` +
       /* 매장이 많으면 2열로 — 한 열에 20행을 넣으면 행 높이가 6px 로 눌린다(실측) */
-      (list.length ? `<div class="rv-list${list.length > 12 ? " two" : ""}">${rows}</div>`
+      /* 표본 매장이 0곳이어도 명부 매장(후기 0건 행)은 보여준다 — 울산 8월처럼
+         "매장이 없다"가 아니라 "매장은 있는데 후기가 없다"가 사실이다. */
+      (list.length + ghosts.length ? `<div class="rv-list${list.length + ghosts.length > 12 ? " two" : ""}">${rows}</div>`
         : `<p class="ca-splx">이 구간은 백화점 ${unit} 표본이 부족합니다.</p>`) +
       `</div>` +
       // 3열: **도시 단위의 시각**. 품목·혜택·객단가 같은 매장급 디테일은 여기 두지 않는다
@@ -922,7 +984,8 @@
         if (!n || r.s + r.l < 5) return null;
         return { n: k, city: pct(r.s, r.l), nat: pct(n.s, n.l), tot: r.s + r.l };
       }).filter(Boolean).map((x) => ({ ...x, d: x.city - x.nat }))
-        .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 3);
+        // 실명·비교 섹션이 들어오며 자리가 줄었다 — 차이 최상위 2개만(한 화면 유지)
+        .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 2);
     }
 
     const gapCls = spread === null ? "" : spread >= 50 ? "warn" : spread >= 25 ? "even" : "up";
@@ -973,6 +1036,58 @@
             : `<p class="cy-note">후기 수 1위는 <b>${volTop.n}</b>지만, 조회수 1위는 <b>${hitTop.n}</b>(${fmtN(ht)}회)입니다. ` +
               `한 건당 <b>${fmtN(per(hitTop))}회</b>씩 읽히는 셈이라, 고객 눈에 실제로 띄는 바이럴 파급은 ${JOSA(hitTop.n, "이", "가")} 더 큽니다.</p>`) +
           `</div>`;
+      })() +
+
+      /* 실명 언급 — 전국 카드에서 다루던 주제의 도시판(2026-08-25 사용자:
+         "전국 단위에서 분석하던 주제를 가져와서 페이지를 채우던지").
+         후기는 고객이 쓴다 — 액션은 언제나 '후기 요청'이지 '후기 작성'이 아니다. */
+      (function () {
+        const MS = A0 ? (A0.mgrStore || {}) : ((CD && CD.mgrStore) || {});
+        const G = A0 ? A0.mgr : ((CD && CD.mgr) || null);
+        const msOf = (n) => MS[n] ||
+          MS[Object.keys(MS).find((k) => n.indexOf(k) === 0 || k.indexOf(n) === 0)] || null;
+        let mgS = 0, mgL = 0, mgTop = null;
+        list.forEach((x) => { const d = msOf(x.n); if (!d) return;
+          mgS += d.s || 0; mgL += d.l || 0;
+          if (!mgTop || (d.s + d.l) > mgTop.t) mgTop = { n: x.n, t: (d.s || 0) + (d.l || 0) }; });
+        const tot = mgS + mgL;
+        const natMgr = G ? pct(G.s_on, G.l_on) : null;
+        if (!tot) return `<div class="cy-sec"><h5>실명 언급</h5>` +
+          `<p class="cy-note">이 기간 이 도시 매장의 <b class="warn">담당자 실명이 적힌 후기가 없습니다</b> — ` +
+          `후기 요청 때 상담한 담당자 이름이 함께 남도록 부탁하는 것부터가 과제입니다.</p></div>`;
+        const sh = pct(mgS, mgL);
+        // 표본 10건 미만이면 퍼센트를 적지 않는다(±1건에 수치가 요동)
+        const line = tot >= 10
+          ? `실명이 적힌 후기에서 삼성 <b>${fmtN(mgS)}건</b> vs LG <b class="warn">${fmtN(mgL)}건</b>(삼성 ${sh}%)` +
+            (natMgr !== null
+              ? (sh === natMgr ? ` — 전국(${natMgr}%)과 같은 수준입니다.`
+                : sh > natMgr ? ` — 전국(${natMgr}%)보다 <b>${sh - natMgr}p 높습니다</b>.`
+                : ` — 전국(${natMgr}%)보다 <b class="warn">${natMgr - sh}p 낮습니다</b>.`)
+              : `.`)
+          : `실명이 적힌 후기가 삼성 <b>${fmtN(mgS)}건</b> vs LG <b class="warn">${fmtN(mgL)}건</b>뿐이라 비중을 말하기엔 표본이 작습니다.`;
+        return `<div class="cy-sec"><h5>실명 언급</h5>` +
+          `<p class="cy-note">${line}` +
+          (mgTop ? ` 실명 언급이 가장 많은 곳은 <b>${mgTop.n}</b>(${fmtN(mgTop.t)}건)입니다.` : "") +
+          `</p></div>`;
+      })() +
+
+      /* 비교 상담 — 삼성·LG를 나란히 견준 뒤 결정한 후기(도시판) */
+      (function () {
+        const rd = regionDetailOf(rgName);
+        const cp = rd && rd.cmp ? rd.cmp : null;
+        if (!cp || !(cp.s + cp.l)) return "";
+        const natCp = (typeof perData === "function") ? ((perData() || {}).compare || null) : null;
+        const natSh = natCp && natCp.s + natCp.l ? pct(natCp.s, natCp.l) : null;
+        const tot = cp.s + cp.l, sh = pct(cp.s, cp.l);
+        const line = tot >= 10
+          ? `양사를 나란히 견준 후기 <b>${fmtN(tot)}건</b> 중 삼성 선택이 <b class="${sh >= 50 ? "" : "warn"}">${sh}%</b>` +
+            (natSh !== null
+              ? (sh === natSh ? ` — 전국(${natSh}%)과 같은 수준입니다.`
+                : sh > natSh ? ` — 전국(${natSh}%)보다 <b>${sh - natSh}p 높아</b>, 견주게 만들수록 유리한 도시입니다.`
+                : ` — 전국(${natSh}%)보다 <b class="warn">${natSh - sh}p 낮습니다</b>. 비교 질문에 답할 준비가 상담의 승부처입니다.`)
+              : `.`)
+          : `양사를 나란히 견준 후기가 <b>${fmtN(tot)}건</b>이라 비중을 말하기엔 표본이 작습니다(삼성 ${fmtN(cp.s)} : LG ${fmtN(cp.l)}).`;
+        return `<div class="cy-sec"><h5>비교 상담</h5><p class="cy-note">${line}</p></div>`;
       })() +
 
       // 전국과 다른 성격

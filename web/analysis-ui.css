@@ -282,3 +282,24 @@ body.view-cx .yt-own { font-size: 10.5px; }
 /* 지역 좌측 칼럼도 섹션 사이 간격을 전국과 같게 */
 .ca2 .rv-left { display: flex; flex-direction: column; gap: 10px; }
 .ca2 .rv-left .nsc-sec .rv-pick { margin-top: 6px; }
+
+/* ── 좌측 칼럼 폭 통일 — 전국 ↔ 지역 (2026-08-25 사용자 지시) ──
+   "전국에서 지역으로 넘어가는데 좌측 캡션의 폭을 최대한 동일하게."
+   실측 1440px: 전국 288px(0.82fr) vs 지역 259px(18vw 클램프) — 페이지 전환마다
+   좌측 경계가 29px 튀었다. 두 그리드의 1열을 같은 식으로 고정한다.
+   좁은 화면(≤1180px)은 각 화면의 축소 규칙이 따로 있으므로 건드리지 않는다. */
+@media (min-width: 1181px) {
+  .ca2 .ca-npanel { grid-template-columns: clamp(230px, 20vw, 288px) minmax(0, 1fr) !important; }
+  .ca2 .ca-rv { grid-template-columns: clamp(230px, 20vw, 288px) minmax(0, 1.25fr) minmax(0, 1fr) !important; }
+}
+
+/* 명부상 매장인데 이 기간 후기가 0건인 행 — 회색 처리 + 요청 안내 */
+.ca2 .rv-row.none { opacity: 0.78; }
+.ca2 .rv-row.none .rv-rank { color: var(--muted); }
+.ca2 .rv-row.none .rv-name { color: var(--muted); font-weight: 700; }
+.ca2 .rv-none { flex: 1; text-align: right; font-size: 11.5px; font-weight: 700;
+  color: #d23b54; letter-spacing: -0.01em; white-space: nowrap; }
+.ca2 .rv-none u { text-decoration: none; font-style: normal; }
+.ca2 .rv-none .mini { display: none; }
+.ca2 .rv-list.two .rv-none .full { display: none; }
+.ca2 .rv-list.two .rv-none .mini { display: inline; }
