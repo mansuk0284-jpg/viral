@@ -23,3 +23,4 @@ node_modules/
 # 병합 전 백업(로컬 보관)
 artifacts/_archive/
 scripts/_src-sido.json
+scratch-*.png
