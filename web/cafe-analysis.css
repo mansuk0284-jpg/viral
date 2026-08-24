@@ -2009,3 +2009,19 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
   padding: 6px 8px; border-radius: 8px; background: rgba(245, 158, 11, .07);
   border: 1px solid rgba(245, 158, 11, .22); }
 .nsc-bias b { color: #b45309; font-weight: 800; }
+
+/* 인스타 좋아요 순위 — 유튜브 썸네일 카드와 같은 짜임.
+   인스타는 썸네일을 id 로 바로 주지 않아 그림 대신 순위 숫자로 세운다. */
+.igp { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px;
+  align-items: center; padding: 7px 10px; border-radius: 11px;
+  border: 1px solid var(--line); background: var(--card); text-decoration: none; margin-bottom: 6px; }
+.igp:hover { border-color: #1f5fd0; background: rgba(31, 95, 208, .05); }
+.igp-rank { font-size: 19px; font-weight: 900; line-height: 1; text-align: center;
+  color: #c3cbd8; letter-spacing: -0.04em; }
+.igp.s .igp-rank { color: #1f5fd0; } .igp.l .igp-rank { color: #d23b54; }
+.igp-mid { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.igp-mid b { font-size: 12.4px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; }
+.igp-mid em { font-size: 10.3px; font-style: normal; color: var(--muted); white-space: nowrap; }
+.igp-v { font-size: 13px; font-weight: 900; color: var(--text); white-space: nowrap;
+  display: flex; align-items: center; gap: 5px; }
+.igp-v u { text-decoration: none; font-size: 11px; color: #d23b54; margin-left: 1px; }

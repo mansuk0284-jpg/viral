@@ -82,7 +82,7 @@ def grab(page):
     ①time 태그 ②본문 스크립트의 JSON ③화면 글자 순으로 시도한다.
     못 찾으면 **지어내지 않고 비워 둔다.**
     """
-    out = {"taken_at": "", "likes": None, "comments": None}
+    out = {"taken_at": "", "likes": None, "comments": None, "account": ""}
 
     # ① <time datetime="2026-04-12T...">
     try:
@@ -103,15 +103,30 @@ def grab(page):
         except Exception:
             pass
 
-    # ③ 좋아요·댓글 — 화면 글자에서
+    # ③ 좋아요·댓글·계정 — og:description 에서.
+    #    화면 본문에는 좋아요 수가 안 나온다(인스타가 감춘다). 대신 메타 태그에
+    #    "1 likes, 0 comments - nc_daejeonyuseong_himart - August 19, 2026: ..."
+    #    형태로 실려 있다(실측 2026-08-24). 여기가 유일하게 믿을 만한 경로다.
     try:
-        txt = page.inner_text("body")[:4000]
-        m = re.search(r"좋아요\s*([\d,\.]+\s*[만천]?)\s*개", txt)
+        og = page.evaluate(
+            "()=>{const m=document.querySelector('meta[property=\"og:description\"]');"
+            "return m?m.getAttribute('content'):'';}") or ""
+        m = re.search(r"([\d,\.]+[KMkm]?)\s*likes?,\s*([\d,\.]+[KMkm]?)\s*comments?", og)
         if m:
             out["likes"] = to_int(m.group(1))
-        m = re.search(r"댓글\s*([\d,\.]+\s*[만천]?)\s*개", txt)
+            out["comments"] = to_int(m.group(2))
+        m = re.search(r"likes?,\s*[\d,\.]+[KMkm]?\s*comments?\s*-\s*([^\s-]+)\s*-", og)
         if m:
-            out["comments"] = to_int(m.group(1))
+            out["account"] = m.group(1)
+        # 날짜를 아직 못 찾았으면 여기 적힌 영문 날짜로 채운다
+        if not out["taken_at"]:
+            m = re.search(r"-\s*([A-Z][a-z]+ \d{1,2}, \d{4})\s*:", og)
+            if m:
+                from datetime import datetime as _dt
+                try:
+                    out["taken_at"] = _dt.strptime(m.group(1), "%B %d, %Y").strftime("%Y-%m-%d")
+                except ValueError:
+                    pass
     except Exception:
         pass
 
@@ -168,7 +183,7 @@ def main():
                 page.wait_for_timeout(1400)
                 info = grab(page)
             except Exception:
-                info = {"taken_at": "", "likes": None, "comments": None}
+                info = {"taken_at": "", "likes": None, "comments": None, "account": ""}
             r.update(info)
             r["metaRead"] = True
             got += 1

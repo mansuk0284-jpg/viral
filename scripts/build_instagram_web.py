@@ -112,16 +112,25 @@ def main():
 
     data = {
         "built": datetime.now().strftime("%Y-%m-%d"),
-        "note": "혼수 해시태그로 걸러낸 글만 셀니다. 인스타는 조회수를 주지 않아 건수만 말할 수 있습니다.",
+        "note": "혼수 해시태그로 걸러낸 글만 셉니다. 인스타는 조회수를 주지 않아 건수만 말할 수 있습니다.",
         "total": len(rows),
         "all": roll(rows), "personal": roll(per), "biz": roll(biz), "ad": roll(ads),
         "items": items,
         "stores": stores,
         "tags": [{"t": t, "n": n} for t, n in tags.most_common(8)],
-        # 화면에 띄울 대표 글 — 개인 글을 앞세운다(고객 목소리가 먼저 보여야 한다)
-        "top": [{"t": (x["alt"] or "")[:58].replace("\n", " "),
-                 "u": x["url"], "ad": x["ad"], "biz": bool(x.get("biz")), "b": side(x)}
-                for x in (per + biz)[:12]],
+        # 기간 탭(window.VPER)이 쓰는 월 목록 — 게시물이 하나라도 있는 달만.
+        # enrich_instagram.py 로 게시물을 하나씩 열어 받아온 **실제 날짜**다
+        # (검색 격자에는 날짜가 없어 처음엔 기간을 만들 수 없었다).
+        "months": sorted({(x.get("taken_at") or "")[:7] for x in rows if x.get("taken_at")}),
+        # 전량을 싣는다(69건이라 부담 없음). 화면이 기간으로 걸러 순위를 매긴다.
+        "posts": [{"t": (x["alt"] or "")[:60].replace(chr(10), " "),
+                   "u": x["url"], "ad": x["ad"], "biz": bool(x.get("biz")), "b": side(x),
+                   "ym": (x.get("taken_at") or "")[:7], "d": x.get("taken_at") or "",
+                   "lk": x.get("likes"), "cm": x.get("comments"),
+                   "acc": x.get("account") or "",
+                   "it": next((k for k in ITEM_KEYS
+                               if any(w in (x["alt"] or "") for w in ITEMS[k])), "")}
+                  for x in rows],
     }
     out = os.path.join(ROOT, "web", "assets", "instagram.js")
     io.open(out, "w", encoding="utf-8").write(
