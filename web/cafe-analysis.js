@@ -573,11 +573,10 @@
     /* "hit 건수"는 '몇 명이 읽었나'로 오해되기 쉽다(사용자 지적 2026-08-25) —
        실제로는 같은 사람이 여러 번 열어도 더해지는 **누적 조회 횟수**다.
        업계 표준 용어 "조회수"로 부른다 — 무엇을 세는지 과장 없이 정확하다. */
-    return `<div class="nsc-hits">` +
-      `<div class="nh-top"><b>${fmtN(h)}</b><i>회 조회</i>` +
-      (per ? `<span class="nh-per">후기당 ${per}회</span>` : "") + `</div>` +
-      (hs + hl ? `<span class="nsc-barlb">조회수</span>` +
-        `<div class="nh-bar"><i class="s" style="width:${sh}%"></i>` +
+    return `<div class="nsc-sec">` +
+      `<h4 class="nsc-st">조회수${per ? `<i>후기당 ${per}회</i>` : ""}</h4>` +
+      `<div class="nh-top"><b>${fmtN(h)}</b><i>회 조회</i></div>` +
+      (hs + hl ? `<div class="nh-bar"><i class="s" style="width:${sh}%"></i>` +
         `<i class="l" style="width:${100 - sh}%"></i></div>` +
         `<div class="nsc-vs2"><span class="s">삼성 <b>${fmtN(hs)}회</b><i>(${sh}%)</i></span>` +
         `<span class="l">LG <b>${fmtN(hl)}회</b><i>(${100 - sh}%)</i></span></div>` : "") +
@@ -630,8 +629,7 @@
     const names = Object.keys(seen).filter((k) =>
       (!rosterSet || rosterSet.has(nrm0(k))) && (seen[k].s + seen[k].l > 0));
     if (!names.length) {
-      return `<div class="nsc-win none">` +
-        `<b>-</b><i>표본 있는 매장 없음</i>` +
+      return `<div class="nsc-sec"><h4 class="nsc-st">매장 우위·열세</h4>` +
         `<span class="nw-sub">이 기간에는 매장이 특정된 후기가 없습니다 — 기간을 넓혀 보세요.</span></div>`;
     }
     const win = names.filter((k) => seen[k].s > seen[k].l).length;
@@ -643,15 +641,14 @@
     const base = roster || names.length;
     const none = Math.max(0, base - win - lose);
 
-    return `<div class="nsc-win${win >= lose ? " up" : ""}">` +
+    return `<div class="nsc-sec">` +
+      `<h4 class="nsc-st">매장 우위·열세<i>전체 백화점 ${roster || win + lose + none}개점</i></h4>` +
       `<div class="nw-pair">` +
       `<span class="nw-p1"><b>${win}</b><i>개점 우위</i></span>` +
       `<span class="nw-p2"><b class="warn">${lose}</b><i>개점 열세</i></span>` +
       (none ? `<span class="nw-p3"><b>${none}</b><i>개점 표본 없음</i></span>` : "") +
       `</div>` +
-      (roster ? `<span class="nw-sub">전체 백화점 <b>${roster}개점</b> 가운데 후기 건수를 비교한 결과입니다` +
-        (none ? ` — 나머지 ${none}개점은 이 기간에 매장이 적힌 후기가 없거나 동률입니다.` : "") +
-        `</span>` : "") +
+      (none ? `<span class="nw-sub">표본 없음 ${none}개점은 이 기간에 매장이 적힌 후기가 없거나 동률입니다.</span>` : "") +
       `</div>`;
   }
 
@@ -674,9 +671,10 @@
        "우위 지역" 라벨과 이름 목록을 줄을 나눠(각 그룹이 자기 줄) 놓아
        한눈에 갈린다. */
     const names = (list) => list.map((x) => x.rg).join(" · ");
-    return `<div class="nsc-rsum">` +
-      (win.length ? `<div class="rs-row s"><b>우위 지역</b><span class="rs-names">${names(win)}</span></div>` : "") +
-      (lose.length ? `<div class="rs-row l"><b>열세 지역</b><span class="rs-names">${names(lose)}</span></div>` : "") +
+    return `<div class="nsc-sec">` +
+      `<h4 class="nsc-st">우위·열세 지역<i>시도 삼성비중 상·하위</i></h4>` +
+      (win.length ? `<div class="rs-row s"><b>우위</b><span class="rs-names">${names(win)}</span></div>` : "") +
+      (lose.length ? `<div class="rs-row l"><b>열세</b><span class="rs-names">${names(lose)}</span></div>` : "") +
       `</div>`;
   }
 
@@ -1458,11 +1456,13 @@
            잘못 읽힌다. 문장은 줄이되 핵심 수치(회수율 7.7% vs 3.8%)는 반드시 남긴다. */
         `<p class="nsc-bias">매장이 특정된 후기는 <b>삼성이 더 많이 잡힙니다</b>(회수율 삼성 ` +
         `<b>7.7%</b> vs LG <b>3.8%</b>)</p>` +
-        `<span class="nsc-barlb">후기 건수</span>` +
+        /* 좌측 칼럼은 "제목 있는 섹션 박스" 네 개로 통일한다(2026-08-25 사용자 지시:
+           "제목을 크게 하고 해당 타이틀별로 박스화 하던지 해서 내용 구분을 해주자").
+           후기 건수 · 조회수 · 매장 우위·열세 · 우위·열세 지역 — 같은 양식, 같은 흐름. */
+        `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +
-        /* 사용자 지시(2026-08-25): "삼성 000건(%), LG 000건(%)로 표현을 해줘". */
         `<div class="nsc-vs2"><span class="s">삼성 <b>${fmtN(c.s)}건</b><i>(${ss}%)</i></span>` +
-        `<span class="l">LG <b>${fmtN(c.l)}건</b><i>(${ls}%)</i></span></div>` +
+        `<span class="l">LG <b>${fmtN(c.l)}건</b><i>(${ls}%)</i></span></div></div>` +
         hitsBlock() +
         winCount() +
         regionSummary() +

@@ -188,3 +188,53 @@ body.view-cx .yv-row b { font-size: 12.8px; }
 body.view-cx .yv-row em, body.view-cx .yv-row i { font-size: 12px; }
 body.view-cx .mr-nm, body.view-cx .mr-sh { font-size: 13.5px; }
 body.view-cx .yt-own { font-size: 10.5px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   전국 좌측 칼럼 — 제목 있는 섹션 박스 4개 (2026-08-25 사용자 지시)
+   "제목을 크게 하고 해당 타이틀별로 박스화 하던지 해서 내용 구분을 해주자.
+    우위 열세점도 제목을 먼저 표시하고. 제일 아래 지역 요약도
+    위 내용들과 결을 같이 하면서 동일한 양식과 흐름으로."
+
+   후기 건수 · 조회수 · 매장 우위·열세 · 우위·열세 지역 —
+   네 블록이 같은 박스, 같은 제목 크기, 같은 안 여백을 쓴다.
+   ═══════════════════════════════════════════════════════════════════ */
+.ca2 .nsc-sec { border: 1px solid rgba(23,42,66,0.09); background: rgba(23,42,66,0.03);
+  border-radius: 12px; padding: 9px 12px 10px; }
+.ca2 .nsc-st { margin: 0 0 7px; font-size: 14px; font-weight: 900; color: var(--text);
+  letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 6px;
+  padding-bottom: 6px; border-bottom: 1px dashed rgba(23,42,66,0.12); }
+.ca2 .nsc-st i { font-style: normal; font-size: 10.5px; font-weight: 700;
+  color: var(--muted); margin-left: auto; white-space: nowrap; }
+/* 섹션 안 잔여 여백 정리 — 박스가 생겼으니 이중 여백을 걷어낸다 */
+.ca2 .nsc-sec .nh-top { margin: 0 0 4px; }
+.ca2 .nsc-sec .nw-pair { margin: 2px 0 4px; }
+.ca2 .nsc-sec .rs-row { margin: 0; }
+.ca2 .nsc-sec .rs-row + .rs-row { margin-top: 5px; }
+
+/* ── 화면 제목 통일 (2026-08-25): 전국 26px vs 지역·매장 38.2px 로 갈려 있었다.
+   "매번 이야기 하는데 통일할 수 있는 요소는 모두 통일하자" —
+   지역(부산)·매장(롯데 부산본점) 제목도 같은 계단(--an-title)에 넣는다. */
+.ca2 .rv-head h3 { font-size: var(--an-title) !important; }
+/* 카드 소제목(.ca-ch)도 12.8/15/16.6px 세 가지였다 — 16.6 하나로 */
+.ca2 .ca-ch { font-size: 16.6px !important; }
+.ca2 .ca-ch .ca-tag { font-size: 12px !important; }
+
+/* 우위·열세 숫자 — 예전 스타일이 .nsc-win 부모에 묶여 있어 섹션 박스로 바꾸자
+   평문으로 풀려 버렸다(실측). 새 박스 기준으로 다시 건다. */
+.ca2 .nsc-sec .nw-pair { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.ca2 .nsc-sec .nw-p1, .ca2 .nsc-sec .nw-p2, .ca2 .nsc-sec .nw-p3 {
+  display: flex; align-items: baseline; gap: 4px; }
+.ca2 .nsc-sec .nw-p1 b { font-size: 24px; font-weight: 900; color: #1f5fd0; letter-spacing: -0.03em; }
+.ca2 .nsc-sec .nw-p2 b { font-size: 24px; font-weight: 900; color: #d23b54; letter-spacing: -0.03em; }
+.ca2 .nsc-sec .nw-p3 b { font-size: 24px; font-weight: 900; color: var(--muted); letter-spacing: -0.03em; }
+.ca2 .nsc-sec .nw-p1 i, .ca2 .nsc-sec .nw-p2 i, .ca2 .nsc-sec .nw-p3 i {
+  font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.ca2 .nsc-sec .nw-sub { display: block; margin-top: 2px; font-size: 10.8px; line-height: 1.5;
+  font-weight: 600; color: var(--muted); word-break: keep-all; }
+
+/* 박스 안 브랜드 줄 — 칼럼이 264px 로 좁아, 일곱 자리 조회수 두 개를
+   한 줄에 나란히 두면 오른쪽이 박스를 뚫는다(실측 28px 초과).
+   두 줄로 쌓는다 — 후기 건수 쪽도 같은 모양으로 맞춰 네 섹션의 흐름을 통일한다. */
+.ca2 .nsc-sec .nsc-vs2 { flex-direction: column; align-items: stretch; gap: 1px; margin-top: 5px; }
+.ca2 .nsc-sec .nsc-vs2 span { font-size: 12px; display: flex; justify-content: space-between; }
+.ca2 .nsc-sec .nsc-vs2 span b { font-size: 13px; }
