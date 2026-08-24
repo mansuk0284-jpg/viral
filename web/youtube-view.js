@@ -13,10 +13,16 @@
    맞는 지적이다. 5년 된 영상의 92만 회와 4개월 된 영상의 374만 회를
    같은 줄에 놓으면 무엇이 지금 도는 이야기인지 알 수 없다.
 
-   다만 유튜브 목록은 업로드 **날짜를 주지 않는다** — "4개월 전" 같은
-   상대 표기뿐이다. 그래서 다른 화면처럼 달력 월로 자를 수 없다.
-   월 단위 탭을 붙이면 없는 정밀도를 있는 것처럼 보이게 되므로,
-   **영상 나이 구간**(최근 1년·3년·전체)으로만 고른다. */
+   유튜브 목록은 업로드 날짜를 주지 않는다 — "4개월 전" 같은 상대 표기뿐이라
+   처음엔 이 화면에만 '최근 1년/3년/전체' 칩을 따로 만들었다. **그게 잘못이었다.**
+
+   사용자 지적(2026-08-24): "다른 페이지에서 기존에 잘 만들어져 있는게 있는데
+   왜 채널이 다르다고 해서 새롭게 다시 하는거야. 프로그램 통일감을 위해서
+   이런부분은 고려해서 ui 작업하자."
+
+   맞는 말이다. 화면마다 기간 고르는 법이 다르면 옮겨 다닐 때마다 다시 익혀야 한다.
+   그래서 **상대 표기를 근사 월로 바꿔** 다른 화면과 같은 공용 모듈(window.VPER)을 쓴다.
+   근사값이라는 사실은 화면 방법론 줄에 적는다 — UI 는 통일하되 정밀도는 속이지 않는다. */
 (function () {
   "use strict";
   const Y = window.YOUTUBE || null;
@@ -29,28 +35,51 @@
     return (c - 0xac00) % 28 ? withB : without;
   }
 
-  /* 나이 구간 — 6개월은 브랜드가 갈리는 영상이 2편뿐이라(실측) 넣지 않는다.
-     고를 수는 있는데 고르면 아무 말도 못 하는 구간은 두지 않는 편이 낫다. */
-  const SPANS = [
-    { k: 12, lab: "최근 1년" },
-    { k: 36, lab: "최근 3년" },
-    { k: 9999, lab: "전체" },
-  ];
-  let span = 12;                      // 첫 진입은 최근 1년
-  const labOf = (k) => (SPANS.find((x) => x.k === k) || SPANS[0]).lab;
+  /* 기간 — 다른 분석 화면과 같은 공용 모듈을 쓴다 */
+  let PER = null;
+  function per() {
+    if (PER || !window.VPER || !Y) return PER;
+    PER = VPER.create({
+      months: Y.months || [],
+      onChange: () => paint(document.getElementById("channelPanel")),
+    });
+    /* 이 채널은 54편이 5년에 걸쳐 흩어져 있다. 현재 월로 열면 0~1편이라
+       화면이 비어 보인다. 표본이 작은 채널은 **전체 기간**으로 연다
+       (제이웨딩에서 같은 이유로 이미 그렇게 하고 있다). */
+    if (PER) PER.setAll();
+    return PER;
+  }
+  const labOf = () => (per() ? per().label() : "전체");
 
-  const pick = (k) => (Y.vids || []).filter((x) => x.ago != null && x.ago <= k);
+  /* 고른 기간에 걸리는 영상만 — 영상은 월 정밀도라 월로 비교한다 */
+  function pickCur() {
+    const p = per();
+    if (!p) return (Y.vids || []).slice();
+    const r = p.range();
+    const a = r[0].slice(0, 7), b = r[1].slice(0, 7);
+    return (Y.vids || []).filter((x) => x.ym && x.ym >= a && x.ym <= b);
+  }
 
+  const sum = (g) => g.reduce((a, x) => a + x.v, 0);
+
+  /* 채널 주인으로 셋으로 가른다 (2026-08-24 사용자 지시)
+       "삼성공식채널과 lg공식채널의 컨텐츠와 일반 유투브들 채널이 있을텐데
+        이것을 구분해서 분석을 해야 하겠어"
+
+     이 구분이 핵심인 이유: 공식 채널 영상은 **우리가 튼 것**이고
+     일반 창작자 영상은 **남이 말해 준 것**이다. 같은 재생수라도 뜻이 다르다.
+     브랜드(영상이 어느 브랜드를 다루나)와는 다른 축이라 따로 센다. */
   function rollup(list) {
-    const org = list.filter((x) => !x.ad);
-    const ads = list.filter((x) => x.ad);
-    const s = org.filter((x) => x.b === "s"), l = org.filter((x) => x.b === "l");
+    const samOff = list.filter((x) => x.own === "sam");
+    const lgOff = list.filter((x) => x.own === "lg");
+    const creator = list.filter((x) => !x.own);
+    // 브랜드 비교는 **창작자 영상만** — 공식 채널을 넣으면 자기 홍보를 세게 된다
+    const s = creator.filter((x) => x.b === "s"), l = creator.filter((x) => x.b === "l");
     return {
-      n: list.length, views: list.reduce((a, x) => a + x.v, 0),
-      org: org, ads: ads,
-      adViews: ads.reduce((a, x) => a + x.v, 0),
-      s: s, l: l,
-      sv: s.reduce((a, x) => a + x.v, 0), lv: l.reduce((a, x) => a + x.v, 0),
+      n: list.length, views: sum(list),
+      samOff: samOff, lgOff: lgOff, creator: creator,
+      samOffV: sum(samOff), lgOffV: sum(lgOff), creatorV: sum(creator),
+      s: s, l: l, sv: sum(s), lv: sum(l),
     };
   }
 
@@ -60,20 +89,49 @@
       `<i class="l" style="width:${(lv / t * 100).toFixed(1)}%"></i></div>`;
   }
 
-  /* 1·2·3위 — 순위를 크게 세운다.
-     사용자 지시: "1위, 2위, 3위가 좀 더 직관적으로 빠르게 알 수 있도록".
-     전에는 조회수만 왼쪽에 적혀 있어 몇 위인지 세어 봐야 알 수 있었다. */
+  /* 1·2·3위 — 썸네일 카드 (2026-08-24 사용자 지시)
+       "해당 영상의 썸네일 영상을 가져와서 보여주면 더 이해가 빠를거 같아.
+        ui를 메인페이지 이미지 활용처럼 카드형태를 사용해서"
+
+     메인 화면 카드와 같은 짜임이다 — 그림 왼쪽, 설명 오른쪽.
+     썸네일은 유튜브가 영상 id 로 바로 준다(i.ytimg.com). 따로 긁을 필요가 없다.
+     제목만 늘어놓을 때보다 어떤 영상인지 훨씬 빨리 잡힌다. */
   function podium(list) {
     return list.slice(0, 3).map((x, i) => {
       const cls = x.b === "s" ? "s" : x.b === "l" ? "l" : "even";
-      const tag = x.ad === "official" ? `<span class="yt-ad off">공식</span>`
-        : x.ad === "sponsored" ? `<span class="yt-ad spo">협찬</span>` : "";
-      return `<a class="yt-pod ${cls}" href="${x.u}" target="_blank" rel="noopener"` +
+      const own = x.own === "sam" ? `<span class="yt-own sam">삼성 공식</span>`
+        : x.own === "lg" ? `<span class="yt-own lg">LG 공식</span>`
+        : x.ad === "sponsored" ? `<span class="yt-own spo">협찬</span>`
+        : `<span class="yt-own cre">일반</span>`;
+      return `<a class="ytc ${cls}" href="${x.u}" target="_blank" rel="noopener"` +
         ` title="${x.t} · ${x.c} · ${fmtN(x.v)}회 · ${x.w}">` +
-        `<span class="yp-rank">${i + 1}</span>` +
-        `<span class="yp-mid"><b class="yt-t">${x.t}</b><em>${x.c} · ${x.w}</em></span>` +
-        `<span class="yp-v">${man(x.v)}<u>회</u>${tag}</span></a>`;
+        `<span class="ytc-thumb"><img src="https://i.ytimg.com/vi/${x.id}/mqdefault.jpg"` +
+        ` alt="" loading="lazy" draggable="false" />` +
+        `<i class="ytc-rank">${i + 1}</i></span>` +
+        `<span class="ytc-body">` +
+        `<b class="yt-t">${x.t}</b>` +
+        `<em>${x.c} · ${x.w}</em>` +
+        `<span class="ytc-foot"><u>${man(x.v)}회</u>${own}</span>` +
+        `</span></a>`;
     }).join("");
+  }
+
+  /* 누가 올렸나 — 삼성 공식 · LG 공식 · 일반 창작자 */
+  function ownerBlock(R) {
+    const t = R.views || 1;
+    const cell = (lab, g, v, cls) =>
+      `<div class="yo-k ${cls}"><b>${g.length}<u>편</u></b>` +
+      `<span>${lab}</span><em>${man(v)}회</em></div>`;
+    return `<div class="yo-grid">` +
+      cell("삼성 공식", R.samOff, R.samOffV, "sam") +
+      cell("LG 공식", R.lgOff, R.lgOffV, "lg") +
+      cell("일반 창작자", R.creator, R.creatorV, "cre") +
+      `</div>` +
+      `<div class="yo-bar">` +
+      `<i class="sam" style="width:${(R.samOffV / t * 100).toFixed(1)}%"></i>` +
+      `<i class="lg" style="width:${(R.lgOffV / t * 100).toFixed(1)}%"></i>` +
+      `<i class="cre" style="width:${(R.creatorV / t * 100).toFixed(1)}%"></i>` +
+      `</div>`;
   }
 
   /* 삼성 vs LG 나란히 — 사용자 지시: "경쟁사의 영상도 어떤지 대조해서" */
@@ -90,15 +148,16 @@
   }
 
   function render() {
-    const cur = pick(span), R = rollup(cur);
-    const all = rollup(pick(9999));
+    const cur = pickCur(), R = rollup(cur);
+    const all = rollup(Y.vids || []);
     const byViews = cur.slice().sort((a, b) => b.v - a.v);
     const sTop = R.s.slice().sort((a, b) => b.v - a.v);
     const lTop = R.l.slice().sort((a, b) => b.v - a.v);
     const brandN = R.s.length + R.l.length;
     const shN = pct(R.s.length, R.l.length);
     const shV = pct(R.sv, R.lv);
-    const adPct = R.views ? Math.round(R.adViews / R.views * 100) : 0;
+    const offV = R.samOffV + R.lgOffV;              // 공식 채널 재생수
+    const offPct = R.views ? Math.round(offV / R.views * 100) : 0;
 
     /* 품목은 고른 기간 안에서 다시 센다 — 전체 기간 수치를 그대로 두면
        기간을 바꿔도 품목 이야기만 그대로라 앞뒤가 어긋난다. */
@@ -116,11 +175,11 @@
     /* ── 현장 액션 ── 지표 읽는 법이 아니라 내일 무엇을 다르게 할지를 적는다. */
     const act = [];
     const allShN = pct(all.s.length, all.l.length);
-    if (span !== 9999 && brandN >= 5 && Math.abs(shN - allShN) >= 12) {
+    if (cur.length < (Y.vids || []).length && brandN >= 5 && Math.abs(shN - allShN) >= 12) {
       act.push(shN < allShN
-        ? `<li class="warn-li">전체 기간으로는 삼성 ${allShN}% 인데 <b>${labOf(span)}만 보면 ${shN}%</b>입니다 —` +
+        ? `<li class="warn-li">전체 기간으로는 삼성 ${allShN}% 인데 <b>${labOf()}만 보면 ${shN}%</b>입니다 —` +
           ` <b>최근 올라오는 영상은 LG 쪽이 많습니다</b>. 고객이 요즘 보는 설명이 바뀌고 있습니다.</li>`
-        : `<li>전체 ${allShN}% → <b>${labOf(span)} ${shN}%</b>로 삼성 비중이 올랐습니다 —` +
+        : `<li>전체 ${allShN}% → <b>${labOf()} ${shN}%</b>로 삼성 비중이 올랐습니다 —` +
           ` 최근 영상이 우리 쪽으로 기울고 있습니다.</li>`);
     }
     /* 이 채널에서 가장 중요한 대비 —
@@ -132,16 +191,28 @@
       const weLose = R.sv < R.lv;
       act.push(weLose
         ? `<li class="warn-li">일반 영상 재생수가 <b>삼성 ${man(R.sv)}회 vs LG ${man(R.lv)}회</b>입니다` +
-          (R.adViews ? ` — 삼성은 <b>공식 광고 ${man(R.adViews)}회</b>로 도달하지만` +
+          (R.samOffV ? ` — 삼성은 <b>공식 채널 ${man(R.samOffV)}회</b>로 도달하지만` +
             ` <b>남이 말해 주는 영상</b>은 거의 없습니다.` : ` — 격차가 큽니다.`) +
           ` 고객은 우리를 <b>광고로</b>, 상대를 <b>후기로</b> 만나고 있습니다.</li>`
         : `<li>일반 영상 재생수가 <b>삼성 ${man(R.sv)}회 vs LG ${man(R.lv)}회</b>로 앞섭니다 —` +
           ` <b>남이 말해 주는 영상</b>이 우리 쪽에 많습니다. 상담에서 그 영상을 근거로 쓰세요.</li>`);
     }
-    if (byViews.length && byViews[0].ad) {
-      act.push(`<li>이 기간 1위는 <b>${byViews[0].ad === "official" ? "브랜드 공식" : "협찬"} 영상</b>입니다` +
-        ` (${man(byViews[0].v)}회). 고객이 가장 많이 본 것은 <b>광고</b>이지 사용 후기가 아닙니다 —` +
+    if (byViews.length && (byViews[0].own || byViews[0].ad)) {
+      const w = byViews[0].own === "sam" ? "삼성 공식 채널"
+        : byViews[0].own === "lg" ? "LG 공식 채널" : "협찬";
+      act.push(`<li>이 기간 1위는 <b>${w} 영상</b>입니다 (${man(byViews[0].v)}회).` +
+        ` 고객이 가장 많이 본 것은 <b>브랜드가 만든 것</b>이지 사용 후기가 아닙니다 —` +
         ` 상담에서 <b>실제 쓴 사람의 이야기</b>를 채워주는 것이 차별점이 됩니다.</li>`);
+    }
+    /* 공식 채널이 한쪽만 잡힌다면 그 자체가 신호다 —
+       실측: 삼성 공식 3편 383만회 vs LG 공식 0편. */
+    if (R.samOff.length && !R.lgOff.length) {
+      act.push(`<li>혼수가전 검색에서 <b>삼성 공식 채널은 ${R.samOff.length}편(${man(R.samOffV)}회)</b>이 잡히는데` +
+        ` <b>LG 공식은 한 편도 없습니다</b>. 브랜드 노출은 우리가 앞서니,` +
+        ` 상담에서 <b>그 영상을 보고 왔는지</b> 물어 대화를 열 수 있습니다.</li>`);
+    } else if (R.lgOff.length && !R.samOff.length) {
+      act.push(`<li class="warn-li">혼수가전 검색에서 <b>LG 공식 채널만 ${R.lgOff.length}편</b> 잡히고` +
+        ` 삼성 공식은 없습니다 — 고객이 브랜드 설명을 <b>상대 쪽에서</b> 먼저 듣습니다.</li>`);
     }
     if (hot.length) {
       act.push(`<li><b>${hot.join(" · ")}</b>${josa(hot[hot.length - 1], "은", "는")} 재생수 상위입니다.` +
@@ -157,29 +228,24 @@
         ` <b>어떤 영상이 도는지</b>를 보는 편이 정확합니다.</li>`);
     }
 
-    const chips = SPANS.map((s) =>
-      `<button type="button" class="yt-sp${s.k === span ? " on" : ""}" data-ytspan="${s.k}">${s.lab}</button>`).join("");
-
     return `<div class="ca2 yt-wrap">` +
       `<div class="cx-top">` +
       `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="cx-title"><h2>유튜브</h2>` +
       `<span>넓은 채널에서 혼수가전만 골라 봤습니다 · 영상 ${fmtN(Y.total)}편</span></div>` +
-      `<div class="yt-spans" role="group" aria-label="영상 나이">${chips}</div>` +
+      `${per() ? per().html() : ""}` +
       `</div>` +
 
       `<div class="cx-body">` +
       `<div class="cx-left">` +
       `<div class="cx-sum">` +
-      `<div class="cx-sum-h"><h3>얼마나 보였나</h3><span>${labOf(span)} · ${R.n}편</span></div>` +
+      `<div class="cx-sum-h"><h3>얼마나 보였나</h3><span>${labOf()} · ${R.n}편</span></div>` +
       `<div class="cx-sum-n"><b>${man(R.views)}</b><i>회 재생</i></div>` +
 
-      `<div class="yt-split">` +
-      `<div class="ys-k"><b>${man(R.views - R.adViews)}</b><span>일반 ${R.org.length}편</span></div>` +
-      `<div class="ys-k ad"><b>${man(R.adViews)}</b><span>광고·공식 ${R.ads.length}편</span></div>` +
-      `</div>` +
-      (adPct ? `<p class="yt-note">재생수의 <b>${adPct}%</b>가 브랜드 공식·협찬입니다. ` +
-        `아래 브랜드 비교는 <b>일반 영상만</b> 셌습니다.</p>` : "") +
+      ownerBlock(R) +
+      (offPct ? `<p class="yt-note">재생수의 <b>${offPct}%</b>가 <b>브랜드 공식 채널</b>에서 나옵니다. ` +
+        `아래 브랜드 비교는 <b>일반 창작자 영상만</b> 셌습니다 — ` +
+        `공식 채널을 넣으면 자기 홍보를 세게 됩니다.</p>` : "") +
 
       (brandN ? bar(R.sv, R.lv) +
         `<div class="cx-vs"><span class="s">삼성 ${R.s.length}편</span>` +
@@ -189,12 +255,12 @@
             `한 편당 도달이 갈립니다.</p>`
           : `<p class="yt-note">브랜드가 갈리는 영상 <b>${brandN}편</b> — 비율은 적지 않습니다.</p>`)
         : `<p class="yt-note">이 기간에는 브랜드가 갈리는 영상이 없습니다.</p>`) +
-      `<p class="jw-note">업로드 날짜가 상대 표기라 <b>영상 나이</b>로 자릅니다. ${Y.note}</p>` +
+      `<p class="jw-note">유튜브는 업로드 날짜를 주지 않아 “4개월 전” 같은 상대 표기를 <b>월로 환산</b>했습니다 — 월 단위는 <b>근사값</b>입니다. ${Y.note}</p>` +
       `</div></div>` +
 
       `<div class="cx-right">` +
       `<div class="ca-ncard">` +
-      `<h4 class="ca-ch">많이 본 영상 <i class="ca-tag">${labOf(span)} · 클릭 → 유튜브</i></h4>` +
+      `<h4 class="ca-ch">많이 본 영상 <i class="ca-tag">${labOf()} · 클릭 → 유튜브</i></h4>` +
       (byViews.length ? `<div class="yt-podium">${podium(byViews)}</div>`
         : `<p class="fc-plain">이 기간 영상이 없습니다.</p>`) +
       `</div>` +
@@ -214,18 +280,9 @@
     host.innerHTML = render();
     if (window.VNAV) VNAV.sync();
     if (window.VFIT) VFIT.all();
-    /* 기간 칩은 이 화면이 그린 묶음에만 붙인다 —
-       공유 컨테이너(#channelPanel)에 붙이면 다른 화면의 클릭까지 가로챈다(실측 사고). */
-    const box = host.querySelector(".yt-spans");
-    if (box && !box.dataset.bound) {
-      box.dataset.bound = "1";
-      box.addEventListener("click", (e) => {
-        const b = e.target.closest("[data-ytspan]");
-        if (!b) return;
-        span = parseInt(b.getAttribute("data-ytspan"), 10);
-        paint(host);
-      });
-    }
+    /* 기간 칩 클릭 위임 — 이 화면이 방금 그린 칩 묶음에만 붙는다.
+       공유 컨테이너에 붙이면 다른 화면의 기간 클릭까지 가로챈다(실측 사고). */
+    if (per()) per().bind(host);
   }
 
   window.openYoutube = function () {

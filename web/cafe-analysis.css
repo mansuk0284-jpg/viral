@@ -1911,13 +1911,8 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
 
    전에는 조회수만 왼쪽에 적혀 있어 **몇 위인지 세어 봐야** 알 수 있었다.
    순위를 큰 숫자로 세우고, 브랜드 색을 순위 숫자에 입혀 한눈에 갈리게 한다. */
-.yt-spans { display: flex; gap: 6px; margin-left: auto; }
-.yt-sp { font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer;
-  padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line);
-  background: var(--card); white-space: nowrap; transition: all .16s ease; }
-.yt-sp:hover { border-color: #1f5fd0; color: #1f5fd0; }
-.yt-sp.on { background: #1f5fd0; border-color: #1f5fd0; color: #fff; }
-
+/* 기간 칩은 공용 모듈(window.VPER)이 그린다 — 이 화면 전용 칩(.yt-sp)은 걷어냈다.
+   화면마다 기간 UI 를 새로 만들면 라벨과 동작이 갈라진다(2026-08-24 사용자 지적). */
 .yt-podium { display: flex; flex-direction: column; gap: 6px; }
 .yt-pod { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto;
   gap: 10px; align-items: center; padding: 7px 10px; border-radius: 11px;
@@ -1958,3 +1953,52 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
   white-space: nowrap; }
 .yv-row:hover b { color: #1f5fd0; }
 .yv-none { margin: 4px 0 0; font-size: 11px; color: var(--muted); font-weight: 600; }
+
+/* ── 유튜브: 썸네일 카드 · 채널 주인 3분류 (2026-08-24) ──
+   사용자 지시: "썸네일 영상을 가져와서 보여주면 더 이해가 빠를거 같아.
+   ui를 메인페이지 이미지 활용처럼 카드형태를 사용해서."
+
+   메인 화면 카드와 같은 짜임 — 그림 왼쪽, 설명 오른쪽.
+   제목만 늘어놓을 때보다 어떤 영상인지 훨씬 빨리 잡힌다. */
+.yt-podium { display: flex; flex-direction: column; gap: 8px; }
+.ytc { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 11px;
+  align-items: stretch; padding: 7px; border-radius: 13px;
+  border: 1px solid var(--line); background: var(--card); text-decoration: none;
+  transition: border-color .16s ease, background .16s ease; }
+.ytc:hover { border-color: #1f5fd0; background: rgba(31, 95, 208, .04); }
+.ytc-thumb { position: relative; border-radius: 9px; overflow: hidden;
+  aspect-ratio: 16 / 9; background: #e9edf3; }
+.ytc-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 순위는 썸네일 위에 얹는다 — 칸을 따로 내주면 그림이 그만큼 작아진다 */
+.ytc-rank { position: absolute; left: 5px; top: 4px; font-style: normal;
+  font-size: 14px; font-weight: 900; line-height: 1; color: #fff;
+  padding: 3px 6px; border-radius: 6px; background: rgba(15, 23, 42, .72); }
+.ytc.s .ytc-rank { background: rgba(31, 95, 208, .9); }
+.ytc.l .ytc-rank { background: rgba(210, 59, 84, .9); }
+.ytc-body { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+.ytc-body b { font-size: 12.8px; font-weight: 700; color: var(--text);
+  line-height: 1.3; white-space: nowrap; overflow: hidden; }
+.ytc-body em { font-size: 10.5px; font-style: normal; color: var(--muted);
+  white-space: nowrap; overflow: hidden; }
+.ytc-foot { display: flex; align-items: center; gap: 6px; margin-top: 1px; }
+.ytc-foot u { text-decoration: none; font-size: 12.5px; font-weight: 900; color: var(--text); }
+.yt-own { font-size: 9.5px; font-weight: 800; padding: 2px 6px; border-radius: 5px; white-space: nowrap; }
+.yt-own.sam { color: #1f5fd0; background: rgba(31, 95, 208, .1); }
+.yt-own.lg { color: #d23b54; background: rgba(210, 59, 84, .1); }
+.yt-own.spo { color: #b45309; background: rgba(245, 158, 11, .12); }
+.yt-own.cre { color: var(--muted); background: rgba(0, 0, 0, .05); }
+
+/* 누가 올렸나 — 공식이냐 남이 말해 준 것이냐 */
+.yo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 9px; }
+.yo-k { padding: 7px 8px; border-radius: 10px; text-align: center;
+  border: 1px solid var(--line); background: var(--card); }
+.yo-k.sam { border-color: rgba(31, 95, 208, .3); background: rgba(31, 95, 208, .05); }
+.yo-k.lg { border-color: rgba(210, 59, 84, .3); background: rgba(210, 59, 84, .05); }
+.yo-k b { display: block; font-size: 17px; font-weight: 900; line-height: 1; color: var(--text); }
+.yo-k.sam b { color: #1f5fd0; } .yo-k.lg b { color: #d23b54; }
+.yo-k u { text-decoration: none; font-size: 9.5px; font-weight: 700; color: var(--muted); margin-left: 1px; }
+.yo-k span { display: block; margin-top: 3px; font-size: 10.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.yo-k em { display: block; margin-top: 1px; font-size: 10px; font-style: normal; color: var(--muted); }
+.yo-bar { display: flex; height: 7px; border-radius: 999px; overflow: hidden; margin-top: 8px; background: #eef1f6; }
+.yo-bar i.sam { background: #1f5fd0; } .yo-bar i.lg { background: #d23b54; }
+.yo-bar i.cre { background: #c3cbd8; }

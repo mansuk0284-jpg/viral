@@ -57,6 +57,48 @@ def months_ago(when):
     return n * 12
 
 
+# 채널 주인 — 공식이냐 일반 창작자냐 (2026-08-24 사용자 지시)
+#   "삼성공식채널과 lg공식채널의 컨텐츠와 일반 유투브들 채널이 있을텐데
+#    이것을 구분해서 분석을 해야 하겠어"
+#
+# 이 구분이 중요한 이유: 공식 채널 영상은 **우리가 튼 것**이고
+# 일반 창작자 영상은 **남이 말해 준 것**이다. 같은 재생수라도 뜻이 다르다.
+# 실측에서 삼성 공식(삼성스토어·삼성전자)은 3편인데 그중 1편만
+# 광고로 잡혀 있었다 — 채널 이름으로 다시 가른다.
+SAM_OFFICIAL = re.compile(r"삼성전자|삼성\s*스토어|Samsung\s*(Electronics|Korea|Store)|"
+                          r"삼성디지털프라자", re.I)
+LG_OFFICIAL = re.compile(r"LG전자|엘지전자|LG\s*(Electronics|Korea)|LG베스트샵|베스트샵", re.I)
+
+
+def owner_of(channel):
+    c = channel or ""
+    if SAM_OFFICIAL.search(c):
+        return "sam"
+    if LG_OFFICIAL.search(c):
+        return "lg"
+    return ""            # 일반 창작자
+
+
+def ym_of(ago):
+    """개월 수 → 근사 월("2026-04").
+
+    유튜브가 주는 것은 "4개월 전" 같은 상대 표기라 **정확한 날짜가 아니다**.
+    그래도 다른 화면과 같은 기간 탭(window.VPER)을 쓰려면 달력 월이 필요하다.
+    새 UI 를 만드는 대신 값을 맞추는 쪽을 골랐다 — 화면마다 기간 고르는 법이
+    달라지면 옮겨 다닐 때마다 다시 익혀야 하기 때문이다(사용자 지시 2026-08-24).
+
+    근사값이라는 사실은 화면 방법론 줄에 적는다.
+    """
+    if ago is None:
+        return ""
+    d = datetime.now()
+    y, m = d.year, d.month - ago
+    while m <= 0:
+        m += 12
+        y -= 1
+    return f"{y:04d}-{m:02d}"
+
+
 def load():
     fs = [f for f in os.listdir(os.path.join(ROOT, "artifacts"))
           if re.match(r"\d{8}-channel-youtube\.json$", f)]
@@ -121,13 +163,18 @@ def main():
         "items": items,
         "stores": stores,
         "channels": [{"n": n, "c": c} for n, c in chans.most_common(6)],
+        # 기간 탭(window.VPER)이 쓰는 월 목록 — 영상이 하나라도 있는 달만
+        "months": sorted({ym_of(months_ago(x["when"])) for x in rows
+                          if months_ago(x["when"]) is not None}),
         # 화면에 띄울 대표 영상 — 조회수 순, 광고 여부를 함께 싣는다
         # 채널명은 칸이 좁다(64px). "삼성전자 Samsung Korea" 같은 긴 이름은
         # 앞부분만 남긴다 — 어느 채널인지는 앞 몇 글자로 충분히 갈린다.
         # 화면에서 기간(영상 나이)으로 걸러야 하므로 전량을 싣는다.
         # 54편이라 용량 부담이 없다.
-        "vids": [{"t": x["title"][:52], "c": (x["channel"] or "")[:12], "v": x["views"],
+        "vids": [{"id": x["id"], "t": x["title"][:52], "c": (x["channel"] or "")[:14],
+                  "own": owner_of(x["channel"]), "v": x["views"],
                   "w": x["when"], "ago": months_ago(x["when"]),
+                  "ym": ym_of(months_ago(x["when"])),
                   "u": x["url"], "ad": x["ad"], "b": side(x),
                   "it": next((k for k in ITEM_KEYS
                               if any(w in x["title"] for w in ITEMS[k])), "")}
