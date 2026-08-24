@@ -355,3 +355,98 @@ body.view-cx .yt-own { font-size: 10.5px; }
   line-height: 1.4; word-break: keep-all; }
 /* 지역평균 대비 음수는 빨강(카드 앞면 색 원칙) */
 .ca2 .cy-k b.wn { color: #d23b54; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   디자인 다듬기 — "깔끔하고 세련된 느낌" (2026-08-25 사용자 지시)
+   "전반적으로 좀 깔끔하고 세련된 느낌으로 박스, 카드, 그리고 텍스트 편집"
+
+   원칙: 레이아웃(패딩·크기)은 건드리지 않는다 — 한 화면 원칙(≤900px)이
+   여백 몇 px 에도 깨질 수 있다. 그림자·테두리·배경·활자 톤만 정돈한다.
+   색은 기존 팔레트(삼성 #1f5fd0 · LG #d23b54 · 블루그레이 23,42,66) 유지.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 톤 정돈: .ca2 안의 보조 회색을 블루그레이로 ──
+   전역 --muted(#5c5e62)는 중성 회색이라 카드 그림자·테두리(23,42,66 계열)와
+   미묘하게 결이 다르다. 이 화면군 안에서만 같은 계열로 맞춘다.
+   너무 옅던 곳도 함께 또렷해진다(명도 소폭 하향). */
+.ca2 { --muted: #5d6b80; }
+
+/* ── 카드: 은은한 이중 그림자 + 모서리 14px + 옅은 테두리 ──
+   기존은 단일 그림자(0 6px 18px .05)에 반경이 14/20px 로 갈렸다.
+   가까운 접촉 그림자 + 넓은 부양 그림자 두 겹이면 종이가 살짝 뜬 느낌이 난다. */
+.ca2 .ca-ncard,
+.ca2 .ca-npanel,
+.ca2 .cx-sum,
+.ca2 .sv-rev,
+/* 전국 우측 카드·지역 좌우 칼럼·매장 좌측 칼럼 — 실측하니 이들만
+   반경 18px·그림자 없음으로 결이 달랐다. 모두 1px 테두리가 이미 있어
+   그림자·반경을 얹어도 레이아웃(높이)은 변하지 않는다. */
+.ca2 .ca-fcard,
+.ca2 .rv-left,
+.ca2 .rv-right,
+.ca2 .sv-left {
+  border-radius: 14px;
+  border: 1px solid rgba(23,42,66,0.07);
+  box-shadow: 0 1px 2px rgba(23,42,66,.05), 0 6px 18px rgba(23,42,66,.06);
+}
+/* 열린 카드(전체 덮개)는 부양 그림자가 이중으로 겹치지 않게 기존 큰 그림자 유지 */
+.ca2 .ca-nright .ca-fcard.is-open { box-shadow: 0 24px 60px rgba(23,42,66,0.22); }
+
+/* ── 섹션 박스: 순수 회색 → 아주 옅은 블루그레이 ──
+   좌측 칼럼(.nsc-sec)·심층분석(.cy-sec)·매장 카드 내부 박스 공통.
+   호버는 배경 미세 밝기 변화만 — 움직임·확대 애니메이션은 넣지 않는다. */
+.ca2 .nsc-sec,
+.ca2 .rv-third .cy-sec,
+.ca2 .ca-sv .pf-top, .ca2 .ca-sv .pf-items, .ca2 .ca-sv .pf-sum,
+.ca2 .ca-sv .sc-kpis, .ca2 .ca-sv .sc-tip,
+.ca2 .ca-sv .mgr-names, .ca2 .ca-sv .mgr-tip,
+.ca2 .ca-sv .sv-action, .ca2 .ca-sv .sv-peers, .ca2 .ca-sv .sv-revcols {
+  background: #f7f9fc;
+  border-color: rgba(23,42,66,0.07);
+  transition: background .16s ease;
+}
+.ca2 .nsc-sec:hover,
+.ca2 .rv-third .cy-sec:hover,
+.ca2 .ca-sv .pf-top:hover, .ca2 .ca-sv .pf-items:hover, .ca2 .ca-sv .pf-sum:hover,
+.ca2 .ca-sv .sc-kpis:hover, .ca2 .ca-sv .sc-tip:hover,
+.ca2 .ca-sv .mgr-names:hover, .ca2 .ca-sv .mgr-tip:hover,
+.ca2 .ca-sv .sv-action:hover, .ca2 .ca-sv .sv-peers:hover, .ca2 .ca-sv .sv-revcols:hover {
+  background: #f2f6fb;
+}
+/* 표본 부족 안내 점선 박스도 같은 바탕 계열로 */
+.ca2 .rv-third .ca-splx { background: #f9fafd; border-color: rgba(23,42,66,0.12); }
+
+/* ── 숫자: 표 숫자꼴(tabular-nums)로 정렬감, 큰 수치는 자간 미세 축소 ──
+   같은 자릿수가 같은 폭을 차지해 막대 아래 수치·KPI 가 흔들리지 않는다.
+   글자 폭이 변하는 속성이므로 넘침 검사를 다시 했다(아래 실측 통과). */
+.ca2 .nsc-total b, .ca2 .nsc-total i,
+.ca2 .nsc-nums b, .ca2 .nsc-nums i,
+.ca2 .nsc-sec .nw-p1 b, .ca2 .nsc-sec .nw-p2 b, .ca2 .nsc-sec .nw-p3 b,
+.ca2 .fc-mini b, .ca2 .nsc-vs .nv b,
+.ca2 .pf-kpi b, .ca2 .cy-k b,
+.ca2 .rv-sh, .ca2 .rv-cnt, .ca2 .it-v {
+  font-variant-numeric: tabular-nums;
+}
+.ca2 .nsc-total b { letter-spacing: -0.035em; }
+.ca2 .fc-mini b { letter-spacing: -0.03em; }
+.ca2 .nsc-sec .nw-pair b { letter-spacing: -0.035em; }
+
+/* ── 제목: 자간·밑줄 톤 통일 ──
+   점선 밑줄 색이 0.12 / 0.14 로 갈려 있었다 — 테두리(0.07)와 같은 계열의
+   한 단계 진한 값(0.13) 하나로 통일. 자간도 제목 공통 -0.015em. */
+.ca2 .nsc-st,
+.ca2 .rv-third .cy-sec > h5,
+.ca2 .ca-sv .pf-lb {
+  letter-spacing: -0.015em;
+  border-bottom-color: rgba(23,42,66,0.13);
+}
+.ca2 .ca-ch { letter-spacing: -0.015em; }
+
+/* ── 본문: 줄간격 일관 ──
+   설명 문단들이 1.4~1.55 로 흩어져 있었다. 읽는 글은 1.55 하나로. */
+.ca2 .fc-sec p,
+.ca2 .rv-third .cy-note,
+.ca2 .nsc-sec .nw-sub,
+.ca2 .nsc-foot {
+  line-height: 1.55;
+}

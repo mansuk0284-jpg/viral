@@ -22,29 +22,31 @@
     ["신세계 김해", "경남", 0, 4], ["신세계 마산점", "경남", 1, 1],
   ];
   const U = "https://cafe.naver.com/f-e/cafes/25228091/articles/";
+  /* 4번째 원소 = 작성일(census addDate 실측, 2026-08-26 보강) — 기간 필터에 쓴다.
+     날짜가 빈 두 건(창원)은 census 에서 확인되지 않아 비워 둔다(지어내지 않는다). */
   const SAMPLES = {
     "신세계 센텀시티": { pos: [
-      ["[가전졸업] 신세계 센텀 삼성스토어 안지원 매니저님 최고예요! (계약후기)", "s", U + "9061230"],
-      ["임직원몰보다 저렴하게 신세계 센텀 삼성스토어에서 가전 졸업! 정대일 매니저님 추천", "s", U + "9060203"],
-      ["신세계 센텀 삼성스토어 가전 졸업 — 발품 4군데 팔았지만 결국 여기!", "s", U + "9043039"],
+      ["[가전졸업] 신세계 센텀 삼성스토어 안지원 매니저님 최고예요! (계약후기)", "s", U + "9061230", "2026-06-14"],
+      ["임직원몰보다 저렴하게 신세계 센텀 삼성스토어에서 가전 졸업! 정대일 매니저님 추천", "s", U + "9060203", "2026-06-13"],
+      ["신세계 센텀 삼성스토어 가전 졸업 — 발품 4군데 팔았지만 결국 여기!", "s", U + "9043039", "2026-06-09"],
     ], neg: [] },
     "롯데 부산본점": { pos: [
-      ["부산 롯데백화점 본점 삼성가전 후기 (정영호 매니저님)", "s", U + "9050025"],
-      ["롯데백화점 부산본점 삼성스토어에서 비스포크 콤보+정수기 계약 완료!", "s", U + "9021945"],
-      ["[롯데 부산본점 · 서희영 명장님] 혼수 가전 졸업 — 발품 5곳 판 후기", "l", U + "8967612"],
+      ["부산 롯데백화점 본점 삼성가전 후기 (정영호 매니저님)", "s", U + "9050025", "2026-06-10"],
+      ["롯데백화점 부산본점 삼성스토어에서 비스포크 콤보+정수기 계약 완료!", "s", U + "9021945", "2026-06-03"],
+      ["[롯데 부산본점 · 서희영 명장님] 혼수 가전 졸업 — 발품 5곳 판 후기", "l", U + "8967612", "2026-05-18"],
     ], neg: [] },
     "롯데 광복점": { pos: [
-      ["롯데광복 삼성스토어에서 신혼집 가전 졸업했습니다", "s", U + "9059867"],
-      ["혼수가전 구매 후기｜롯데광복 삼성스토어 김세훈 매니저님 추천합니다", "s", U + "9059013"],
+      ["롯데광복 삼성스토어에서 신혼집 가전 졸업했습니다", "s", U + "9059867", "2026-06-13"],
+      ["혼수가전 구매 후기｜롯데광복 삼성스토어 김세훈 매니저님 추천합니다", "s", U + "9059013", "2026-06-13"],
     ], neg: [] },
     "롯데 동래점": { pos: [
-      ["삼성스토어 롯데 동래점 가전 계약 후기 (한정현 부점장님)", "s", U + "9015291"],
-      ["부산 혼수가전 동래 롯데백화점 삼성에서 졸업했습니다 — 완전 추천!", "s", U + "8814022"],
+      ["삼성스토어 롯데 동래점 가전 계약 후기 (한정현 부점장님)", "s", U + "9015291", "2026-06-01"],
+      ["부산 혼수가전 동래 롯데백화점 삼성에서 졸업했습니다 — 완전 추천!", "s", U + "8814022", "2026-04-07"],
     ], neg: [] },
     "롯데 창원점": { pos: [
-      ["창원 롯데백화점 삼성스토어 혼수가전 졸업 (매니저님 친절)", "s", U + "8990012"],
+      ["창원 롯데백화점 삼성스토어 혼수가전 졸업 (매니저님 친절)", "s", U + "8990012", ""],
     ], neg: [
-      ["창원 롯데 LG 베스트샵에서 오브제 패키지로 결정 — 디자인 차이", "l", U + "8970113"],
+      ["창원 롯데 LG 베스트샵에서 오브제 패키지로 결정 — 디자인 차이", "l", U + "8970113", ""],
     ] },
   };
   const TOTAL = CD
@@ -397,7 +399,8 @@
       const pr = periodStores(st.region).find((x) => x.name === st.store);
       const sv = pr ? pr.s : row[2], lv = pr ? pr.l : row[3];
       return { title: st.store, sub: `${row[1]} · ${pr ? perLab(st.period) : "매장 본문매칭 2026 누적"}`,
-        s: sv, l: lv, trend: vsBars(sv, lv), geoNote, samples: SAMPLES[st.store] };
+        s: sv, l: lv, trend: vsBars(sv, lv), geoNote, samples: SAMPLES[st.store],
+        hs: pr ? pr.hs || 0 : 0, hl: pr ? pr.hl || 0 : 0 };
     }
     const psList = periodStores(st.region);
     const pHit = psList.find((x) => x.name === st.store);
@@ -405,7 +408,8 @@
     const src = bsr || ((CD && CD.stores && CD.stores[st.region]) || []);
     const cdRow = pHit || src.find((x) => x.n === st.store) || { s: 0, l: 0 };
     return { title: st.store, sub: `${st.region} · ${bsr ? "매장 본문매칭" : "제목기반 추정"}`, s: cdRow.s, l: cdRow.l,
-      trend: vsBars(cdRow.s, cdRow.l), geoNote: bsr ? "" : "제목기반 점별 추정 — 본문 샘플은 부울경만 제공", samples: null };
+      trend: vsBars(cdRow.s, cdRow.l), geoNote: bsr ? "" : "제목기반 점별 추정 — 본문 샘플은 부울경만 제공", samples: null,
+      hs: cdRow.hs || 0, hl: cdRow.hl || 0 };
   }
 
   /* 지역 내 매장 목록(정렬됨) — 순위·평균 계산 공용 */
@@ -1362,7 +1366,21 @@
     const smp = c.samples;
     const card = (r) => `<a href="${r[2]}" target="_blank" rel="noopener">` +
       `<span class="ca-sm-tag ${r[1]}">${({ s: "삼성", l: "LG", b: "삼성·LG" })[r[1]] || "기타"}</span>` +
-      `<span class="ca-sm-t">${r[0]}</span></a>`;
+      `<span class="ca-sm-t">${r[0]}</span>` +
+      (r[3] ? `<span class="ca-sm-d">${r[3].slice(2, 7)}</span>` : "") + `</a>`;
+    /* 원문 샘플도 기간을 따른다(2026-08-26 사용자: "이 매장 후기도 계속 고정되어 있고").
+       선택 기간 안의 샘플만 남기고, 기간 안이 하나도 없으면 전체 샘플을 보여주되
+       그 사실을 밝힌다 — 카드를 비워 두는 것보다 정직 표기가 낫다. */
+    const rng = curRange();
+    const inR = (r) => !!(rng && r[3] && r[3] >= rng[0] && r[3] <= rng[1]);
+    const smpAll = c.samples;
+    let smpNote = "";
+    let smp2 = smpAll;
+    if (smpAll && rng) {
+      const pIn = (smpAll.pos || []).filter(inR), nIn = (smpAll.neg || []).filter(inR);
+      if (pIn.length + nIn.length) smp2 = { pos: pIn, neg: nIn };
+      else smpNote = `<p class="ca-splx">이 기간에 수집된 원문 샘플이 없어 <b>전체 기간의 대표 후기</b>를 보여줍니다(작성월 표기).</p>`;
+    }
     // 이 매장이 지는 품목 — 액션에 직접 반영
     const sIt = (typeof periodItems === "function") ? (periodItems("store", st.store) || []) : [];
     const sLose = sIt.filter((x) => x.l > x.s).sort((a, b) => (b.l - b.s) - (a.l - a.s)).slice(0, 2);
@@ -1409,6 +1427,30 @@
       `<span class="l"><b>${fmtN(c.l)}건</b><i>(${100 - share}%)</i></span></div>` +
       `</div>` +
 
+      /* 조회수 — 건수와 읽힘은 다른 축이다(지역 페이지와 같은 문법, 2026-08-26 보강).
+         후기당 조회를 지역 평균과 견줘 "글이 얼마나 읽히는 매장인가"를 짚는다. */
+      (function () {
+        const hs = c.hs || 0, hl = c.hl || 0, ht = hs + hl;
+        if (!ht) return "";
+        const hsh = Math.round(hs / ht * 100);
+        const per = tot ? Math.round(ht / tot) : 0;
+        const rHt = sib.reduce((a, x) => a + (x.hs || 0) + (x.hl || 0), 0);
+        const rTot = sib.reduce((a, x) => a + x.s + x.l, 0);
+        const rPer = rTot ? Math.round(rHt / rTot) : 0;
+        const foot = per && rPer
+          ? (per > rPer ? `후기당 <b>${fmtN(per)}회</b> 읽힙니다 — ${st.region} 평균(${fmtN(rPer)}회)보다 잘 읽히는 글입니다.`
+            : per < rPer ? `후기당 <b class="warn">${fmtN(per)}회</b> 읽힙니다 — ${st.region} 평균(${fmtN(rPer)}회)에 못 미칩니다.`
+            : `후기당 ${fmtN(per)}회 읽힙니다 — ${st.region} 평균과 같은 수준입니다.`)
+          : "";
+        return `<div class="nsc-sec"><h4 class="nsc-st">조회수<i>매장 특정 후기 기준</i></h4>` +
+          `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
+          `<div class="nh-bar"><i class="s" style="width:${hsh}%"></i><i class="l" style="width:${100 - hsh}%"></i></div>` +
+          `<div class="nsc-nums"><span class="s"><b>${fmtN(hs)}회</b><i>(${hsh}%)</i></span>` +
+          `<span class="l"><b>${fmtN(hl)}회</b><i>(${100 - hsh}%)</i></span></div>` +
+          (foot ? `<p class="nsc-foot">${foot}</p>` : "") +
+          `</div>`;
+      })() +
+
       `<div class="nsc-sec"><h4 class="nsc-st">${st.region || "지역"} 안에서의 위치</h4>` +
       `<div class="cy-grid">` +
       `<div class="cy-k"><b>${rank || "-"}<u>위</u></b><span>${st.region || ""} 내 표본</span></div>` +
@@ -1435,10 +1477,11 @@
             `<span class="pe-v">${sh}%</span></button>`;
         }).join("") + `</div></div>` : "") +
       `<div class="ca-ncard sv-rev"><h4 class="ca-ch">이 매장 후기 <i class="ca-tag">클릭 → 원문</i></h4>` +
-      (smp && (smp.pos.length || smp.neg.length)
+      smpNote +
+      (smp2 && (smp2.pos.length || smp2.neg.length)
         ? `<div class="sv-revcols">` +
-          `<div><h6 class="pos">우호 ${smp.pos.length}</h6>${smp.pos.map(card).join("") || '<p class="ca-splx">없음</p>'}</div>` +
-          `<div><h6 class="neg">주의 ${smp.neg.length}</h6>${smp.neg.map(card).join("") || '<p class="ca-splx">검출 안 됨 · 졸업후기 긍정편향</p>'}</div>` +
+          `<div><h6 class="pos">우호 ${smp2.pos.length}</h6>${smp2.pos.map(card).join("") || '<p class="ca-splx">없음</p>'}</div>` +
+          `<div><h6 class="neg">주의 ${smp2.neg.length}</h6>${smp2.neg.map(card).join("") || '<p class="ca-splx">검출 안 됨 · 졸업후기 긍정편향</p>'}</div>` +
           `</div>`
         : `<p class="ca-splx">이 매장은 본문 샘플이 아직 없습니다 — 본문매칭 완료 지역(부울경)부터 제공됩니다.</p>`) +
       `</div></div></div>`;

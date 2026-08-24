@@ -2078,3 +2078,9 @@ body.view-cx .cx-top > .ca-ic { width: 44px; height: 44px; border-radius: 13px; 
 .nsc-vs2 span i { font-style: normal; font-weight: 700; margin-left: 1px; }
 .nsc-vs2 .s b, .nsc-vs2 .s i { color: #1f5fd0; }
 .nsc-vs2 .l b, .nsc-vs2 .l i { color: #d23b54; }
+
+/* 매장 후기 원문 — 작성월 칩(기간 연동의 근거를 눈에 보이게, 2026-08-26) */
+.ca2 .sv-rev a { position: relative; }
+.ca2 .ca-sm-d { margin-left: auto; align-self: center; font-size: 10px; font-weight: 800;
+  color: var(--muted); background: rgba(23,42,66,.06); border-radius: 999px;
+  padding: 1px 7px; white-space: nowrap; flex: 0 0 auto; }
