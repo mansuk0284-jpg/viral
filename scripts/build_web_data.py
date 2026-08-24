@@ -267,6 +267,9 @@ def main():
     hit_list = []                   # 글 단위 조회수 — 쏠림(상위 10% 비중·중앙값) 계산용
     fact_price = []     # 계약 금액은 언급이 드물어(수백 건) 별도 희소 목록으로 보관
     fact_name = []      # 매니저 실명(후기 스타) — 매장 귀속 삼성 후기만
+    # 매장별 후기 원문 샘플 — 손으로 고른 고정 목록이 기간과 무관하게 붙박여 있던 것을
+    # (2026-08-26 사용자 지적) census 에서 매장·날짜와 함께 뽑아 기간 필터가 걸리게 한다.
+    smp_all = defaultdict(list)   # store → [(day, brand, neg, title, articleId, hits)]
 
     for r in recs:
         s, l = bool(r.get("samsung")), bool(r.get("lg"))
@@ -430,6 +433,15 @@ def main():
                     sd["mon"][ym] += 1
                 if COMPARE_RE.search(txt):
                     sd["cmp"]["s" if single_s else "l"] += 1
+                # 원문 샘플 후보 — 제목·작성일·조회수까지. 실을지 여부는 후처리에서
+                # 월별 상한으로 거른다(파일 크기 방어).
+                if f_day:
+                    # 검색 API 가 제목에 <b> 강조 태그를 남긴다 — 걷어내고 싣는다
+                    _ttl = re.sub(r"<[^>]+>", "", (r.get("title") or "")).strip()[:60]
+                    smp_all[st].append((f_day, "s" if single_s else "l",
+                                        1 if isNeg else 0, _ttl,
+                                        int(r.get("articleId") or 0),
+                                        int(r.get("readCount") or 0)))
                 if hasMgr:
                     m = mgr_store[st]
                     m["s" if single_s else "l"] += 1
@@ -709,6 +721,27 @@ def main():
                         for p in nm_prepped),
         "nmw": {"day": W_DAY, "loc": W_LOC},
     }
+
+    # ── 매장별 후기 원문 샘플 — 월별 상한(우호 3 · 주의 2)으로 눌러 담는다.
+    #    같은 달 안에서는 많이 읽힌 글 우선(조회수 desc). 최신 달이 앞에 오게 정렬.
+    store_samples = {}
+    for stn, lst in smp_all.items():
+        bym = defaultdict(list)
+        for t in lst:
+            bym[t[0][:7]].append(t)
+        out = []
+        for m_, arr in bym.items():
+            # 삼성·LG 를 나눠 담는다 — 조회수 상위만 남기면 삼성 후기(회수율 우위)가
+            # 달 전체를 차지해 LG 원문이 화면에서 사라진다
+            for b_ in ("s", "l"):
+                pos = sorted([x for x in arr if not x[2] and x[1] == b_], key=lambda x: -x[5])[:2]
+                neg = sorted([x for x in arr if x[2] and x[1] == b_], key=lambda x: -x[5])[:1]
+                out += pos + neg
+        out.sort(key=lambda x: x[0], reverse=True)
+        # [day, brand, neg, title, articleId] — URL 은 화면에서 articleId 로 조립.
+        # 매장당 상한 150행(파일 크기 방어 — 최신 달 우선이라 과거가 먼저 잘린다)
+        store_samples[stn] = [[x[0], x[1], x[2], x[3], x[4]] for x in out[:150]]
+    data["storeSamples"] = store_samples
 
     with open(a.out, "w", encoding="utf-8") as f:
         f.write("/* build_web_data.py 자동생성 — 수정 금지. census 갱신 후 재실행할 것 */\n")

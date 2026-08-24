@@ -1368,18 +1368,34 @@
       `<span class="ca-sm-tag ${r[1]}">${({ s: "삼성", l: "LG", b: "삼성·LG" })[r[1]] || "기타"}</span>` +
       `<span class="ca-sm-t">${r[0]}</span>` +
       (r[3] ? `<span class="ca-sm-d">${r[3].slice(2, 7)}</span>` : "") + `</a>`;
-    /* 원문 샘플도 기간을 따른다(2026-08-26 사용자: "이 매장 후기도 계속 고정되어 있고").
-       선택 기간 안의 샘플만 남기고, 기간 안이 하나도 없으면 전체 샘플을 보여주되
-       그 사실을 밝힌다 — 카드를 비워 두는 것보다 정직 표기가 낫다. */
+    /* 원문 샘플도 기간을 따른다(2026-08-26 사용자: "기간을 변경하면 해당 월 또는
+       연도에 따라 후기가 최신화 되어야지"). 손으로 고른 고정 목록(SAMPLES) 대신
+       빌드가 census 에서 뽑아 둔 CD.storeSamples(매장×날짜×제목×조회수 상위)를
+       쓴다 — 110개 매장 전 기간 커버. 기간 안 샘플이 정말 없으면 전체 기간의
+       최신 글을 보여주되 그 사실을 밝힌다(카드를 비워 두는 것보다 정직 표기). */
     const rng = curRange();
-    const inR = (r) => !!(rng && r[3] && r[3] >= rng[0] && r[3] <= rng[1]);
-    const smpAll = c.samples;
     let smpNote = "";
-    let smp2 = smpAll;
-    if (smpAll && rng) {
-      const pIn = (smpAll.pos || []).filter(inR), nIn = (smpAll.neg || []).filter(inR);
+    let smp2 = null;
+    const SS0 = (CD && CD.storeSamples) || {};
+    const dynKey = SS0[st.store] ? st.store
+      : Object.keys(SS0).find((k) => st.store.indexOf(k) === 0 || k.indexOf(st.store) === 0);
+    const dyn = dynKey ? SS0[dynKey] : null;
+    if (dyn && dyn.length) {
+      const inP = rng ? dyn.filter((r) => r[0] >= rng[0] && r[0] <= rng[1]) : dyn;
+      const use = inP.length ? inP : dyn;
+      if (!inP.length) smpNote = `<p class="ca-splx">이 기간에 수집된 원문이 없어 <b>가장 최근 후기</b>를 보여줍니다(작성월 표기).</p>`;
+      const mk = (r) => [r[3], r[1], U + r[4], r[0]];   // [제목, 브랜드, URL, 날짜]
+      smp2 = { pos: use.filter((r) => !r[2]).slice(0, 3).map(mk),
+               neg: use.filter((r) => r[2]).slice(0, 2).map(mk) };
+    } else if (c.samples) {
+      /* 빌드 데이터에 없는 매장만 옛 수작업 목록으로 폴백 */
+      const inR = (r) => !!(rng && r[3] && r[3] >= rng[0] && r[3] <= rng[1]);
+      const pIn = (c.samples.pos || []).filter(inR), nIn = (c.samples.neg || []).filter(inR);
       if (pIn.length + nIn.length) smp2 = { pos: pIn, neg: nIn };
-      else smpNote = `<p class="ca-splx">이 기간에 수집된 원문 샘플이 없어 <b>전체 기간의 대표 후기</b>를 보여줍니다(작성월 표기).</p>`;
+      else {
+        smp2 = c.samples;
+        smpNote = `<p class="ca-splx">이 기간에 수집된 원문 샘플이 없어 <b>전체 기간의 대표 후기</b>를 보여줍니다(작성월 표기).</p>`;
+      }
     }
     // 이 매장이 지는 품목 — 액션에 직접 반영
     const sIt = (typeof periodItems === "function") ? (periodItems("store", st.store) || []) : [];
