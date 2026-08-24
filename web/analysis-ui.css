@@ -303,3 +303,28 @@ body.view-cx .yt-own { font-size: 10.5px; }
 .ca2 .rv-none .mini { display: none; }
 .ca2 .rv-list.two .rv-none .full { display: none; }
 .ca2 .rv-list.two .rv-none .mini { display: inline; }
+
+/* ── 우측 심층분석 카드 — 좌측 칼럼과 같은 섹션 박스 문법 (2026-08-26 사용자:
+   "제일 우측 캡션 부분이 특히 디자인이 없고 밋밋해") ──
+   대시보드 전체 통일감: 좌측 .nsc-sec 과 같은 박스·같은 제목 구조(제목+점선 밑줄+
+   우측 보조라벨)·같은 색 원칙(긍정 파랑·부정 빨강)을 우측 카드에도 건다. */
+.ca2 .rv-third .city-card { gap: 8px; }
+.ca2 .rv-third .cy-sec { border: 1px solid rgba(23,42,66,0.09); background: rgba(23,42,66,0.03);
+  border-radius: 12px; padding: 8px 11px 9px; border-top: 1px solid rgba(23,42,66,0.09); }
+.ca2 .rv-third .cy-sec > h5 { font-size: 13px; font-weight: 900; color: var(--text);
+  letter-spacing: -0.01em; text-transform: none; display: flex; align-items: baseline; gap: 6px;
+  padding-bottom: 5px; margin: 0 0 6px; border-bottom: 1px dashed rgba(23,42,66,0.12); }
+.ca2 .rv-third .cy-sec > h5 i { font-style: normal; font-size: 10.5px; font-weight: 700;
+  color: var(--muted); margin-left: auto; white-space: nowrap; }
+.ca2 .rv-third .cy-note { font-size: 11.5px; }
+/* 긍정 파랑·부정 빨강 — 본문 강조도 카드 앞면과 같은 색 문법 */
+.ca2 .rv-third .cy-note b { color: #1f5fd0; }
+.ca2 .rv-third .cy-note b.warn { color: #d23b54; }
+/* 표본 부족 안내문도 박스 안에 — 평문으로 떠 있으면 혼자 결이 다르다 */
+.ca2 .rv-third .ca-splx { border: 1px dashed rgba(23,42,66,0.14); background: rgba(23,42,66,0.02);
+  border-radius: 12px; padding: 8px 11px; margin: 0; }
+/* 서울(6섹션)에서 30px 넘쳤다(실측) — 박스 안 여백을 한 단계 조인다 */
+.ca2 .rv-third .city-card { gap: 7px; }
+.ca2 .rv-third .cy-sec { padding: 7px 11px 8px; }
+.ca2 .rv-third .cy-sec > h5 { padding-bottom: 4px; margin-bottom: 5px; }
+.ca2 .rv-third .cy-note { margin-top: 4px; line-height: 1.45; }
