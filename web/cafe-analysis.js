@@ -570,15 +570,6 @@
     if (!h) return "";
     const sh = hs + hl ? Math.round(hs / (hs + hl) * 100) : 0;
     const per = A0 && A0.total ? Math.round(h / A0.total) : 0;
-    /* 후기당 조회수 — 총량과 다른 이야기를 한다.
-       총 조회수는 건수가 많은 쪽이 이기지만, 한 건이 얼마나 읽히는지는 별개다.
-       실측(전 기간): 삼성 267회 / LG 291회 — 우리가 더 많이 쓰고, 저쪽이 한 건은 더 읽힌다. */
-    const cs = A0 ? A0.s : 0, cl = A0 ? A0.l : 0;
-    const eS = cs ? Math.round(hs / cs) : 0, eL = cl ? Math.round(hl / cl) : 0;
-    const effWin = eS >= eL;
-
-    const HD = CD && CD.hits ? CD.hits : null;
-
     return `<div class="nsc-hits">` +
       `<div class="nh-top"><b>${fmtN(h)}</b><i>회 읽힘</i>` +
       (per ? `<span class="nh-per">후기당 ${per}회</span>` : "") + `</div>` +
@@ -1306,8 +1297,15 @@
      **잘하는 매장이 무엇을 다르게 하는지** 물을 수 있다. 그게 이 카드의 쓸모다.
      후기는 고객이 쓴다 — 매장이 할 수 있는 건 이름이 남도록 요청하는 것이다. */
   function mgrCard() {
-    const MS = (CD && CD.mgrStore) || {};
-    const M = (CD && CD.mgr) || null;
+    /* 기간 무관 버그 수정(2026-08-25 사용자 지적: "기간 설정에 따라 분석 내용이
+       달라야 하는데 일부 변동이 없는게 보여").
+       CD.mgr/CD.mgrStore 는 전체 기간 고정값이다. 팩트 테이블(VFACT.agg)이
+       월별로 다른 mgr/mgrStore 를 이미 만들어 내고 있는데(실측: 1월 삼성실명
+       522건 vs 8월 304건) 이 카드만 그걸 안 쓰고 있었다 — 다른 카드는 전부
+       hasF()/A() 로 기간을 반영하는데 이 카드만 CD 를 직접 읽고 있었다. */
+    const AG = hasF() ? A() : null;
+    const MS = AG ? (AG.mgrStore || {}) : ((CD && CD.mgrStore) || {});
+    const M = AG ? AG.mgr : ((CD && CD.mgr) || null);
     const natOn = M ? pct(M.s_on, M.l_on) : null;
     const natOff = M ? pct(M.s_off, M.l_off) : null;
 
@@ -1518,7 +1516,9 @@
           const rg = Object.keys(PD.regions || {}).map((k) => {
             const v = PD.regions[k]; return { rg: k, tot: v.s + v.l, sh: pct(v.s, v.l), gap: v.l - v.s };
           }).filter((x) => x.tot >= 200 && x.sh < 50).sort((a, b) => b.gap - a.gap).slice(0, 3);
-          const mg = (CD && CD.mgr) || null;
+          // 같은 기간 무관 버그 — mgrCard() 와 같은 이유로 CD 고정값 대신 A() 를 쓴다
+          const AGl = hasF() ? A() : null;
+          const mg = AGl ? AGl.mgr : ((CD && CD.mgr) || null);
           const mgSh = mg ? pct(mg.s_on, mg.l_on) : null;
           return fcard("lg", "열세 요인 분석",
             its.length ? "품목별 이탈 현황" : "방어 유지 현황",
