@@ -227,7 +227,6 @@
     const c = st.cafe, A = agg(c, st.ym);
     return `<div class="ca2 af-wrap">` +
       `<div class="af-top">` +
-      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="af-title"><h2>${c.name}</h2>` +
       `<span>${c.type} · ${c.rg.replace(/^지역구\s*/, "")} · 회원 ${man(c.mem)}명` +
       (c.url ? ` · <a href="${c.url}" target="_blank" rel="noopener">카페 열기 ›</a>` : "") + `</span></div>` +
@@ -260,8 +259,7 @@
     const c = findCafe(cafe);
     if (!c) {
       host.innerHTML = `<div class="ca2 af-wrap"><div class="af-top">` +
-        `${window.VNAV ? VNAV.bar() : ""}` +
-        `<div class="af-title"><h2>${cafe.n || cafe.name || "카페"}</h2><span>미수집</span></div></div>` +
+          `<div class="af-title"><h2>${cafe.n || cafe.name || "카페"}</h2><span>미수집</span></div></div>` +
         `<div class="af-nodata"><b>아직 수집하지 않은 카페입니다</b>` +
         `<p>현재 부울경 14곳을 수집했습니다. 이 카페는 수집 후 자동으로 채워집니다.</p></div></div>`;
       if (window.VNAV) VNAV.sync();

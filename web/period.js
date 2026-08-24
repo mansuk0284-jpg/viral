@@ -83,6 +83,21 @@
         `</div>`;
     }
 
+    /* 라벨을 단 기간 UI — 다이렉트웨딩과 같은 무게로 (2026-08-24 사용자 지적)
+         "유투브, 인스타의 데이터 분석 페이지의 경우 기간 탭이 없는데
+          다이렉트웨딩 페이지를 참고해서 기간 탭을 넣어줘"
+
+       실은 있었다. 다만 html() 만 붙여 놓아 146px 짜리 칩 두 개가
+       화면 오른쪽 끝에 붙어 있었고(실측 x=1265), 다이렉트웨딩은 366px 에
+       현재 기간 라벨까지 달려 있었다 — 같은 기능인데 눈에 띄는 정도가 달랐다.
+       그래서 **없는 것처럼 보였다.** 라벨을 붙여 무게를 맞춘다. */
+    function bar() {
+      return `<div class="ca-periodnav" tabindex="0">` +
+        `<span class="cpn-cur">${label()}<i>기간 ▸</i></span>` +
+        html() +
+        `</div>`;
+    }
+
     /* 클릭 위임 — **자기 칩 묶음에만** 단다.
 
        처음엔 host(#channelPanel)에 달았는데, 그 컨테이너는 모든 화면이 공유한다.
@@ -125,7 +140,7 @@
     function fire() { if (typeof opt.onChange === "function") opt.onChange(api); }
 
     const api = {
-      html: html, bind: bind, range: range, label: label,
+      html: html, bar: bar, bind: bind, range: range, label: label,
       period: () => (st.range ? null : st.period),
       setRange(a, b) { st.range = (a && b) ? [a, b] : null; fire(); },
       /* 표본이 작은 채널은 전체 기간으로 여는 게 맞다 — 현재 월로 열면

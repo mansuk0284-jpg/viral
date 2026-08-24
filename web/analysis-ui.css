@@ -144,3 +144,47 @@ body.view-af #channel .container {
 
 /* 머리글 높이 통일에 .af-top 이 빠져 있어 두 화면만 규칙 밖이었다 */
 .af-top { min-height: 60px; gap: 12px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   채널 화면(view-cx) 활자를 다이렉트웨딩(view-cafe) 수준으로
+   (2026-08-24 사용자 지적)
+
+   "유투브, 인스타 등 다른 채널의 분석페이지 글씨 크기가 너무 작아
+    다른 페이지 참조해서 글씨 크기를 크게 해줘"
+
+   원인이 있었다. `body.view-cafe` 에는 활자를 키우는 규칙이 267줄 있는데
+   채널 화면(`body.view-cx`)에는 그게 없어 기본값(11~16px)을 그대로 썼다.
+   같은 클래스(.fc-plain·.it-n·.ca-ch)가 화면에 따라 15% 씩 갈렸다.
+
+   여기서 같은 계단을 채널 화면에도 준다. 값을 또 적지 않고
+   위에서 정한 토큰(--an-*)을 가리킨다.
+   ═══════════════════════════════════════════════════════════════════ */
+body.view-cx .ca-ch { font-size: 16.6px; }
+body.view-cx .ca-tag { font-size: 12px; }
+body.view-cx .cx-sum-h h3 { font-size: 21px; }
+body.view-cx .cx-sum-h span { font-size: var(--an-sub); }
+body.view-cx .cx-sum-n b { font-size: var(--an-num); }
+body.view-cx .cx-sum-n i { font-size: 15px; }
+body.view-cx .cx-vs span { font-size: 14.5px; }
+body.view-cx .cx-vs b { font-size: 16px; }
+body.view-cx .ys-k b, body.view-cx .yo-k b { font-size: 19px; }
+body.view-cx .ys-k span, body.view-cx .yo-k span { font-size: 12px; }
+body.view-cx .yo-k em { font-size: 11.5px; }
+/* 본문 문단 — 11px 은 이 하네스에서 가장 작은 글씨였다 */
+body.view-cx .yt-note, body.view-cx .jw-note { font-size: 12.6px; line-height: 1.55; }
+body.view-cx .yt-act li, body.view-cx .cx-act li { font-size: 13.4px; line-height: 1.55; }
+body.view-cx .fc-plain { font-size: 13.4px; }
+/* 목록 */
+body.view-cx .it-n { font-size: 14px; }
+body.view-cx .it-v { font-size: 13.5px; }
+body.view-cx .it-c { font-size: 12.5px; }
+body.view-cx .ytc-body b, body.view-cx .igp-mid b { font-size: 14px; }
+body.view-cx .ytc-body em, body.view-cx .igp-mid em { font-size: 11.5px; }
+body.view-cx .ytc-foot u, body.view-cx .igp-v { font-size: 14px; }
+body.view-cx .ytc-rank { font-size: 15.5px; }
+body.view-cx .igp-rank, body.view-cx .yp-rank { font-size: 21px; }
+body.view-cx .yv-h span, body.view-cx .yv-h b { font-size: 13.5px; }
+body.view-cx .yv-row b { font-size: 12.8px; }
+body.view-cx .yv-row em, body.view-cx .yv-row i { font-size: 12px; }
+body.view-cx .mr-nm, body.view-cx .mr-sh { font-size: 13.5px; }
+body.view-cx .yt-own { font-size: 10.5px; }

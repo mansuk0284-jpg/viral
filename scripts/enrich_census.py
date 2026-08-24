@@ -79,8 +79,10 @@ def targets(rows, since=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0, help="이번에 열 글 수(0=전량)")
-    ap.add_argument("--since", default=None,
-                    help="이 달 이후만(YYYY-MM). 최근 구간부터 채울 때 쓴다")
+    ap.add_argument("--since", default="2026-01",
+                    help="이 달 이후만(YYYY-MM). 기본 2026-01 — "
+                         "수집 범위를 2026년으로 좁혔다(2026-08-24 사용자 지시). "
+                         "과거를 다시 열려면 --since 2021-01 처럼 명시한다")
     ap.add_argument("--delay", type=float, default=0.25)
     ap.add_argument("--save-every", type=int, default=200)
     ap.add_argument("--login-wait", type=int, default=600)

@@ -120,10 +120,9 @@
 
     return `<div class="ca2 jw-wrap">` +
       `<div class="cx-top">` +
-      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="cx-title"><h2>제이웨딩</h2>` +
       `<span>[칭찬] 혼수/선택이유 · 삼성AI가전 · ${per() ? per().label() : "전체"}</span></div>` +
-      (per() ? per().html() : "") +
+      (per() ? per().bar() : "") +
       `</div>` +
 
       `<div class="cx-body">` +

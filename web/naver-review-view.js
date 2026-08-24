@@ -124,7 +124,6 @@
 
     return `<div class="ca2 af-wrap nr-wrap nrl">` +
       `<div class="af-top">` +
-      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="af-title"><h2>네이버 리뷰 · 백화점별</h2>` +
       `<span>전국 백화점 ${G.length}곳 · 삼성·LG 모두 입점 ${both.length}곳 — 누르면 매장 하나를 자세히</span></div>` +
       `<div class="af-hero">` +
@@ -376,7 +375,6 @@
     const V = P && NR.stores[P.vs];
     return `<div class="ca2 af-wrap nr-wrap">` +
       `<div class="af-top">` +
-      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="af-title"><h2>네이버 리뷰 · 예약</h2>` +
       `<span>${S.name} · ${S.region} · ${S.addr || ""}</span></div>` +
       `<div class="af-hero">` +

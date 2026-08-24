@@ -419,7 +419,6 @@
     const diff = sh - rSh;
     return `<div class="ca2 cx-wrap">` +
       `<div class="cx-top">` +
-      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="cx-title"><h2 data-store="${name}">${name}</h2>` +
       `<span>${rg}${isMine ? " · <b>우리 권역</b>" : ""} · 채널 ${CHANNELS.length}개 중 <b>${live}개</b> 수집 완료` +
       `${per() ? ` · <b>${per().label()}</b>` : ""}</span></div>` +

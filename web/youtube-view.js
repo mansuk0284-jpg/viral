@@ -138,7 +138,7 @@
   function vsCol(side, list) {
     const lab = side === "s" ? "삼성" : "LG";
     const tot = list.reduce((a, x) => a + x.v, 0);
-    const rows = list.slice(0, 3).map((x, i) =>
+    const rows = list.slice(0, 2).map((x, i) =>
       `<a class="yv-row" href="${x.u}" target="_blank" rel="noopener" title="${x.t} · ${fmtN(x.v)}회 · ${x.w}">` +
       `<i>${i + 1}</i><b class="yt-t">${x.t}</b><em>${man(x.v)}</em></a>`).join("");
     return `<div class="yv-col ${side}">` +
@@ -230,10 +230,9 @@
 
     return `<div class="ca2 yt-wrap">` +
       `<div class="cx-top">` +
-      `${window.VNAV ? VNAV.bar() : ""}` +
       `<div class="cx-title"><h2>유튜브</h2>` +
       `<span>넓은 채널에서 혼수가전만 골라 봤습니다 · 영상 ${fmtN(Y.total)}편</span></div>` +
-      `${per() ? per().html() : ""}` +
+      `${per() ? per().bar() : ""}` +
       `</div>` +
 
       `<div class="cx-body">` +

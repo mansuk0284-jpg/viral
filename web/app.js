@@ -203,7 +203,6 @@ function renderChannel(id) {
 
   return (
     // 내비가 없어 들어가면 나올 길이 없던 화면이다(스택엔 있는데 버튼이 없었다)
-    (window.VNAV ? `<div class="ch-nav">${VNAV.bar()}</div>` : "") +
     `<div class="ch-head ${c.cls}">` +
     `<span class="ch-ic">${c.ic}</span>` +
     `<span class="ch-htext"><h2>${c.name}</h2><span class="ch-sub">${c.sub}</span></span>` +
