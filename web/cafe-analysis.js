@@ -586,18 +586,6 @@
         `<i class="l" style="width:${100 - sh}%"></i></div>` +
         `<div class="nh-vs"><span class="s">삼성 ${fmtN(hs)}회 <b>${sh}%</b></span>` +
         `<span class="l">LG ${fmtN(hl)}회 <b>${100 - sh}%</b></span></div>` : "") +
-      // 후기 한 건이 몇 명에게 읽혔나 — 총량이 가리는 축
-      (eS && eL ? `<div class="nh-eff">` +
-        `<span class="ne-lb">후기 한 건이 읽힌 횟수</span>` +
-        `<span class="ne-v s${effWin ? " win" : ""}">삼성 <b>${fmtN(eS)}</b>회</span>` +
-        `<span class="ne-v l${effWin ? "" : " win"}">LG <b>${fmtN(eL)}</b>회</span>` +
-        `</div>` : "") +
-      // 쏠림 — 평균만 보면 소수의 대박글에 끌려가 '보통 글'의 크기를 놓친다
-      /* 쏠림은 **글 단위**로 세야 나오는 값이라 팩트 테이블(묶음 집계)로는 기간별로 못 자른다.
-         전 기간 기준임을 밝히지 않으면 기간을 바꿔도 안 변하는 게 버그처럼 보인다. */
-      (HD && HD.p10 ? `<p class="nh-note"><em>전 기간 기준</em> 가장 많이 읽힌 <b>상위 10%</b> 후기가 ` +
-        `조회수의 <b>${HD.p10}%</b>를 차지합니다 · 보통 후기는 <b>${fmtN(HD.med)}회</b>(중앙값) — ` +
-        `평균 <b>${fmtN(Math.round(HD.total / Math.max(1, HD.have)))}회</b>는 소수의 대박글이 끌어올린 값입니다.</p>` : "") +
       `</div>`;
   }
 
@@ -682,11 +670,10 @@
       `</div>` +
       (thin ? `<span class="nw-p warn">표본 적음</span>` : `<span class="nw-p">우위율 ${pct0}%</span>`) +
       `<span class="nw-sub">` +
-      (roster ? `양사 입점 <b>${roster}곳</b> 중 ` : "") +
-      `이 기간 삼성·LG 후기가 <b>모두 있는 ${both.length}곳</b>만 비교했습니다` +
-      (tie ? ` · 동률 ${tie}곳` : "") +
-      (oneSide.length ? ` · 한쪽 후기만 있는 ${oneSide.length}곳 제외` : "") +
-      (thin ? ` — 비교 대상이 적어 비율은 참고만 하세요` : "") +
+      (roster ? `입점 ${roster}곳 중 ` : "") +
+      `<b>${both.length}곳</b> 비교` +
+      (tie ? ` · 동률 ${tie}` : "") +
+      (oneSide.length ? ` · 한쪽만 ${oneSide.length}곳 제외` : "") +
       `</span></div>`;
   }
 
@@ -700,8 +687,8 @@
     if (arr.length < 2) return "";
     // 우위=삼성 50% 초과, 열세=50% 미만으로 갈라 중복을 원천 차단
     // (상·하위 N개를 따로 뽑으면 지역 수가 적을 때 같은 지역이 양쪽에 나온다)
-    const win = arr.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 3);
-    const lose = arr.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 3);
+    const win = arr.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 2);
+    const lose = arr.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 2);
     if (!win.length && !lose.length) return "";
     /* 숫자 표기를 고친다(2026-08-25 사용자 지시: "숫자 표현이 이상한 경우가 있는데 수정").
        예전엔 "경북 82%977" 처럼 퍼센트 뒤에 표본 건수가 단위·구분 없이 바로 붙어
@@ -714,34 +701,20 @@
        "그래서 결론이 뭔데"에 바로 답한다. */
     const top1s = win[0], top1l = lose[0];
     const lead = (top1s || top1l)
-      ? `<p class="rs-lead">전국 ${arr.length}개 시도 가운데 ` +
-        (top1s ? `<b>${top1s.rg}</b>이 삼성 <b>${top1s.sh}%</b>로 가장 우위이고, ` : "") +
-        (top1l ? `<b class="warn">${top1l.rg}</b>은 삼성 <b class="warn">${top1l.sh}%</b>로 가장 열세입니다.` : "") +
+      ? `<p class="rs-lead">시도 최고·최저(제목기반 추정) — ` +
+        (top1s ? `<b>${top1s.rg} ${top1s.sh}%</b>` : "") +
+        (top1s && top1l ? " · " : "") +
+        (top1l ? `<b class="warn">${top1l.rg} ${top1l.sh}%</b>` : "") +
         `</p>`
       : "";
 
-    /* 우위·열세의 이유를 간단히 — 사용자 지시: "우위 또는 열세에 대한 주요 이유를 분석해서
-       간단히 알려줘". 지역 자체는 이유를 말하지 못하므로(지리는 원인이 아니라 결과다),
-       같은 기간 품목 성적을 근거로 삼는다 — 상세 근거는 우측 '품목 전략' 카드에 있다. */
-    const IT = perData().items || (CD && CD.items) || {};
-    const itAll = Object.keys(IT).map((k) => {
-      const v = IT[k]; return { n: k, tot: v.s + v.l, sh: pct(v.s, v.l) };
-    }).filter((x) => x.tot >= 5);
-    const itWin = itAll.filter((x) => x.sh > 50).sort((a, b) => b.sh - a.sh).slice(0, 2);
-    const itLose = itAll.filter((x) => x.sh < 50).sort((a, b) => a.sh - b.sh).slice(0, 2);
-    const why = (itWin.length || itLose.length)
-      ? `<p class="rs-why">` +
-        (itWin.length ? `우위는 <b>${itWin.map((x) => x.n + " " + x.sh + "%").join("·")}</b> 품목이 끌어올렸고, ` : "") +
-        (itLose.length ? `열세는 <b class="warn">${itLose.map((x) => x.n + " " + x.sh + "%").join("·")}</b> 품목에서 밀린 영향이 큽니다.` : "") +
-        `</p>`
-      : "";
-
+    /* 우위·열세의 이유(품목 근거)는 좁은 좌측 요약 칸에서는 뺀다 — 한 화면 안에 담아야 하고,
+       같은 근거가 우측 '품목 전략' 카드에 이미 있다(2026-08-25: 좌측 칸 재정리로 자리 확보). */
     return `<div class="nsc-rsum">` + lead +
       (win.length ? `<div class="rs-row s"><b>삼성 우위</b>${chips(win)}</div>` : "") +
       (lose.length ? `<div class="rs-row l"><b>열세(LG↑)</b>${chips(lose)}</div>`
                    : `<div class="rs-row l"><b>열세(LG↑)</b><span class="rs-none">표본 기준 없음</span></div>`) +
-      why +
-      `<p class="rs-cap">시도 삼성비중 상·하위 · 제목기반 추정</p></div>`;
+      `</div>`;
   }
 
   /* ── 지역 페이지 — 매장(또는 하위지역) 랭킹 + 우위/열세 진단 ── */
@@ -1493,15 +1466,11 @@
         `<div class="nsc-h"><h3>전국</h3><span>${perLab(st.period)}</span></div>` +
         `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` +
         // 무슨 수치인지 밝힌다 — 숫자만 크게 띄우면 무엇을 센 것인지 알 수 없다
-        `<p class="nsc-what">이 기간 <b>다이렉트결혼준비</b> 카페에 올라온 혼수가전 구매후기 ` +
-        `<b>${fmtN(c.total)}건</b>을 삼성·LG로 갈라 센 값입니다. 아래는 읽힌 횟수와 매장 성적입니다.</p>` +
-        /* 매장 비교를 읽는 데 꼭 필요한 두 가지 한계 (2026-08-24 실측).
-           적어두지 않으면 "삼성이 많다 = 바이럴 우위" 로만 읽힌다. */
-        `<p class="nsc-bias">매장이 특정된 후기는 <b>삼성이 더 많이 잡힙니다</b> — ` +
-        `본문을 양쪽 똑같이 열었을 때 회수율이 <b>삼성 7.7% vs LG 3.8%</b>였습니다. ` +
-        `삼성 후기 쓰는 고객이 <b>매장명을 더 자주 적는다</b>는 뜻이라, ` +
-        `매장별 건수 차이를 곧바로 바이럴 우위로 읽으면 안 됩니다. ` +
-        `본문은 <b>최근 12개월</b>만 열었습니다(그 이전은 제목·요약 기준).</p>` +
+        `<p class="nsc-what"><b>다이렉트결혼준비</b> 카페 혼수가전 구매후기를 삼성·LG로 나눈 값입니다.</p>` +
+        /* 매장 비교를 읽는 데 꼭 필요한 편향 고지(2026-08-24 실측). 지우면 "삼성이 많다 = 바이럴 우위"로
+           잘못 읽힌다. 문장은 줄이되 핵심 수치(회수율 7.7% vs 3.8%)는 반드시 남긴다. */
+        `<p class="nsc-bias">매장이 특정된 후기는 <b>삼성이 더 많이 잡힙니다</b>(회수율 삼성 ` +
+        `<b>7.7%</b> vs LG <b>3.8%</b>) — 매장별 건수 차를 바이럴 우위로 읽지 마세요.</p>` +
         `<div class="nsc-vs"><span class="nv s">삼성 <b>${ss}%</b><i>${fmtN(c.s)}건</i></span>` +
         `<span class="nv l">LG <b>${ls}%</b><i>${fmtN(c.l)}건</i></span></div>` +
         `<div class="ca-distbar">${segV(c.s, "s")}${segV(c.l, "l")}${segV(etc, "x")}</div>` +

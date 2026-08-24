@@ -1636,6 +1636,12 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
   color: var(--muted); word-break: keep-all; }
 .nsc-what b { color: var(--text); font-weight: 800; }
 
+/* 시도 우위/열세 칩 — 위쪽 "글씨 1.5배" 구간(line ~1007)이 17.2px 로 키워 한 화면을
+   넘치게 했다(2026-08-25 실측: 전국 좌측 카드가 900px 뷰포트를 200px 넘게 넘침).
+   나머지 요약 카드 항목들처럼 여기서도 크기를 낮춰 이긴다. */
+.rs-row > b { font-size: 12.5px !important; }
+.rs-chip { font-size: 12.5px !important; padding: 3px 8px !important; }
+
 
 /* 비교 가능한 매장이 없을 때 — 숫자를 지어내지 않고 그렇다고 말한다 */
 .nsc-win.none { border-color: rgba(23,42,66,0.14); background: rgba(23,42,66,0.03); }
