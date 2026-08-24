@@ -2002,3 +2002,10 @@ body.view-cafe .rv-third .it-n { font-size: 11px; }
 .yo-bar { display: flex; height: 7px; border-radius: 999px; overflow: hidden; margin-top: 8px; background: #eef1f6; }
 .yo-bar i.sam { background: #1f5fd0; } .yo-bar i.lg { background: #d23b54; }
 .yo-bar i.cre { background: #c3cbd8; }
+
+/* 매장 비교의 한계 고지 — 방법론이지만 이걸 빼면 숫자를 잘못 읽는다 */
+.nsc-bias { margin: 6px 0 0; font-size: 10.8px; line-height: 1.5; font-weight: 600;
+  color: var(--muted); word-break: keep-all;
+  padding: 6px 8px; border-radius: 8px; background: rgba(245, 158, 11, .07);
+  border: 1px solid rgba(245, 158, 11, .22); }
+.nsc-bias b { color: #b45309; font-weight: 800; }
