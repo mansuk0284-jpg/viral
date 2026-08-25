@@ -63,21 +63,27 @@
       `<i class="l" style="width:${(l / t * 100).toFixed(1)}%"></i></div>`;
   }
 
-  /* 좋아요 순위 — 유튜브 썸네일 카드와 같은 짜임(순위 크게, 한 줄에 하나).
-     인스타는 썸네일을 id 로 바로 주지 않아(유튜브와 다르다) 그림 대신
-     순위 숫자와 글 첫 줄로 세운다. 없는 이미지를 만들어 넣지 않는다. */
+  /* 좋아요 순위 — 유튜브 썸네일 카드와 같은 짜임(2026-08-26 재편).
+     인스타는 CDN 썸네일 URL 이 만료되므로 fetch_ig_thumbs.py 가
+     web/assets/ig/{id}.jpg 로 **로컬 저장**해 둔 그림을 쓴다.
+     아직 저장 전인 글은 그림 칸을 조용히 접는다(onerror) —
+     없는 이미지를 만들어 넣지 않는다는 원칙 그대로다. */
   function podium(list) {
     return list.slice(0, 3).map((x, i) => {
       const cls = x.b === "s" ? "s" : x.b === "l" ? "l" : "even";
       const tag = x.biz ? `<span class="yt-own lg">판매자</span>`
         : x.ad ? `<span class="yt-own spo">협찬</span>`
         : `<span class="yt-own cre">개인</span>`;
-      return `<a class="igp ${cls}" href="${x.u}" target="_blank" rel="noopener"` +
+      return `<a class="igp ytc ${cls}" href="${x.u}" target="_blank" rel="noopener"` +
         ` title="${x.t} · ${x.d} · 좋아요 ${fmtN(x.lk)}">` +
-        `<span class="igp-rank">${i + 1}</span>` +
-        `<span class="igp-mid"><b class="yt-t">${x.t}</b>` +
-        `<em>${x.acc || "계정 미상"} · ${x.d}</em></span>` +
-        `<span class="igp-v">${fmtN(x.lk)}<u>♥</u>${tag}</span></a>`;
+        `<span class="ytc-thumb ig-thumb"><img src="assets/ig/${x.id}.jpg" alt="" loading="lazy"` +
+        ` draggable="false" onerror="this.closest('.ig-thumb').classList.add('none')" />` +
+        `<i class="ytc-rank">${i + 1}</i></span>` +
+        `<span class="ytc-body">` +
+        `<b class="yt-t">${x.t}</b>` +
+        `<em>${x.acc || "계정 미상"} · ${x.d}</em>` +
+        `<span class="ytc-foot"><u>${fmtN(x.lk)}♥</u>${tag}</span>` +
+        `</span></a>`;
     }).join("");
   }
 

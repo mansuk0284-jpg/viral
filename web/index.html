@@ -12,17 +12,17 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=2026r321" />
-  <link rel="stylesheet" href="cafe-analysis.css?v=2026r321" />
-  <link rel="stylesheet" href="affiliate-view.css?v=2026r321" />
-  <link rel="stylesheet" href="naver-review.css?v=2026r321" />
-  <link rel="stylesheet" href="compete-hint.css?v=2026r321" />
-  <link rel="stylesheet" href="nav.css?v=2026r321" />
+  <link rel="stylesheet" href="styles.css?v=2026r322" />
+  <link rel="stylesheet" href="cafe-analysis.css?v=2026r322" />
+  <link rel="stylesheet" href="affiliate-view.css?v=2026r322" />
+  <link rel="stylesheet" href="naver-review.css?v=2026r322" />
+  <link rel="stylesheet" href="compete-hint.css?v=2026r322" />
+  <link rel="stylesheet" href="nav.css?v=2026r322" />
   <!-- 글자 갈라짐 방지 공용 규칙. 화면별 CSS 뒤에 와야 이긴다 -->
-  <link rel="stylesheet" href="text-fit.css?v=2026r321">
+  <link rel="stylesheet" href="text-fit.css?v=2026r322">
   <!-- 분석 화면 공용 뼈대 — 매장별·채널별이 같은 옷을 입는다.
        화면별 CSS 뒤에 와야 이긴다 -->
-  <link rel="stylesheet" href="analysis-ui.css?v=2026r321">
+  <link rel="stylesheet" href="analysis-ui.css?v=2026r322">
 </head>
 <body>
   <!-- 결과 화면 전용 플로팅 복귀 버튼 (헤더 제거 후 대체) -->
@@ -73,21 +73,17 @@
                기능이므로 영상 위에 그대로 얹는다. -->
           <div class="ap-cards">
 
-            <!-- 카드 1(위): 매장을 골라 채널별 바이럴 보기 — 미디어는 포털 이미지.
-                 퍼지는 효과(맥동 링·블랙홀 소용돌이)는 이 이미지와 한 몸인 연출이라
-                 함께 올렸다(2026-08-26 사용자: "퍼지는 효과도 위 카드로") —
-                 클릭하면 채널별 현황이 열리는 동작도 그대로 따라온다. -->
+            <!-- 카드 1(위): 매장을 골라 채널별 바이럴 보기 — 미디어는 매장 영상.
+                 2026-08-26 사용자 지시: 포털 이미지를 걷어내고 사용자 제공
+                 영상(코너 뷰 유리 건물 매장)으로 교체. 블랙홀 장식은 그 이미지의
+                 연출이었으므로 함께 걷었다. 매장 건물이 잘 보이도록
+                 .ap-media-store 에서 object-position 을 조정한다. -->
             <article class="ap-card ap-store">
-              <div class="ap-media ap-media-portal">
-                <img src="assets/portal-hero.jpg?v=3" alt="온라인 후기가 모이는 바이럴 세상" draggable="false" />
-                <!-- 효과는 장식으로만 — 클릭(채널 진입)은 아래 채널 카드가 갖는다
-                     (2026-08-26 사용자: "클릭 동작은 아래 카드에 남겨줘") -->
-                <span class="portal-hole portal-deco" aria-hidden="true">
-                  <span class="portal-swirl" aria-hidden="true"></span>
-                  <span class="portal-suck" aria-hidden="true"></span>
-                </span>
-                <!-- 점 4개 아이콘·동그라미 큐(.ap-cue)는 제거 — 클릭이 아래 카드로
-                     옮겨져 진입 큐 역할이 끝났다(2026-08-26 사용자 지시) -->
+              <div class="ap-media ap-media-film ap-media-store">
+                <div class="ap-film-box">
+                  <video class="ap-film" src="assets/store-corner.mp4"
+                         muted loop autoplay playsinline preload="metadata"></video>
+                </div>
               </div>
               <div class="ap-body">
                 <h3 class="ap-title">우리 매장 바이럴</h3>
@@ -224,36 +220,36 @@
     </div>
   </footer>
 
-  <script src="app.js?v=2026r321"></script>
-  <script src="assets/korea-sido.js?v=2026r321"></script>
-  <script src="assets/cafe-data.js?v=2026r321"></script>
-  <script src="assets/cafes-data.js?v=2026r321"></script>
-  <script src="fact.js?v=2026r321"></script>
-  <script src="assets/affiliate-insight.js?v=2026r321"></script>
-  <script src="nav.js?v=2026r321"></script>
+  <script src="app.js?v=2026r322"></script>
+  <script src="assets/korea-sido.js?v=2026r322"></script>
+  <script src="assets/cafe-data.js?v=2026r322"></script>
+  <script src="assets/cafes-data.js?v=2026r322"></script>
+  <script src="fact.js?v=2026r322"></script>
+  <script src="assets/affiliate-insight.js?v=2026r322"></script>
+  <script src="nav.js?v=2026r322"></script>
   <!-- 기간 선택 공용 모듈 — 어느 분석 페이지에서도 같은 것을 쓴다 -->
-  <script src="period.js?v=2026r321"></script>
+  <script src="period.js?v=2026r322"></script>
   <!-- 이름을 줄이지 않고 전부 보여준다(말줄임 대신 글자 축소) -->
-  <script src="text-fit.js?v=2026r321"></script>
-  <script src="cafe-world.js?v=2026r321"></script>
-  <script src="assets/compete-data.js?v=2026r321"></script>
-  <script src="assets/compete-link.js?v=2026r321"></script>
-  <script src="assets/naver-review.js?v=2026r321"></script>
-  <script src="assets/jwedding.js?v=2026r321"></script>
-  <script src="assets/youtube.js?v=2026r321"></script>
-  <script src="assets/instagram.js?v=2026r321"></script>
-  <script src="affiliate-view.js?v=2026r321"></script>
-  <script src="naver-review-view.js?v=2026r321"></script>
-  <script src="cafe-analysis.js?v=2026r321"></script>
-  <script src="store-scope.js?v=2026r321"></script>
-  <script src="jwedding-view.js?v=2026r321"></script>
-  <script src="channel-icons.js?v=2026r321"></script>
-  <script src="youtube-view.js?v=2026r321"></script>
-  <script src="instagram-view.js?v=2026r321"></script>
-  <script src="compete-hint.js?v=2026r321"></script>
+  <script src="text-fit.js?v=2026r322"></script>
+  <script src="cafe-world.js?v=2026r322"></script>
+  <script src="assets/compete-data.js?v=2026r322"></script>
+  <script src="assets/compete-link.js?v=2026r322"></script>
+  <script src="assets/naver-review.js?v=2026r322"></script>
+  <script src="assets/jwedding.js?v=2026r322"></script>
+  <script src="assets/youtube.js?v=2026r322"></script>
+  <script src="assets/instagram.js?v=2026r322"></script>
+  <script src="affiliate-view.js?v=2026r322"></script>
+  <script src="naver-review-view.js?v=2026r322"></script>
+  <script src="cafe-analysis.js?v=2026r322"></script>
+  <script src="store-scope.js?v=2026r322"></script>
+  <script src="jwedding-view.js?v=2026r322"></script>
+  <script src="channel-icons.js?v=2026r322"></script>
+  <script src="youtube-view.js?v=2026r322"></script>
+  <script src="instagram-view.js?v=2026r322"></script>
+  <script src="compete-hint.js?v=2026r322"></script>
   <!-- 타일 건수를 데이터에서 채운다(하드코딩 금지).
        반드시 cafe-data.js / naver-review.js **뒤에** 와야 값을 읽을 수 있다. -->
-  <script src="tile-counts.js?v=2026r321"></script>
+  <script src="tile-counts.js?v=2026r322"></script>
   <!-- 소스 타일: 크기=센싱 건수 비례 + 살아있는 클러스터 연출 + 클릭 이동 -->
   <script>
     (function () {
