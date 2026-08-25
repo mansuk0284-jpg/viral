@@ -579,3 +579,19 @@ body.view-nr .nr-note { padding-bottom: 12px; }
   /* 3열에선 썸네일을 반 단계 줄여야 제목 두 줄이 산다 */
   .ca2.yt-wrap .ytc-thumb { width: 96px; }
 }
+
+/* ── 실행 제안 — 역할별(본사/영업팀/매장) 표준 블록 (2026-08-26 사용자 지시) ──
+   "결론적으로 해당 데이터 결과를 가지고 앞으로 어떻게 해야 하는지 …
+    지역단위 영업팀, 매장, 혹은 본사에서의 역할도 각각 다를거야."
+   모든 분석 페이지(기존·신규)가 이 블록으로 끝난다. */
+.ca2 .role-plan { list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 5px; }
+.ca2 .role-plan li { display: flex; gap: 8px; align-items: baseline;
+  font-size: 11.5px; line-height: 1.5; font-weight: 600; color: var(--muted);
+  word-break: keep-all; }
+.ca2 .role-plan em { flex: 0 0 44px; text-align: center; font-style: normal;
+  font-size: 10px; font-weight: 900; padding: 1.5px 0; border-radius: 999px; }
+.ca2 .role-plan .rp-hq em { background: rgba(23,42,66,.08); color: #172a42; }
+.ca2 .role-plan .rp-team em { background: rgba(31,95,208,.12); color: #1f5fd0; }
+.ca2 .role-plan .rp-store em { background: rgba(16,148,97,.12); color: #0c7a52; }
+.ca2 .role-plan b { color: #1f5fd0; } .ca2 .role-plan b.warn { color: #d23b54; }

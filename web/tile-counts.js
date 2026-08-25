@@ -100,9 +100,44 @@
     }, 2600);
   }
 
+  /* ── 채널 카드의 채널별 센싱기간·건수 요약(2026-08-26 사용자 지시) ──
+     "각 채널별 센싱기간, 건수를 간단히 명시해줘."
+     건수는 타일(data-count)에서, 기간은 각 채널 데이터의 월 목록에서 —
+     둘 다 데이터가 원본이라 수집이 늘면 화면이 따라온다. 기간을 모르는
+     채널은 기간 없이 건수만 적는다(지어내지 않는다). */
+  function chList() {
+    const ul = document.getElementById("apChList");
+    if (!ul) return;
+    const ym = (m) => "’" + m.slice(2, 4) + "." + m.slice(5, 7);
+    const span = (arr, pick) => {
+      if (!arr || !arr.length) return "";
+      const a = pick ? pick(arr[0]) : arr[0], b = pick ? pick(arr[arr.length - 1]) : arr[arr.length - 1];
+      return ym(a) + "~" + ym(b);
+    };
+    const PERIOD = {
+      cafe: () => span(window.CAFE_DATA && CAFE_DATA.months, (r) => r[0]),
+      jwedding: () => span(window.JWEDDING && JWEDDING.months, (r) => r[0]),
+      youtube: () => { const s = span(window.YOUTUBE && YOUTUBE.months); return s ? s + " 근사" : ""; },
+      instagram: () => span(window.INSTAGRAM && INSTAGRAM.months),
+    };
+    const rows = [];
+    document.querySelectorAll("#sourceMosaic .src").forEach((f) => {
+      const name = (f.querySelector("figcaption b") || {}).textContent || "";
+      const n = parseInt(f.getAttribute("data-count"), 10) || 0;
+      const id = f.classList.contains("src-cafe") ? "cafe" : (f.getAttribute("data-channel") || "");
+      const per = PERIOD[id] ? PERIOD[id]() : "";
+      const unit = id === "youtube" ? "편" : "건";
+      rows.push(`<li><b>${name}</b><i>${n.toLocaleString("ko-KR")}${unit}</i>` +
+        (per ? `<em>${per}</em>` : `<em class="off">기간 집계 전</em>`) + `</li>`);
+    });
+    ul.innerHTML = rows.join("");
+  }
+
+  const applyAll = function () { apply(); chList(); };
+
   // 데이터 스크립트보다 뒤에 실려야 한다. 혹시 앞서 실리더라도 DOM 준비 뒤 한 번 더.
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", apply);
-  else apply();
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyAll);
+  else applyAll();
 
   window.VTILES = { apply: apply };
 })();

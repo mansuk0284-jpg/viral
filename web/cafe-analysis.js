@@ -1138,6 +1138,27 @@
               `<p class="cy-note">${note}</p></div>`;
           })()
         : "") +
+
+      /* 실행 제안 — 역할별(본사/영업팀/매장). 모든 분석 페이지의 표준 마무리
+         (2026-08-26 사용자: "교육이 될 수도 있고 판촉행사가 될 수도 있고 …
+          지역단위 영업팀, 매장, 혹은 본사에서의 역할도 각각 다를거야"). */
+      (function () {
+        const negIt = itemDiff.find((x) => x.d < 0);
+        const hq = negIt
+          ? `<b class="warn">${negIt.n}</b>${JOSA(negIt.n, "이", "가")} 전국 대비 열세입니다 — 이 도시 대상 <b>판촉·전시 지원</b> 검토가 필요합니다.`
+          : itemDiff.length
+          ? `품목 구성이 전국과 크게 다르지 않습니다 — 전국 공통 프로모션이 이 도시에도 유효합니다.`
+          : `표본 확대가 우선입니다 — 이 도시의 <b>후기 요청 캠페인</b> 지원을 검토하세요.`;
+        const team = sized.length >= 2
+          ? `<b class="warn">${sized[sized.length - 1].n}</b>의 상담 방식 점검과 <b>${sized[0].n}</b> 사례 전파(<b>매니저 교육</b>)를 병행하세요.`
+          : `매장별 표본이 얇습니다 — 매장 방문 시 <b>후기 요청 실행 여부</b>를 점검하세요.`;
+        const store = `계약 고객에게 <b>담당자 실명이 남는 후기</b> 작성을 요청하세요 — 실명 후기가 다음 고객의 지명 방문을 만듭니다.`;
+        return `<div class="cy-sec"><h5>실행 제안 <i>역할별</i></h5><ul class="role-plan">` +
+          `<li class="rp-hq"><em>본사</em><span>${hq}</span></li>` +
+          `<li class="rp-team"><em>영업팀</em><span>${team}</span></li>` +
+          `<li class="rp-store"><em>매장</em><span>${store}</span></li>` +
+          `</ul></div>`;
+      })() +
       `</div>`;
   }
 
@@ -1482,7 +1503,25 @@
       storeProfile(st.store, c) +
       scaleCard("store", st.store, st.region) +
       mgrBlock(st.store, c) +
-      `<div class="ca-ncard sv-actcard"><h4 class="ca-ch">현장 액션</h4><div class="sv-action">${para(action)}</div></div>` +
+      /* 현장 액션 — 역할별(본사/영업팀/매장) 표준 블록(2026-08-26).
+         매장 줄은 기존 데이터 기반 액션, 영업팀·본사 줄은 이 매장의 처지
+         (지역평균 대비·열세 품목)에서 도출한다. */
+      (function () {
+        const team = lead === "l"
+          ? `LG 우위 매장입니다 — <b>회복 계획(품목·혜택)</b>을 함께 세우고 월 단위로 점검하세요.`
+          : (lead === "s" && diff < 0)
+          ? `우위지만 지역평균보다 낮습니다 — <b>이웃 우수 매장과 상담 방식 교차 점검(교육)</b>을 잡아 주세요.`
+          : `현 우위 유지 국면 — 이 매장의 상담 방식을 <b>지역 교육 사례</b>로 활용하세요.`;
+        const hq = sLose.length
+          ? `<b class="warn">${sLose.map((x) => x.n).join(" · ")}</b> 열세 — <b>대안 모델·혜택(판촉) 지원</b>을 검토해 주세요.`
+          : `열세 품목이 없습니다 — 현행 혜택 구조 유지가 유효합니다.`;
+        return `<div class="ca-ncard sv-actcard"><h4 class="ca-ch">현장 액션 <i class="ca-tag">역할별</i></h4>` +
+          `<div class="sv-action"><ul class="role-plan">` +
+          `<li class="rp-store"><em>매장</em><span>${action}</span></li>` +
+          `<li class="rp-team"><em>영업팀</em><span>${team}</span></li>` +
+          `<li class="rp-hq"><em>본사</em><span>${hq}</span></li>` +
+          `</ul></div></div>`;
+      })() +
       (sib.length > 1 ? `<div class="ca-ncard sv-peercard"><h4 class="ca-ch">${st.region} 내 비교 <i class="ca-tag">삼성 비중順</i></h4>` +
         `<div class="sv-peers">` + sib.slice().sort((a, b) => pct(b.s, b.l) - pct(a.s, a.l)).map((x) => {
           const sh = pct(x.s, x.l), me = x.name === st.store;
@@ -1592,7 +1631,16 @@
       (winsCompare ? `① <b>비교 견적</b>을 먼저 제안(승률 ${cShare}%) ` : `① 비교 상담 <b class="warn">패턴 분석</b> 후 대응 논리 보강 `) +
       (bl.length ? `② <b>${bl[0].n}</b>${hasJong(bl[0].n) ? "을" : "를"} 상담 마무리에 수치로 제시 ` : "") +
       (peak && peak !== low ? `③ <b>${+peak}월</b> 성수기 전 후기 요청 캠페인` : "") +
-      `</p></div>`,
+      `</p></div>` +
+      /* 실행 제안 — 역할별(전국판). 모든 분석 페이지의 표준 마무리(2026-08-26) */
+      `<div class="fc-sec"><h5>실행 제안 — 역할별</h5><ul class="role-plan">` +
+      `<li class="rp-hq"><em>본사</em><span>` +
+      (winsCompare
+        ? `비교 상담 승률 <b>${cShare}%</b> 우위 — 이 구조를 <b>전국 판촉 메시지·비교 콘텐츠</b>로 활용할 수 있습니다.`
+        : `비교 상담 승률 <b class="warn">${cShare}%</b> 열세 — <b>비교 대응 콘텐츠와 혜택 설계</b>가 필요합니다.`) + `</span></li>` +
+      `<li class="rp-team"><em>영업팀</em><span>열세 지역부터 <b>후기 요청 캠페인·매니저 교육</b>을 배정하세요 — 우위·열세 지역은 지도에서 확인됩니다.</span></li>` +
+      `<li class="rp-store"><em>매장</em><span>모든 계약에서 <b>담당자 실명 후기 요청</b>을 표준 동작으로 — 실명 후기가 다음 고객의 지명 방문을 만듭니다.</span></li>` +
+      `</ul></div>`,
       [{ t: "비교 상담 승률 " + cShare + "%", neg: !winsCompare },
        peak && peak !== low ? { t: "후기 최다 " + (+peak) + "월", neg: false } : null].filter(Boolean),
       !winsCompare);

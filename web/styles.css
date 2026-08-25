@@ -2213,3 +2213,18 @@ body.portal-open .hero-art > .hero-stage { display: block; }
 /* 블랙홀 효과 장식화 — 클릭은 아래 채널 카드가 받는다(2026-08-26) */
 .portal-deco { pointer-events: none; cursor: default; display: block; }
 .ap-channel { cursor: pointer; }
+
+/* 채널 카드 — 채널별 센싱기간·건수 요약 목록(2026-08-26) */
+.ap-chlist { list-style: none; margin: 10px 0 0; padding: 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+.ap-chlist li { display: flex; align-items: baseline; gap: 6px; min-width: 0;
+  font-size: 11px; line-height: 1.45; color: #5d6b80; white-space: nowrap; }
+.ap-chlist b { font-weight: 800; color: #172a42; flex: 0 1 auto; overflow: hidden; }
+.ap-chlist i { font-style: normal; font-weight: 800; color: #1f5fd0;
+  font-variant-numeric: tabular-nums; }
+.ap-chlist em { font-style: normal; font-size: 10px; color: #8a94a6; margin-left: auto; }
+.ap-chlist em.off { opacity: .7; }
+/* 2열은 칸이 좁아 채널명이 잘렸다(실측 "다이렉트결혼준비"→소실) — 1열 + 이름 보존 */
+.ap-chlist { grid-template-columns: 1fr; gap: 3px 0; margin-top: 8px; }
+.ap-chlist b { overflow: visible; flex: 0 0 auto; }
+.ap-chlist li { font-size: 10.5px; }

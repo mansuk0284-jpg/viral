@@ -192,6 +192,22 @@
         `이 품목 상담에서는 가격 비교 질문이 먼저 들어올 가능성이 큽니다.</p></div>`);
     }
 
+    // ⑥ 실행 제안 — 역할별(본사/영업팀/매장). 모든 분석 페이지의 표준 마무리.
+    (function () {
+      const hq = rivalSide.length
+        ? `경쟁 유통이 <b class="warn">${rivalSide.length}곳</b> 상권에서 인스타로 고객을 부르고 있습니다 — <b>매장 계정 운영 가이드·공식 콘텐츠 킷</b> 지원이 필요합니다.`
+        : `이 채널의 매장 홍보 지면이 비어 있습니다 — <b>매장 계정 운영 가이드</b>로 우리 지면을 만드는 것부터가 과제입니다.`;
+      const team = pushed.length
+        ? `<b class="warn">${pushed[0]}</b> 등 경쟁이 미는 품목의 <b>행사 시점을 모니터링</b>해 상권별 대응 <b>판촉</b>을 검토하세요.`
+        : `경쟁 매장의 오픈·특가 게시 시점을 모니터링해 상권별 대응 <b>판촉</b>을 검토하세요.`;
+      const store = `매장 계정 게시를 정례화하고, 구매 고객에게 <b>매장 태그와 함께 후기 게시</b>를 요청하세요.`;
+      secs.push(`<div class="cy-sec"><h5>실행 제안 <i>역할별</i></h5><ul class="role-plan">` +
+        `<li class="rp-hq"><em>본사</em><span>${hq}</span></li>` +
+        `<li class="rp-team"><em>영업팀</em><span>${team}</span></li>` +
+        `<li class="rp-store"><em>매장</em><span>${store}</span></li>` +
+        `</ul></div>`);
+    })();
+
     /* ── 좌측 트렌드 요약 — 유튜브와 같은 불릿 문법 */
     const NEW_RE = /신제품|신모델|신형|출시|오픈|그랜드오픈|감사제|페스타|세일|혜택|할인|행사|이벤트/;
     const bullets = [];
