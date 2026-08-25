@@ -723,6 +723,9 @@ body.portal-open #sourceMosaic.is-tree {
 }
 .src-ic svg { width: 60%; height: 60%; display: block; }
 .src-cafe .src-ic    { background: #111; }        /* 다이렉트결혼준비 실제 브랜드(검정 로고) */
+/* J웨딩 — 배경 규칙이 빠져 흰 글자 SVG 가 투명 배경에 묻혀 '이미지가 없어'
+   보였다(2026-08-26 사용자 지적). 웨딩 톤의 딥 로즈로 채운다. */
+.src-jwed .src-ic    { background: linear-gradient(135deg, #8a2f4e, #c04a6e); }
 .src-mom .src-ic     { background: #03C75A; }     /* 부울경 맘카페 = 네이버 카페 수집 */
 .src-ohou .src-ic    { background: #35C5F0; }
 .src-insta .src-ic   { background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); }
