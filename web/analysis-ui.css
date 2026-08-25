@@ -614,3 +614,28 @@ body.view-nr .nr-note { padding-bottom: 12px; }
 @media (prefers-reduced-motion: reduce) {
   .ca2 .geo-svg path.on, .ca2 .geo-svg .pv-name { transition: none; }
 }
+
+/* ── 2026-08-25 사용자 지시 묶음: 다이렉트웨딩 UI 정돈 ─────────────────
+   ① 페이지 타이틀("전국 · 2026년 8월" 류)을 별도 박스+색으로 — 모든 분석
+      페이지 공통(전국 .nsc-h / 지역·매장 .rv-head / 기타 .ca-stat-h /
+      채널 좌측 .cx-sum-h). */
+.ca2 .nsc-h, .ca2 .rv-head, .ca2 .ca-stat-h, .ca2 .cx-sum-h {
+  background: linear-gradient(135deg, rgba(31,95,208,.10), rgba(31,95,208,.03));
+  border: 1px solid rgba(31,95,208,.15); border-left: 4px solid #1f5fd0;
+  border-radius: 12px; padding: 9px 13px 10px; }
+.ca2 .nsc-h h3, .ca2 .rv-head h3, .ca2 .ca-stat-h h3, .ca2 .cx-sum-h h3 { margin: 0; }
+
+/* ② 지도 아래 부연설명 — 가운데 정렬을 왼쪽 정렬로(단정하게) */
+.ca2 .ca-geonote { text-align: left; }
+
+/* ③ 전국 우측 카드 높이 통일 — 5장이 2×3 그리드에서 3행만 내용 높이로
+   짧아져 들쭉날쭉했다. 세 행을 균등 분할한다. */
+.ca2 .ca-nright { grid-template-rows: repeat(3, 1fr); }
+
+/* ④ 소제목 위계 강화 — 소제목(왼쪽 파랑 액센트 바)과 본문이 한눈에 갈리게.
+   카드 상세(.fc-sec h5)·진단 박스(.cy-sec h5) 공통. */
+.ca2 .fc-sec > h5, .ca2 .yt-rep .cy-sec > h5, .ca2 .rv-third .cy-sec > h5 {
+  border-left: 3px solid #1f5fd0; padding-left: 8px; border-bottom: 0;
+  font-size: 13.5px; color: #14335f; letter-spacing: -0.01em; margin-bottom: 6px; }
+.ca2 .fc-sec { margin-top: 12px; }
+.ca2 .fc-sec:first-child { margin-top: 0; }
