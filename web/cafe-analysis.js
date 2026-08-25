@@ -327,6 +327,15 @@
         const name = p.getAttribute("data-region"), d = R[name]; if (!d) return;
         const sh = pct(d.s, d.l), tot = d.s + d.l;
         p.addEventListener("mouseenter", () => {
+          /* 블록 리프트(2026-08-25 사용자: "마우스를 가져가면 해당 지역별 블럭이
+             위로 솟아오르는 효과"). 떠오르는 시각 효과는 CSS(.geo-lift)가,
+             여기서는 ①경로에 클래스 ②그 지역 라벨에도 같은 클래스를 붙여
+             글자가 블록과 함께 떠오르게 한다. z-겹침은 DOM 재배치 대신
+             그림자·밝기로 표현한다 — 재배치하면 라벨이 블록 밑에 깔린다. */
+          p.classList.add("geo-lift");
+          svg.querySelectorAll(".pv-name").forEach((t) => {
+            if (t.textContent === name) t.classList.add("geo-lift");
+          });
           tip.innerHTML =
             `<span class="gt-donut" style="--sh:${sh}"><b>${sh}<i>%</i></b></span>` +
             `<span class="gt-txt"><b class="gt-rg">${name}</b>` +
@@ -342,7 +351,11 @@
           tip.style.left = Math.max(6, x) + "px";
           tip.style.top = Math.max(6, y) + "px";
         });
-        p.addEventListener("mouseleave", () => { tip.hidden = true; });
+        p.addEventListener("mouseleave", () => {
+          tip.hidden = true;
+          p.classList.remove("geo-lift");
+          svg.querySelectorAll(".pv-name.geo-lift").forEach((t) => t.classList.remove("geo-lift"));
+        });
       });
     });
   }

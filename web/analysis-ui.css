@@ -600,3 +600,17 @@ body.view-nr .nr-note { padding-bottom: 12px; }
    로컬 저장 전이거나 저장 실패한 글은 그림 칸을 접고 글줄만 남긴다(.none). */
 .ca2.yt-wrap .ig-thumb img { object-fit: cover; width: 100%; height: 100%; }
 .ca2.yt-wrap .ig-thumb.none { display: none; }
+
+/* ── 지도 블록 리프트 (2026-08-25 사용자: "마우스를 갖다댄 경우 시각적으로
+   효과가 있었으면 해") — 지역 블록이 위로 솟아오르며 그림자를 드리운다.
+   z-겹침을 DOM 재배치로 풀면 라벨이 블록 밑에 깔리므로, 그림자·밝기로만 세운다. */
+.ca2 .geo-svg path.on { transition: transform .18s ease, filter .18s ease;
+  transform-box: fill-box; transform-origin: center; }
+.ca2 .geo-svg path.on.geo-lift { transform: translateY(-7px);
+  filter: drop-shadow(0 12px 10px rgba(23,42,66,.38)) brightness(1.07) saturate(1.08);
+  stroke: #fff; stroke-width: 1.6; }
+.ca2 .geo-svg .pv-name { transition: transform .18s ease; transform-box: fill-box; }
+.ca2 .geo-svg .pv-name.geo-lift { transform: translateY(-7px); font-weight: 900; }
+@media (prefers-reduced-motion: reduce) {
+  .ca2 .geo-svg path.on, .ca2 .geo-svg .pv-name { transition: none; }
+}
