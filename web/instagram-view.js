@@ -36,9 +36,15 @@
       months: G.months || [],
       onChange: () => paint(document.getElementById("channelPanel")),
     });
-    /* 69건이 5년에 걸쳐 흩어져 있다. 현재 월로 열면 십여 건뿐이라
-       "이게 다인가"로 읽힌다. 표본이 작은 채널은 전체 기간으로 연다. */
-    if (PER) PER.setAll();
+    /* 첫 화면은 **최근 3개월** — 유튜브와 같은 문법(2026-08-26).
+       지금 도는 이야기를 먼저 보여주고, 칩을 누르면 평소 동작으로 돌아간다. */
+    if (PER) {
+      const d = new Date();
+      let y = d.getFullYear(), m = d.getMonth() + 1 - 2;
+      while (m <= 0) { m += 12; y -= 1; }
+      PER.setInit(`${y}-${String(m).padStart(2, "0")}-01`,
+        d.toISOString().slice(0, 10), "최근 3개월");
+    }
     return PER;
   }
   const labOf = () => (per() ? per().label() : "전체");
@@ -141,40 +147,69 @@
     const pushed = Object.keys(IT).filter((k) => IT[k].n >= 5)
       .sort((a, b) => (IT[b].biz / IT[b].n) - (IT[a].biz / IT[a].n)).slice(0, 3);
 
-    const actLi = [];
-    if (rivalSide.length) {
-      actLi.push(`<li class="warn-li">매장명이 적힌 글 가운데 <b>${rivalSide.length}곳</b>이` +
-        ` <b>하이마트·LG가 올린</b> 오픈·특가 홍보입니다` +
-        ` (${rivalSide.slice(0, 3).join(" · ")}${rivalSide.length > 3 ? " 외" : ""}).` +
-        ` 같은 상권에서 <b>경쟁이 인스타로 고객을 부르고 있습니다</b>.</li>`);
+    /* ── 종합 진단 — 보고서형 문어체(유튜브와 같은 문법, 2026-08-26).
+       사실(수치) → 해석 → 시사점 순. 없는 사건을 지어내지 않는다. */
+    const secs = [];
+    // ① 게시 동향 — 누가 쓰는 채널인가
+    secs.push(`<div class="cy-sec"><h5>게시 동향</h5><p class="cy-note">` +
+      `선택 기간의 글은 <b>${cur.length}건</b>으로, 개인 글 <b>${P.n}건</b> · 판매자 홍보 <b class="warn">${B.n}건</b>(${bizPct}%)입니다. ` +
+      (bizPct >= 50
+        ? `절반 이상이 매장·업체가 올린 호객 글이라, 이 채널의 수치는 고객 여론이 아니라 <b>판매자 활동량</b>으로 읽는 것이 정확합니다.`
+        : `개인 글이 절반을 넘어, 고객이 스스로 남기는 이야기가 이 기간의 중심입니다.`) + `</p></div>`);
+    // ② 브랜드 반응 — 개인 글만, 소표본 가드
+    secs.push(`<div class="cy-sec"><h5>브랜드 반응</h5><p class="cy-note">` +
+      (P.s + P.l >= 10
+        ? `브랜드가 갈리는 개인 글은 삼성 <b>${P.s}건</b> 대 LG <b class="warn">${P.l}건</b>(삼성 ${sh}%)입니다. ` +
+          `판매자 홍보까지 합치면 ${shAll}% 로 달라집니다 — 고객이 말한 양과 파는 쪽이 뿌린 양은 다른 이야기입니다.`
+        : `브랜드가 갈리는 개인 글이 <b>${P.s + P.l}건</b>뿐이라 비율 대신 건수로만 적습니다(삼성 ${P.s} : LG ${P.l}). ` +
+          `여론을 재기엔 작은 표본이므로, 이 채널은 아래 경쟁 유통 활동을 보는 창으로 쓰는 것이 유효합니다.`) + `</p></div>`);
+    // ③ 경쟁 유통 활동 — 인스타의 진짜 쓸모
+    if (active.length) {
+      let line = "";
+      if (rivalSide.length) {
+        line += `매장명이 적힌 글 가운데 <b class="warn">${rivalSide.length}곳</b>이 하이마트·LG가 올린 오픈·특가 홍보입니다` +
+          `(${rivalSide.slice(0, 3).join(" · ")}${rivalSide.length > 3 ? " 외" : ""}) — 같은 상권에서 경쟁이 인스타로 고객을 부르고 있습니다. `;
+      }
+      line += ourSide.length
+        ? `삼성스토어가 보이는 곳은 <b>${ourSide.join(" · ")}</b> ${ourSide.length}곳입니다 — 그 외 상권에는 이 채널에 우리 흔적이 없습니다.`
+        : `삼성스토어가 올린 글은 <b class="warn">한 건도 잡히지 않았습니다</b> — 이 채널의 매장 홍보 지면을 경쟁이 단독으로 쓰고 있습니다.`;
+      secs.push(`<div class="cy-sec"><h5>경쟁 유통 활동</h5><p class="cy-note">${line}</p></div>`);
     }
-    if (ourSide.length) {
-      actLi.push(`<li>삼성스토어가 보이는 곳은 <b>${ourSide.join(" · ")}</b>` +
-        ` <b>${ourSide.length}곳</b>뿐입니다 —` +
-        ` 나머지 상권은 이 채널에 <b>우리 흔적이 없습니다</b>.</li>`);
-    } else if (active.length) {
-      actLi.push(`<li class="warn-li">삼성스토어가 올린 글은 <b>한 건도 잡히지 않았습니다</b> —` +
-        ` 이 채널에 우리 흔적이 비어 있습니다.</li>`);
-    }
-    /* 반응이 큰 글이 누구 것인지 — 개인 글이 상위를 차지하면 고객 목소리가 도는 것이고
-       판매자 글이 차지하면 광고가 도는 것이다. 같은 '좋아요'라도 뜻이 다르다. */
+    // ④ 반응 상위 글의 성격
     if (liked.length >= 4) {
       const top4 = liked.slice(0, 4);
       const bizTop = top4.filter((x) => x.biz).length;
-      actLi.push(bizTop >= 3
-        ? `<li class="warn-li">반응 상위 4건 중 <b>${bizTop}건이 판매자 글</b>입니다 —` +
-          ` 이 채널에서 도는 것은 고객 목소리가 아니라 <b>광고</b>입니다.</li>`
-        : `<li>반응 상위 4건 중 <b>${4 - bizTop}건이 개인 글</b>입니다` +
-          ` (1위 좋아요 ${fmtN(top4[0].lk)}). 고객이 실제로 반응한 글이라` +
-          ` <b>어떤 이야기가 먹히는지</b> 읽어볼 만합니다.</li>`);
+      secs.push(`<div class="cy-sec"><h5>반응 상위 글</h5><p class="cy-note">` +
+        (bizTop >= 3
+          ? `좋아요 상위 4건 중 <b class="warn">${bizTop}건이 판매자 글</b>입니다 — 이 기간 이 채널에서 도는 것은 고객 목소리가 아니라 광고입니다.`
+          : `좋아요 상위 4건 중 <b>${4 - bizTop}건이 개인 글</b>입니다(1위 좋아요 ${fmtN(top4[0].lk)}). ` +
+            `고객이 실제로 반응한 이야기이므로, 어떤 문구·품목이 반응을 얻는지 상담 화법에 참고할 수 있습니다.`) + `</p></div>`);
     }
+    // ⑤ 품목 트렌드 — 경쟁이 미는 품목
     if (pushed.length) {
-      actLi.push(`<li><b>${pushed.join(" · ")}</b>${josa(pushed[pushed.length - 1], "은", "는")}` +
-        ` 홍보 글 비중이 가장 높습니다 — <b>경쟁이 밀고 있는 품목</b>입니다.` +
-        ` 이 품목 상담에서는 <b>가격 비교 질문</b>이 먼저 들어옵니다.</li>`);
+      secs.push(`<div class="cy-sec"><h5>품목 트렌드</h5><p class="cy-note">` +
+        `홍보 글 비중이 가장 높은 품목은 <b class="warn">${pushed.join(" · ")}</b>입니다 — 경쟁이 광고 지면을 쓰고 있는 품목이므로, ` +
+        `이 품목 상담에서는 가격 비교 질문이 먼저 들어올 가능성이 큽니다.</p></div>`);
     }
-    actLi.push(`<li>이 기간 고객 후기는 <b>${P.n}건</b>이라 여론을 재기엔 작습니다.` +
-      ` 대신 <b>경쟁 매장이 무엇을 언제 미는지</b> 보는 창으로 쓰세요.</li>`);
+
+    /* ── 좌측 트렌드 요약 — 유튜브와 같은 불릿 문법 */
+    const NEW_RE = /신제품|신모델|신형|출시|오픈|그랜드오픈|감사제|페스타|세일|혜택|할인|행사|이벤트/;
+    const bullets = [];
+    if (liked.length) {
+      const t0 = liked[0];
+      bullets.push(`${t0.biz ? "판매자" : "개인"} 글 ‘${(t0.t || "").slice(0, 22)}…’${t0.acc ? `(${t0.acc})` : ""}이 좋아요 <b>${fmtN(t0.lk)}</b>로 반응 1위입니다.`);
+      const c0 = liked.find((x) => !x.biz);
+      if (c0 && liked[0].biz) bullets.push(`개인 글 중에서는 ‘${(c0.t || "").slice(0, 20)}…’(♥${fmtN(c0.lk)})의 반응이 가장 큽니다.`);
+    }
+    const nv = cur.filter((x) => NEW_RE.test(x.t || "")).length;
+    if (nv) bullets.push(`신모델·행사(오픈·특가) 언급 글이 <b>${nv}건</b> 있습니다 — 대부분 판매자 홍보로, 경쟁 유통의 행사 시점을 읽을 수 있습니다.`);
+    if (rivalSide.length) bullets.push(`하이마트·LG 매장 홍보가 <b class="warn">${rivalSide.length}곳</b>에서 잡힙니다 — 경쟁이 지금 인스타로 고객을 부르는 상권입니다.`);
+    const hot = Object.keys(ITc).sort((a, b) => ITc[b].n - ITc[a].n).slice(0, 3);
+    if (hot.length) bullets.push(`언급 상위 품목은 <b>${hot.join(" · ")}</b> 순입니다.`);
+    const trendBlock = bullets.length
+      ? `<div class="yt-trend"><h4>이 기간 인스타 트렌드</h4>` +
+        `<ul>${bullets.slice(0, 4).map((b) => `<li>${b}</li>`).join("")}</ul></div>`
+      : "";
 
     return `<div class="ca2 yt-wrap">` +
       `<div class="cx-top">` +
@@ -214,23 +249,37 @@
           `<p class="yt-note"><b>비율을 적지 않습니다.</b> 개인 글 중 브랜드가 갈리는 건 ` +
           `${P.s + P.l}건뿐입니다 — 한 사람 마음이 바뀌면 퍼센트가 크게 흔들리는 표본입니다. ` +
           `판매자 홍보까지 넣어도 삼성 ${cnt(cur, "s")} · LG ${cnt(cur, "l")}건입니다.</p>`) +
+      trendBlock +
       `<p class="jw-note">게시일과 좋아요는 게시물을 하나씩 열어 받아온 값입니다` + `${hidden ? ` · 좋아요를 감춘 <b>${hidden}건</b>은 순위에서 뺐습니다` : ""}` + `. ${G.note}</p>` +
       `</div></div>` +
 
+      /* 우측 — 유튜브와 같은 문법: 카테고리별 순위 카드 + 종합 진단.
+         반응 순위를 **개인 / 판매자**로 갈라 각각 1~3위(같은 좋아요라도 뜻이 다르다).
+         기간 안에 없으면 전체 기간 상위를 보여주되 그 사실을 밝힌다. */
       `<div class="cx-right">` +
-      `<div class="ca-ncard">` +
-      `<h4 class="ca-ch">반응이 큰 글 <i class="ca-tag">${labOf()} · 좋아요 순</i></h4>` +
-      (topLi ? `<div class="yt-podium">${topLi}</div>`
-             : `<p class="fc-plain">이 기간에 좋아요를 볼 수 있는 글이 없습니다.</p>`) +
-      `</div>` +
+      (function () {
+        const allLiked = (G.posts || []).filter((x) => x.lk != null).sort((a, b) => b.lk - a.lk);
+        const rankCard = (title, list, fullList) => {
+          const use = list.length ? list : fullList;
+          const note = list.length ? ""
+            : `<p class="ca-splx">이 기간에는 해당 글이 없어 <b>전체 기간 상위</b>를 보여줍니다.</p>`;
+          return `<div class="ca-ncard">` +
+            `<h4 class="ca-ch">${title} <i class="ca-tag">좋아요 순 · 클릭 → 원문</i></h4>` + note +
+            (use.length ? `<div class="yt-podium">${podium(use)}</div>`
+              : `<p class="fc-plain">좋아요를 볼 수 있는 글이 없습니다.</p>`) +
+            `</div>`;
+        };
+        return rankCard("반응 큰 글 — 개인", liked.filter((x) => !x.biz), allLiked.filter((x) => !x.biz)) +
+          rankCard("반응 큰 글 — 판매자·홍보", liked.filter((x) => x.biz), allLiked.filter((x) => x.biz));
+      })() +
       `<div class="ca-ncard">` +
       `<h4 class="ca-ch">품목 <i class="ca-tag">건수 순 · 홍보 몇 건인지 함께</i></h4>` +
       (itemLi ? `<ul class="it-list">${itemLi}</ul>`
               : `<p class="fc-plain">품목이 특정된 글이 적습니다.</p>`) +
       `</div>` +
-      `<div class="ca-ncard">` +
-      `<h4 class="ca-ch">현장 액션 <i class="ca-tag">이 채널이 말해주는 것</i></h4>` +
-      `<ul class="yt-act">${actLi.join("")}</ul>` +
+      `<div class="ca-ncard yt-rep">` +
+      `<h4 class="ca-ch">종합 진단 <i class="ca-tag">${labOf()}</i></h4>` +
+      secs.join("") +
       `</div>` +
       `</div></div></div>`;
   }
