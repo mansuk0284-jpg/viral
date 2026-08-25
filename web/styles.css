@@ -2203,3 +2203,10 @@ body.portal-open .hero-art > .hero-stage { display: block; }
   animation: pcRing 2.2s ease-out .55s infinite;
 }
 .ap-cue .pc-ring { position: absolute; }
+
+/* 미디어 교체(2026-08-26) — 포털 진입 버튼·큐가 채널 카드의 **영상 위**에 얹힌다.
+   기존 배치 규칙이 .ap-media-portal 에만 걸려 있어 같은 배치를 영상 쪽에도 준다. */
+.ap-media-film { position: relative; }
+.ap-media-film .portal-hole { position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%); height: 78%; width: auto; aspect-ratio: 1/1;
+  border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
