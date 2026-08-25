@@ -171,7 +171,7 @@ body.view-channel .site-footer { display: none; }
 .ca-geohost { position: relative; width: auto; max-width: 100%; margin: 0; display: inline-block; }
 /* 지도 2배급 확대 — 폭 가득 + 높이는 뷰포트에 맞춰(한 화면 유지). 좌측 밀착(margin:0) */
 /* 높이 기준 고정 → 폭은 지도가 필요한 만큼만 */
-.geo-svg { height: min(70vh, 600px); width: auto; max-width: 100%; display: block; }
+.geo-svg { height: min(74vh, 650px); width: auto; max-width: 100%; display: block; }  /* 2026-08-25 사용자: "박스는 그대로, 지도만 조금 더 크게" — 실측 여유 60px 내에서 확대 */
 /* 분포 바 아래 한 줄 설명 */
 .ca-barcap { margin: 9px 2px 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
 .ca-barcap b { color: #1f5fd0; font-weight: 800; }
