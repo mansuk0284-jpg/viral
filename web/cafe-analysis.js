@@ -889,9 +889,13 @@
     /* 좌측은 전국 페이지와 같은 "제목 있는 섹션 박스" 양식을 따른다
        (2026-08-25 사용자 지시: "다른 지역 페이지도 전국 양식을 참고하여").
        내용은 지역답게 — 매장 우위·열세와 전국 내 위치까지 한 단계 디테일하다. */
+    /* 지역 대표 명소 일러스트(직접 작도 SVG, region-art.js) — 시각적 재미
+       (2026-08-25 사용자 지시). 없으면 조용히 생략한다. */
+    const rgArt = (window.VART && VART.region && VART.region[c.title])
+      ? `<span class="rv-art" aria-hidden="true" title="${c.title} 대표 명소">${VART.region[c.title]}</span>` : "";
     return `<div class="ca-rv">` +
       `<div class="rv-left">` +
-      `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
+      `<div class="rv-head">${rgArt}<h3>${c.title}</h3><span>${c.sub}</span></div>` +
       `<div class="nsc-total"><b>${fmtN(c.s + c.l)}</b><i>건 분석</i></div>` +
 
       `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
@@ -1465,7 +1469,15 @@
       /* 좌측은 전국·지역과 같은 "제목 있는 섹션 박스" 문법(2026-08-26 사용자:
          "매장 상세 페이지도 같은 양식으로") — 총량 → 후기 건수 박스 → 위치 박스. */
       `<div class="sv-left">` +
-      `<div class="rv-head"><h3>${c.title}</h3><span>${c.sub}</span></div>` +
+      /* 백화점 체인 건물 일러스트(직접 작도 SVG) — 상호에서 체인을 갈라 고른다 */
+      (function () {
+        const t = c.title || "";
+        const ck = /^갤/.test(t) ? "갤러리아" : /^AK/i.test(t) ? "AK" : /^대백/.test(t) ? "대백"
+          : /^신세계/.test(t) ? "신세계" : /^(현대|더현대)/.test(t) ? "현대" : /^롯데/.test(t) ? "롯데" : null;
+        const art = (ck && window.VART && VART.chain && VART.chain[ck])
+          ? `<span class="rv-art" aria-hidden="true" title="${ck}백화점">${VART.chain[ck]}</span>` : "";
+        return `<div class="rv-head">${art}<h3>${c.title}</h3><span>${c.sub}</span></div>`;
+      })() +
       `<div class="sv-verdict ${lead}">${verdict}</div>` +
       `<div class="nsc-total"><b>${fmtN(tot)}</b><i>건 분석</i></div>` +
 

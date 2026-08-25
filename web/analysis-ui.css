@@ -639,3 +639,10 @@ body.view-nr .nr-note { padding-bottom: 12px; }
   font-size: 13.5px; color: #14335f; letter-spacing: -0.01em; margin-bottom: 6px; }
 .ca2 .fc-sec { margin-top: 12px; }
 .ca2 .fc-sec:first-child { margin-top: 0; }
+/* 타이틀 박스 안 명소·체인 일러스트 — 우측에 살짝 크게, 브랜드 파랑 라인 */
+.ca2 .rv-head { position: relative; }
+.ca2 .rv-head .rv-art { position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  color: #1f5fd0; opacity: .85; pointer-events: none; }
+.ca2 .rv-head .rv-art svg { width: 46px; height: 46px; display: block; }
+/* 긴 지역·매장명이 일러스트를 뚫지 않게 — 아트가 있을 때만 오른쪽 여백 */
+.ca2 .rv-head:has(.rv-art) h3, .ca2 .rv-head:has(.rv-art) span { padding-right: 54px; }
