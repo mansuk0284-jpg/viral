@@ -2228,3 +2228,19 @@ body.portal-open .hero-art > .hero-stage { display: block; }
 .ap-chlist { grid-template-columns: 1fr; gap: 3px 0; margin-top: 8px; }
 .ap-chlist b { overflow: visible; flex: 0 0 auto; }
 .ap-chlist li { font-size: 10.5px; }
+
+/* 매장 카드 — ’26 바이럴 최다 매장 TOP5 (2026-08-26) */
+.ap-storetop { margin: 10px 0 8px; }
+.ap-storetop h4 { margin: 0 0 6px; font-size: 11.5px; font-weight: 900; color: #172a42;
+  letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 6px;
+  padding-bottom: 4px; border-bottom: 1px dashed rgba(23,42,66,.14); }
+.ap-storetop h4 i { font-style: normal; font-size: 9.5px; font-weight: 700; color: #8a94a6; margin-left: auto; }
+.ap-storetop ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.ap-storetop li { display: flex; align-items: baseline; gap: 7px; font-size: 11px;
+  line-height: 1.45; white-space: nowrap; }
+.ap-storetop li i { font-style: normal; flex: 0 0 14px; text-align: center; font-size: 10px;
+  font-weight: 900; color: #fff; background: #9aa7ba; border-radius: 5px; line-height: 14px; }
+.ap-storetop li:first-child i { background: #1f5fd0; }
+.ap-storetop li b { font-weight: 800; color: #172a42; }
+.ap-storetop li em { font-style: normal; margin-left: auto; font-weight: 800; color: #1f5fd0;
+  font-variant-numeric: tabular-nums; }

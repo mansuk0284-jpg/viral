@@ -133,7 +133,28 @@
     ul.innerHTML = rows.join("");
   }
 
-  const applyAll = function () { apply(); chList(); };
+  /* ── 매장 카드의 '’26 바이럴 최다 매장' TOP5(2026-08-26 사용자 지시) ──
+     periodStores["2026"] (다이렉트웨딩 매장 매칭, 2026 누적)에서 상위 5개점.
+     데이터가 원본 — 수집이 늘면 순위·건수가 따라온다. */
+  function storeTop() {
+    const box = document.getElementById("apStoreTop");
+    const D = window.CAFE_DATA;
+    if (!box || !D || !D.periodStores || !D.periodStores["2026"]) return;
+    const rows = [];
+    Object.keys(D.periodStores["2026"]).forEach((rg) => {
+      (D.periodStores["2026"][rg] || []).forEach((v) => {
+        rows.push({ n: v.n, t: (v.s || 0) + (v.l || 0) });
+      });
+    });
+    rows.sort((a, b) => b.t - a.t);
+    if (!rows.length) return;
+    box.innerHTML = `<h4>’26 바이럴 최다 매장 <i>후기 건수</i></h4><ol>` +
+      rows.slice(0, 5).map((x, i) =>
+        `<li><i>${i + 1}</i><b>${x.n}</b><em>${x.t.toLocaleString("ko-KR")}건</em></li>`).join("") +
+      `</ol>`;
+  }
+
+  const applyAll = function () { apply(); chList(); storeTop(); };
 
   // 데이터 스크립트보다 뒤에 실려야 한다. 혹시 앞서 실리더라도 DOM 준비 뒤 한 번 더.
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyAll);
