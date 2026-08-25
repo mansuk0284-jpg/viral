@@ -2210,3 +2210,6 @@ body.portal-open .hero-art > .hero-stage { display: block; }
 .ap-media-film .portal-hole { position: absolute; left: 50%; top: 50%;
   transform: translate(-50%, -50%); height: 78%; width: auto; aspect-ratio: 1/1;
   border: 0; background: none; border-radius: 50%; cursor: pointer; z-index: 3; }
+/* 블랙홀 효과 장식화 — 클릭은 아래 채널 카드가 받는다(2026-08-26) */
+.portal-deco { pointer-events: none; cursor: default; display: block; }
+.ap-channel { cursor: pointer; }
