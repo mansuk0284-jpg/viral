@@ -47,7 +47,7 @@
     { key: "naver-review", name: "네이버 리뷰·예약", sub: "플레이스 방문자 평가", cls: "cx-nrev", live: true },
     // 채널별 현황과 **같은 자료**를 매장 축으로 본 것이다(사용자 지시 2026-08-23)
     { key: "jwedding", name: "제이웨딩", sub: "칭찬 · 혼수 선택이유", cls: "cx-jwed", live: true },
-    { key: "naver-blog", name: "네이버 블로그", sub: "구매 후기글", cls: "cx-blog" },
+    { key: "naver-blog", name: "네이버 블로그", sub: "구매 후기글", cls: "cx-blog", live: true },
     { key: "busan-mom-cafe", name: "맘카페", sub: "지역 커뮤니티", cls: "cx-mom" },
     { key: "youtube", name: "유튜브", sub: "혼수 브이로그", cls: "cx-youtube", live: true },
     { key: "instagram", name: "인스타그램", sub: "매장 인스타 활동", cls: "cx-insta", live: true },
@@ -313,11 +313,40 @@
     return li;
   }
 
+  /* 네이버 블로그 — 채널 화면(blog-view)과 같은 자료(NBLOG.stores)를 매장 축으로.
+     체험단 표기를 함께 보여준다(마케팅 물량과 고객 글을 갈라 읽게). */
+  function blogCard(ch, name) {
+    const NB = window.NBLOG;
+    const v = NB && NB.stores ? (NB.stores[name] || pick(NB.stores, name)) : null;
+    const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
+      `<i class="cx-live-tag">실데이터</i></div>`;
+    if (!v || !v.n) {
+      return `<div class="cx-card ${ch.cls}">${head}` +
+        `<div class="cx-empty"><em>이 채널에 흔적 없음</em>` +
+        `<span>블로그 검색에 이 매장 이름이 적힌 글이 없습니다</span></div></div>`;
+    }
+    const tot = v.s + v.l;
+    const lead = v.s > v.l ? "s" : v.l > v.s ? "l" : "even";
+    return `<div class="cx-card cx-live ${ch.cls}">${head}` +
+      `<div class="cx-main">` +
+      `<div class="cx-big"><b>${fmtN(v.n)}</b><span>건</span></div>` +
+      `<div class="cx-mini ${lead}"><b>${fmtN(v.s)}<i>:</i>${fmtN(v.l)}</b><span>삼성:LG</span></div>` +
+      `</div>` +
+      (tot ? `<div class="cx-bar"><i class="s" style="width:${(v.s / tot * 100).toFixed(1)}%"></i>` +
+        `<i class="l" style="width:${(v.l / tot * 100).toFixed(1)}%"></i></div>` : "") +
+      (v.sp ? `<div class="cx-sub"><span class="cx-lb">체험단 표기</span>` +
+        `<span class="cx-chip warn">${fmtN(v.sp)}건 — 마케팅 물량 포함</span></div>` : "") +
+      (v.top ? `<div class="cx-sub"><span class="cx-lb">대표 글</span>` +
+        `<span class="cx-chip">${v.top.t}</span></div>` : "") +
+      `</div>`;
+  }
+
   function channelCard(ch, name) {
     if (ch.key === "naver-review") return nrCard(ch, name);
     if (ch.key === "jwedding") return jwCard(ch, name);
     if (ch.key === "youtube") return ytCard(ch, name);
     if (ch.key === "instagram") return igCard(ch, name);
+    if (ch.key === "naver-blog") return blogCard(ch, name);
     if (!ch.live) {
       return `<div class="cx-card cx-wait ${ch.cls}">` +
         `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +

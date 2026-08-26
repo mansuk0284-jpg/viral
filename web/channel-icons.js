@@ -10,7 +10,9 @@
   "use strict";
   const SVG = {
     "jwedding": "<svg viewBox=\"0 0 40 40\" fill=\"none\"><text x=\"20\" y=\"25\" text-anchor=\"middle\" fill=\"#fff\" font-family=\"Georgia,serif\" font-style=\"italic\" font-size=\"19\" font-weight=\"700\">J</text><text x=\"20\" y=\"34\" text-anchor=\"middle\" fill=\"#fff\" font-family=\"Arial,sans-serif\" font-size=\"7.5\" font-weight=\"800\" letter-spacing=\"-0.2\">WEDDING</text></svg>",
-    "naver-blog": "<svg viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M6 4h8l4 4v12H6V4Z\" fill=\"#fff\"/><path d=\"M14 4v4h4\" fill=\"#1ec800\"/><rect x=\"8.5\" y=\"11\" width=\"7\" height=\"1.6\" rx=\"0.8\" fill=\"#1ec800\"/><rect x=\"8.5\" y=\"14\" width=\"7\" height=\"1.6\" rx=\"0.8\" fill=\"#1ec800\"/></svg>",
+    /* 네이버 블로그 — 공식 아이콘 문법(초록 바탕 + 흰 소문자 b, 2026-08-25 확인).
+       예전 문서 아이콘은 블로그로 안 읽혔다(사용자 지시로 교체). */
+    "naver-blog": "<svg viewBox=\"0 0 24 24\" fill=\"none\"><text x=\"12\" y=\"18.2\" text-anchor=\"middle\" fill=\"#fff\" font-family=\"Arial Rounded MT Bold,Arial,sans-serif\" font-size=\"18.5\" font-weight=\"900\">b</text></svg>",
     "busan-mom-cafe": "<svg viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M12 5C7.6 5 4 7.9 4 11.4c0 2.2 1.5 4.2 3.7 5.3-.2.6-.6 2-.7 2.3 0 .2.1.4.4.2.3-.2 2.3-1.6 3.1-2.2.5.1 1 .1 1.5.1 4.4 0 8-2.9 8-6.4S16.4 5 12 5Z\" fill=\"#fff\"/><circle cx=\"9.2\" cy=\"11.3\" r=\"1.15\" fill=\"#03C75A\"/><circle cx=\"12\" cy=\"11.3\" r=\"1.15\" fill=\"#03C75A\"/><circle cx=\"14.8\" cy=\"11.3\" r=\"1.15\" fill=\"#03C75A\"/></svg>",
     "youtube": "<svg viewBox=\"0 0 24 24\" fill=\"none\"><rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"3.5\" fill=\"#fff\"/><path d=\"M10.5 9.2 15 12l-4.5 2.8V9.2Z\" fill=\"#FF0000\"/></svg>",
     "ohou": "<svg viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M12 3.5 4 10v9.5h5.5V14h5v5.5H20V10l-8-6.5Z\" fill=\"#fff\"/></svg>",

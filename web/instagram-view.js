@@ -76,8 +76,10 @@
         : `<span class="yt-own cre">개인</span>`;
       return `<a class="igp ytc ${cls}" href="${x.u}" target="_blank" rel="noopener"` +
         ` title="${x.t} · ${x.d} · 좋아요 ${fmtN(x.lk)}">` +
-        `<span class="ytc-thumb ig-thumb"><img src="assets/ig/${x.id}.jpg" alt="" loading="lazy"` +
-        ` draggable="false" onerror="this.closest('.ig-thumb').classList.add('none')" />` +
+        /* id 없는 글은 img 요청 자체를 안 낸다 — undefined.jpg 404 방지(steward 적발) */
+        `<span class="ytc-thumb ig-thumb${x.id ? "" : " none"}">` +
+        (x.id ? `<img src="assets/ig/${x.id}.jpg" alt="" loading="lazy"` +
+          ` draggable="false" onerror="this.closest('.ig-thumb').classList.add('none')" />` : "") +
         `<i class="ytc-rank">${i + 1}</i></span>` +
         `<span class="ytc-body">` +
         `<b class="yt-t">${x.t}</b>` +

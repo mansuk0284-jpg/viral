@@ -646,3 +646,7 @@ body.view-nr .nr-note { padding-bottom: 12px; }
 .ca2 .rv-head .rv-art svg { width: 46px; height: 46px; display: block; }
 /* 긴 지역·매장명이 일러스트를 뚫지 않게 — 아트가 있을 때만 오른쪽 여백 */
 .ca2 .rv-head:has(.rv-art) h3, .ca2 .rv-head:has(.rv-art) span { padding-right: 54px; }
+/* 블로그 매장 언급 카드 — 매장명 칸 68px 는 "갤러리아 광교"가 잘린다.
+   이름을 자르지 않는다(원칙) — 이름 칸을 내용만큼 주고 막대가 남는 폭을 쓴다. */
+.ca2.yt-wrap .it-row { grid-template-columns: minmax(68px, auto) minmax(40px, 1fr) 44px 42px; }
+.ca2.yt-wrap .it-n { font-size: 12px; }

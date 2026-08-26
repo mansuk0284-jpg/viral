@@ -76,6 +76,11 @@
       G.total + "건 · 개인 " + (G.personal ? G.personal.n : 0) + " / 판매자 홍보 "
       + (G.biz ? G.biz.n : 0));
 
+    /* 네이버 블로그 — 2026-08-25 내부 분석 채널로 승격(collect_blog.py) */
+    const NB = window.NBLOG;
+    if (NB) setTile(document.querySelector('[data-channel="naver-blog"]'), NB.total,
+      NB.total.toLocaleString("ko-KR") + "건 · 체험단 표기 " + (NB.sp || 0).toLocaleString("ko-KR") + "건");
+
     /* 히어로의 '누적 N건 센싱' — **이 줄에 있는 타일의 합**이다.
        네이버 리뷰를 뺀 뒤로는 혼수 채널만 세므로, 방문자 평가가 섞이지 않는다. */
     const tiles = document.querySelectorAll(".source-mosaic .src[data-count]");
@@ -119,6 +124,7 @@
       jwedding: () => span(window.JWEDDING && JWEDDING.months, (r) => r[0]),
       youtube: () => { const s = span(window.YOUTUBE && YOUTUBE.months); return s ? s + " 근사" : ""; },
       instagram: () => span(window.INSTAGRAM && INSTAGRAM.months),
+      "naver-blog": () => span(window.NBLOG && NBLOG.months),
     };
     const rows = [];
     document.querySelectorAll("#sourceMosaic .src").forEach((f) => {
