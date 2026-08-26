@@ -159,6 +159,7 @@ def main():
 
     # 매장 축 — 영상 제목에 매장이 적히는 일은 드물지만, 있으면 매장 화면이 쓴다
     stores = {}
+    mon_stores = {}          # ym(추정) → 매장 → {n,s,l,views} — 매장 카드 기간 연동용
     for x in rows:
         st = dept_store_of(x["title"])
         if not st or st in STORE_EXCLUDE:
@@ -171,6 +172,15 @@ def main():
             v[sd] += 1
         if not v["top"] or x["views"] > v["top"]["views"]:
             v["top"] = {"t": x["title"][:60], "views": x["views"], "url": x["url"]}
+        ago = months_ago(x.get("when") or "")
+        ym = ym_of(ago) if (ago is not None and ago <= 24 and "년 전" not in (x.get("when") or "")) else ""
+        if ym:
+            mv = mon_stores.setdefault(ym, {}).setdefault(
+                st, {"n": 0, "s": 0, "l": 0, "views": 0})
+            mv["n"] += 1
+            mv["views"] += x["views"]
+            if sd:
+                mv[sd] += 1
 
     chans = Counter(x["channel"] for x in rows if x["channel"])
 
@@ -183,6 +193,10 @@ def main():
         "all": roll(rows), "organic": roll(org), "ad": roll(ads),
         "items": items,
         "stores": stores,
+        # 게시월은 목록의 상대 표기("N개월 전")를 수집일 기준으로 환산한 **추정**이다.
+        # "N년 전" 영상은 월 정밀도가 없어 여기 안 실린다(전체 축에는 있다).
+        "monStores": mon_stores,
+        "monEst": 1,
         "channels": [{"n": n, "c": c} for n, c in chans.most_common(6)],
         # 기간 탭(window.VPER)이 쓰는 월 목록 — 영상이 하나라도 있는 달만
         "months": sorted({ym_of(months_ago(x["when"])) for x in rows

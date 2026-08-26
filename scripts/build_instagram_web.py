@@ -86,6 +86,7 @@ def main():
     RIVAL = re.compile(r"하이마트|베스트샵|베스트샾|하이프라자|전자랜드|LG전자\s*매장", re.I)
 
     stores = {}
+    mon_stores = {}          # ym → 매장 → {n,s,l,ours,rival} — 매장 카드 기간 연동용
     for x in rows:
         st = dept_store_of(x["alt"] or "")
         if not st or st in STORE_EXCLUDE:
@@ -97,16 +98,28 @@ def main():
         if sd:
             v[sd] += 1
         t = x.get("alt") or ""
+        ours = rival = 0
         if x.get("biz"):
             v["biz"] += 1
             # 상호가 적힌 홍보만 주체를 확정한다. 둘 다 없으면 어느 쪽도 아니다.
             if OURS.search(t):
                 v["ours"] += 1
+                ours = 1
             elif RIVAL.search(t):
                 v["rival"] += 1
+                rival = 1
         if not v["top"]:
             v["top"] = {"t": (x["alt"] or "")[:60].replace("\n", " "),
                         "url": x["url"], "biz": bool(x.get("biz"))}
+        ym = (x.get("taken_at") or "")[:7]
+        if ym:
+            mv = mon_stores.setdefault(ym, {}).setdefault(
+                st, {"n": 0, "s": 0, "l": 0, "ours": 0, "rival": 0})
+            mv["n"] += 1
+            if sd:
+                mv[sd] += 1
+            mv["ours"] += ours
+            mv["rival"] += rival
 
     tags = Counter(t for x in rows for t in (x.get("tags") or []))
 
@@ -117,6 +130,7 @@ def main():
         "all": roll(rows), "personal": roll(per), "biz": roll(biz), "ad": roll(ads),
         "items": items,
         "stores": stores,
+        "monStores": mon_stores,
         "tags": [{"t": t, "n": n} for t, n in tags.most_common(8)],
         # 기간 탭(window.VPER)이 쓰는 월 목록 — 게시물이 하나라도 있는 달만.
         # enrich_instagram.py 로 게시물을 하나씩 열어 받아온 **실제 날짜**다

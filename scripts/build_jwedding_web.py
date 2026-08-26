@@ -60,6 +60,7 @@ def main():
     months = defaultdict(lambda: [0, 0, 0])
     items = defaultdict(lambda: {"s": 0, "l": 0})
     stores = defaultdict(lambda: {"s": 0, "l": 0, "mgr": Counter(), "last": ""})
+    mon_stores = {}          # ym → 매장 → {s,l} — 매장 카드 기간 연동용
     mgr_on = {"s": 0, "l": 0}
     unknown = 0
 
@@ -91,6 +92,11 @@ def main():
             d = (r.get("addDate") or "")[:10]
             if d > stores[st]["last"]:
                 stores[st]["last"] = d
+            if ym:
+                mv = mon_stores.setdefault(ym, {}).setdefault(st, {"s": 0, "l": 0, "last": ""})
+                mv[b] += 1
+                if d > mv["last"]:
+                    mv["last"] = d
             m = MGR.search(txt)
             if m:
                 stores[st]["mgr"][m.group(1) + " " + m.group(2)] += 1
@@ -118,6 +124,7 @@ def main():
         "items": {k: v for k, v in sorted(items.items(),
                                           key=lambda kv: -(kv[1]["s"] + kv[1]["l"])) if v["s"] + v["l"] >= 3},
         "stores": st_out,
+        "monStores": mon_stores,
         "mgr": mgr_on,
     }
     out = os.path.join(ROOT, "web", "assets", "jwedding.js")
