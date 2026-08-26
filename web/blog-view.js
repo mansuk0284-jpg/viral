@@ -331,7 +331,7 @@
             ? `브랜드 표본 5건 이상 ${sized.length}곳이 <b>${spread}p</b> 안에 모여 있습니다 — 특정 매장이 아니라 도시 공통의 흐름이 블로그 지형을 만들고 있습니다.`
             : lo.sh2 >= 50
             ? `가장 낮은 <b>${lo.name}</b>(삼성 ${lo.sh2}%)도 우위여서 ${spread}p 는 우위 안의 편차입니다 — 격차를 굳히려면 표본이 얇은 매장의 후기 요청부터입니다.`
-            : `<b>${hi.name}</b>(${hi.sh2}%)과 <b class="warn">${lo.name}</b>(${lo.sh2}%) 사이가 <b>${spread}p</b> 벌어져 있습니다 — 같은 도시에서 검색 첫 화면의 주인이 매장마다 다릅니다.`) +
+            : `표본 5건 이상 매장 기준으로 <b>${hi.name}</b>(${hi.sh2}%)${josa(hi.name, "과", "와")} <b class="warn">${lo.name}</b>(${lo.sh2}%) 사이가 <b>${spread}p</b> 벌어져 있습니다 — 같은 도시에서 검색 첫 화면의 주인이 매장마다 다릅니다.`) +
           `</p></div>`);
       }
       const totAll = list.reduce((a, x) => a + x.cnt, 0) || 1;

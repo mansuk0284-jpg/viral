@@ -81,6 +81,11 @@
     if (NB) setTile(document.querySelector('[data-channel="naver-blog"]'), NB.total,
       NB.total.toLocaleString("ko-KR") + "건 · 체험단 표기 " + (NB.sp || 0).toLocaleString("ko-KR") + "건");
 
+    /* 오늘의집 — 2026-08-26 수집 재개(헤디드 경로). 매장 단서가 없어 모델·공간 트렌드 채널 */
+    const OH = window.OHOU;
+    if (OH) setTile(document.querySelector('[data-channel="ohou"]'), OH.total,
+      OH.total + "건 · 모델·공간 트렌드");
+
     /* 히어로의 '누적 N건 센싱' — **이 줄에 있는 타일의 합**이다.
        네이버 리뷰를 뺀 뒤로는 혼수 채널만 세므로, 방문자 평가가 섞이지 않는다. */
     const tiles = document.querySelectorAll(".source-mosaic .src[data-count]");
@@ -125,6 +130,7 @@
       youtube: () => { const s = span(window.YOUTUBE && YOUTUBE.months); return s ? s + " 근사" : ""; },
       instagram: () => span(window.INSTAGRAM && INSTAGRAM.months),
       "naver-blog": () => span(window.NBLOG && NBLOG.months),
+      ohou: () => "",   // 게시일 비공개 — 기간을 지어내지 않는다
     };
     const rows = [];
     document.querySelectorAll("#sourceMosaic .src").forEach((f) => {

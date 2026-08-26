@@ -706,3 +706,155 @@ b.warn, u.warn { color: #d23b54 !important; }
    이름이 아니므로 말줄임 허용(매장명·수치는 text-fit 원칙 그대로). */
 .cx-card .cx-chip { display: inline-block; max-width: 100%;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+
+/* ══════════════════════════════════════════════════════════════════
+   2026-08-26 사용자 지시 — 한 화면 고정을 **세로 스크롤 허용**으로 전환
+   "원페이퍼라고 했지만 하단으로 내용이 내려가면 안보이는 것을 방지하기 위해
+    브라우즈의 세로탭을 이용하도록"
+   그동안은 height:100dvh + overflow:hidden 으로 묶어 넘치는 내용을 잘랐다
+   (그래서 잘림 사고가 반복됐다). 이제 화면 높이는 **최소값**으로만 쓰고,
+   넘치면 브라우저 세로 스크롤로 이어 보게 한다. 카드·박스는 그대로.
+   ══════════════════════════════════════════════════════════════════ */
+body.view-channel #channel.section {
+  height: auto !important; min-height: 100dvh !important; overflow: visible !important;
+}
+body.view-channel #channel.section > .container,
+body.view-channel #channel .container > #channelPanel { min-height: 0; }
+/* 내부에서 잘라 쓰던 안쪽 스크롤들을 푼다 — 이제 페이지가 흐른다 */
+.ca2 .rv-diag, .ca2 .sv-action, .ca2 .city-card, .ca2 .nb-rep,
+.ca2 .yt-rep, .ca2 .sv-right, .ca2 .rv-list, .ca2 .sv-revcols,
+.ca2 .nb-posts .sv-revcols, .ca2 .cx-right > .yt-rep {
+  overflow-y: visible !important; max-height: none !important; }
+/* 열 높이를 강제로 나눠 쓰던 그리드도 내용만큼 자라게 */
+.ca2 .ca-nright { grid-template-rows: auto auto auto !important; }
+.ca2.yt-wrap .cx-right { grid-template-rows: auto minmax(0, auto) !important; }
+.ca2 .ca-rv, .ca2 .nb-nation { align-items: start !important; }
+
+/* ── 우측 캡션 활자 키우기(2026-08-26: "우측 캡션의 글씨가 작아서 더 크게") ──
+   진단·분석 본문을 11~11.5px → 13px 로. 줄간격도 함께 올려 읽기 쉽게. */
+.ca2 .cy-note, .ca2 .yt-note, .ca2 .fc-plain, .ca2 .pf-sum, .ca2 .sc-tip,
+.ca2 .mgr-tip, .ca2 .yt-trend li, .ca2 .role-plan li, .ca2 .ca-splx,
+.ca2 .sv-action, .ca2 .rv-act, .ca2 .rv-dtext .pl {
+  font-size: 13px !important; line-height: 1.62 !important; }
+.ca2 .cy-sec > h5, .ca2 .fc-sec > h5, .ca2 .yt-rep .cy-sec > h5 {
+  font-size: 14px !important; }
+.ca2 .role-plan em { font-size: 11px; flex-basis: 48px; }
+.ca2 .nsc-foot, .ca2 .jw-note { font-size: 12px !important; line-height: 1.55 !important; }
+
+/* 오늘의집 대표 글 목록 — 제목이 문장이라 두 줄까지 허용, 배지는 우측 고정 */
+.ca2 .oh-list .oh-row { align-items: flex-start; padding: 7px 9px; }
+.ca2 .oh-row .yt-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; word-break: keep-all; line-height: 1.45; }
+.ca2 .oh-tags { display: flex; gap: 4px; flex: 0 0 auto; margin-left: auto; align-self: center; }
+
+/* ══════════════════════════════════════════════════════════════════
+   2026-08-26 활자 통일 2차 — "여전히 부족한 부분이 보인다"
+   ------------------------------------------------------------------
+   원인(전 화면 computed 실측): cafe-analysis.css 956~1120 줄에
+   `body.view-cafe .OOO { font-size: … }` 가 약 150개 하드코딩돼 있는데
+   그 블록은 **다결(view-cafe)에만** 걸린다. 그래서 같은 컴포넌트가
+   블로그·유튜브·인스타·제이웨딩(view-cx)·네이버리뷰(view-nr)에서는
+   기본값 그대로 나와 화면마다 25% 안팎으로 갈렸다.
+
+     매장명 .rv-name  다결 17.2px  vs 블로그 13px
+     .rv-sh           다결 16px    vs 블로그 12px
+     .it-n(품목)      다결 16px  / 제이웨딩 14px / 인스타 12px
+     좌측 섹션 제목   다결·블로그 15.5px  vs 유튜브·인스타 13px
+
+   `body.view-cafe .x` 는 특이도 (0,2,1) 이라 `.ca2 .x` 로는 못 이긴다.
+   이 파일 위쪽 캡션 블록이 이미 쓴 것과 같은 이유로 !important 를 쓴다 —
+   **전역 계단이 화면별 하드코딩을 항상 이겨야 한다**는 이 블록의 목적 자체다.
+   값은 화면 다수가 쓰던 쪽에 맞추되, 캡션을 키워달라는 지시에 따라
+   두 값의 중간~큰 쪽으로 스냅했다(17.2/13 → 15 등).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ① 좌측 요약 칼럼의 섹션 제목 — 다결·블로그 .nsc-st 15.5px 가 표준.
+      유튜브·인스타는 같은 자리 제목이 13px 이라 한 계단 눌려 있었다. */
+.ca2 .yt-trend > h4, .ca2 .yt-cmp > h4 { font-size: 15.5px !important; }
+
+/* ② 목록·진단 블록 헤더 — 다결 19.1px vs 블로그 15px.
+      카드 제목(.ca-ch)과 같은 자리 위계이므로 16.6px 로 맞춘다. */
+.ca2 .rv-rhead > h4, .ca2 .rv-dhead > h4 { font-size: 16.6px !important; }
+.ca2 .rv-rhead > h4 em, .ca2 .rv-dhead > h4 em { font-size: 12.5px !important; }
+
+/* ③ 매장별 목록 한 행 — 다결과 블로그가 컴포넌트는 같은데 전부 갈려 있었다.
+      (name 17.2/13 · num 15.3/12 · sh 16/12 · rank 14/11 · leg 14/11) */
+/*   매장명은 15px → 14px → 13.5px 로 두 번 내렸다. 이름 칸 폭이 정해져 있고
+     이름은 말줄임하지 않는다는 원칙 때문에 잘라 쓸 수 없어서, 가장 긴 매장명
+     ("신세계 센텀시티")이 뚫지 않는 값이 상한이다(15px=10px 초과, 14px=4px 초과). */
+.ca2 .rv-name { font-size: 13.5px !important; }
+.ca2 .rv-num, .ca2 .rv-sh { font-size: 13.5px !important; }
+.ca2 .rv-rank, .ca2 .rv-leg { font-size: 12px !important; }
+.ca2 .rv-row i.s, .ca2 .rv-row i.l,
+.ca2 .rv-bar i.s, .ca2 .rv-bar i.l { font-size: 12.5px !important; }
+
+/* ④ 후기 원문 샘플 칩 — 제목 16.6/13 · 태그 12.1/9.5 로 갈려 있었다.
+      9.5px 는 text-fit 하한이라 더 줄지도 못하고 읽히지도 않았다. */
+.ca2 .ca-sm-t { font-size: 13.5px !important; }
+.ca2 .ca-sm-tag { font-size: 10.5px !important; }
+
+/* ⑤ 품목 행(.it-*) — 세 화면이 세 값(16/14/12)이었다. */
+.ca2 .it-n { font-size: 13.5px !important; }
+.ca2 .it-c { font-size: 12.5px !important; }
+.ca2 .it-v { font-size: 14px !important; }
+
+/* ⑥ 지도 범례·각주 — 다결 14/13.4px vs 블로그 11px. 같은 지도, 같은 설명. */
+.ca2 .ca-geo-legend .gl { font-size: 12.5px !important; }
+.ca2 .ca-geo-legend .gl-hint { font-size: 11.5px !important; }
+.ca2 .ca-geonote { font-size: 12.5px !important; }
+
+/* ⑦ 매장 순위 칩(.mr-*) — 다결 12.5/13 vs 제이웨딩 13.5/13.5. */
+.ca2 .mr-nm, .ca2 .mr-sh { font-size: 13px !important; }
+
+/* ⑧ 브랜드 라벨(삼성/LG) — 14 / 14.5 / 12.5 세 값이 섞여 있었다.
+      ※ `.s`/`.l` 은 브랜드 수식자로 온 화면에서 다른 요소에도 붙는다
+        (.ca-sm-tag.s · .rv-sh.l · .cx-chip.s …). 처음에 `.ca2 span.s` 로
+        넓게 걸었더니 후기 태그·매장 점유율 칩까지 14px 로 끌려가 오히려
+        새 균열을 만들었다(실측). 라벨이 실제로 사는 .nsc-ends 로만 좁힌다. */
+.ca2 .nsc-ends > span.s, .ca2 .nsc-ends > span.l { font-size: 14px !important; }
+
+/* ⑨ 우호/주의 칼럼 머리 — 다결 11px vs 블로그 12px. */
+.ca2 h6.pos, .ca2 h6.neg { font-size: 12px !important; }
+
+/* ⑩ 카드 상세 본문 불릿 — 다결만 17.2px 로 같은 카드 안 본문(13px)보다
+      크게 튀어 한 카드 안에서 위계가 뒤집혀 있었다. 본문 바로 위 계단으로. */
+.ca2 .fc-pts li, .ca2 .fc-sec.tip p,
+.ca2 .ca-reasons li span, .ca2 .rv-dtext { font-size: 14px !important; }
+.ca2 li.warn-li { font-size: 13.5px !important; }
+.ca2 i.car-tilde { font-size: 13px !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   의미 단위 줄바꿈 — 한국어는 keep-all 이 기본이어야 어절이 안 쪼개진다.
+   실측상 대부분 이미 걸려 있었으나, 상속이 끊기는 인라인·칩 계열에
+   안전망을 둔다. 긴 URL·해시태그만 어절 중간에서 끊기게 허용한다.
+   ══════════════════════════════════════════════════════════════════ */
+.ca2, .ca2 p, .ca2 li, .ca2 h3, .ca2 h4, .ca2 h5, .ca2 h6,
+.ca2 .cy-note, .ca2 .yt-note, .ca2 .fc-plain, .ca2 .rv-dtext,
+.ca2 .sv-action, .ca2 .rv-act, .ca2 .nsc-foot, .ca2 .jw-note,
+.ca2 .role-plan li, .ca2 .yt-trend li {
+  word-break: keep-all; overflow-wrap: break-word; }
+
+/* ══════════════════════════════════════════════════════════════════
+   새 스크롤 체제에서 남은 잘림·빈칸 정돈
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ⑪ 인스타 순위 카드의 계정·날짜 줄이 가로로 27~55px 잘려 나갔다.
+      계정명은 '이름'이라 말줄임하지 않는다(원칙) — 두 줄로 흘린다. */
+.ca2 .ytc-body em { white-space: normal !important; overflow: visible !important;
+  word-break: keep-all; overflow-wrap: break-word; }
+
+/* ⑫ 매장별현황 글 제목 칩이 143px 하드컷되던 잔여분 — 이미 말줄임 규칙은
+      있었지만 부모가 flex 라 칩이 줄어들지 못했다(min-width:auto 기본값). */
+.cx-card .cx-sub { min-width: 0; }
+.cx-card .cx-sub > .cx-chip { min-width: 0; flex: 0 1 auto; }
+
+/* ⑬ 진단 카드 안 섹션 박스(.cy-sec)가 2열 그리드에서 행 높이를 맞추느라
+      내용의 3배까지 늘어났다(부산 블로그: 내용 104px / 박스 333px = 69% 공백).
+      한 화면 고정을 풀었으므로 이 박스들은 내용 높이로 둔다.
+      ※ 우측 카드(.ca-nright·.cx-right·.sv-right·.cx-grid)의 높이 균일은
+        사용자가 명시적으로 요청한 것이라 그대로 둔다 — 여기는 카드 '내부'다. */
+.ca2 .yt-rep, .ca2 .nb-rep { align-items: start; grid-auto-rows: min-content; }
+
+/* ⑭ 기간 칩(현재 선택) — 다결 17.2px vs 나머지 전 화면 12.5px.
+      같은 VPER 칩인데 다결에서만 한 계단 크게 떠 있었다. */
+.ca2 .vper button.cur, .ca2 button.cur { font-size: 12.5px !important; }
