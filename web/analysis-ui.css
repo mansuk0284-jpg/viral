@@ -671,3 +671,38 @@ body.view-nr .nr-note { padding-bottom: 12px; }
 /* 진단 안 트렌드 불릿 — yt-trend 박스 스타일이 아니라 리스트만 */
 .ca2 .nb-trendlist { border: 0; background: none; padding: 0; margin: 0;
   list-style: none; display: flex; flex-direction: column; gap: 5px; }
+/* 블로그 매장 글의 주의 배지 — 부정 신호(긍정 파랑·부정 빨강 원칙) */
+.ca2 .ca-sm-d.ng { background: rgba(210,59,84,.12); color: #c02744; font-weight: 900; }
+
+/* ====== 발표 전 통일감 검수(2026-08-26) — 전 페이지 교차 실측으로 잡은 이탈 ====== */
+/* 1) 버튼은 font-family 를 상속하지 않는다(브라우저 기본 Arial).
+   fc-open(+버튼)·mr-row(제이웨딩 매장 순위)·af-nav(네이버리뷰) 가 전부
+   Arial 로 나오고 있었다 — 본문과 같은 Samsung One Korean 을 상속시킨다. */
+button, input, select, textarea { font-family: inherit; }
+
+/* 2) 부정=빨강 전역 못박기 — 컴포넌트별 파랑 규칙(.yt-trend li b 등)이
+   .warn 짝 없이 이기는 곳(블로그 트렌드 불릿·인스타 진단 불릿)이 있었다.
+   cafe-analysis.css 끝의 못박기와 같은 원칙: b.warn 은 어디서든 빨강. */
+b.warn, u.warn { color: #d23b54 !important; }
+
+/* 3) 카드 모서리 통일 14px — 매장별현황 cx-card 16px·네이버리뷰/제휴 af-pane 18px·
+   af-hero 16px 로 페이지마다 갈라져 있었다. 분석 카드 표준(ca-ncard·ca-fcard·cx-sum)=14px. */
+.cx-card, .af-pane, .af-hero { border-radius: 14px; }
+
+/* 4) 네이버리뷰 소제목·히어로 수치 계단 정렬 — 섹션 h3 22px(다른 채널 21px),
+   히어로 수치 34px(표준 --an-num 32px)로 한 계단 붕 떠 있었다. */
+.nr-wrap .af-ph h3, .nr-wrap .af-ph.tight h3 { font-size: 21px; }
+.af-stat b { font-size: var(--an-num, 32px); }
+/* (nr-wrap 의 좁은 화면용 축소 클램프는 특이도가 높아 그대로 이긴다 — 의도) */
+.nr-wrap .af-hk b { font-size: var(--an-num, 32px); } /* 히어로 카운터 34→32 표준 계단 */
+
+/* 5) 분석 단락 간격 표준 7px — 전국 좌측 nsc-bias 만 6px 로 갈라져 있었다. */
+.ca2 p + p.nsc-bias { margin-top: 7px; }
+
+/* 6) 도시 카드(부산 등) 내부 10px 잘림 — 잘리느니 얇은 안쪽 스크롤 원칙. */
+.ca2 .ca-ncard.city-card { overflow-y: auto; }
+
+/* 7) 매장별현황 글 제목 칩이 카드 밖으로 127px 하드컷되던 것 — 글 '제목'은
+   이름이 아니므로 말줄임 허용(매장명·수치는 text-fit 원칙 그대로). */
+.cx-card .cx-chip { display: inline-block; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }

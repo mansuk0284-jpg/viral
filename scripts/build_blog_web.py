@@ -25,7 +25,8 @@ except Exception:
     pass
 
 from build_web_data import (dept_store_of, region_of, ITEMS, ITEM_KEYS,
-                            STORE_EXCLUDE, STORE_REGION)
+                            STORE_EXCLUDE, STORE_REGION,
+                            MGR_NAME, NOT_NAME, NEG_RE)
 
 
 def store_region_of(st):
@@ -84,6 +85,9 @@ def main():
     mon_regions = defaultdict(lambda: defaultdict(lambda: {"n": 0, "s": 0, "l": 0, "sp": 0}))
     store_region = {}          # 매장 → 시도(지점 토큰 기준)
     store_posts = defaultdict(list)   # 매장 상세 글 목록(최신 위주)
+    # 매장별 매니저 실명·긍부정(2026-08-26) — 다결과 같은 잣대(MGR_NAME·NEG_RE 재사용)
+    store_mgr = defaultdict(lambda: {"s": 0, "l": 0, "names": Counter()})
+    store_neg = defaultdict(lambda: {"n": 0, "neg": 0})
     items = defaultdict(lambda: {"n": 0, "s": 0, "l": 0, "sp": 0})
     stores = {}
     by_ym = defaultdict(list)
@@ -128,11 +132,27 @@ def main():
                 srg = store_region_of(st)
                 if srg:
                     store_region[st] = srg
+            neg = bool(NEG_RE.search(txt))
             store_posts[st].append({
                 "t": (x.get("title") or "")[:56], "bg": (x.get("blogger") or "")[:14],
                 "d": (x.get("date") or "")[:10], "u": x.get("url"),
-                "b": b, "sp": 1 if sp else 0,
+                "b": b, "sp": 1 if sp else 0, "ng": 1 if neg else 0,
             })
+            sn = store_neg[st]
+            sn["n"] += 1
+            if neg:
+                sn["neg"] += 1
+            # 매니저 실명 — 삼성 글의 실명만 스타로 수집(다결과 같은 기준)
+            for nm, ttl in MGR_NAME.findall(txt):
+                if nm in NOT_NAME or len(nm) < 2:
+                    continue
+                m2 = store_mgr[st]
+                if b == "s":
+                    m2["s"] += 1
+                    m2["names"][nm + " " + ttl] += 1
+                elif b == "l":
+                    m2["l"] += 1
+                break
             v = stores.setdefault(st, {"n": 0, "s": 0, "l": 0, "sp": 0, "top": None})
             v["n"] += 1
             if b:
@@ -175,6 +195,10 @@ def main():
         # 매장 상세 글 목록 — 최신 12건(내돈내산 우선 정렬은 화면 몫)
         "storePosts": {k: sorted(v, key=lambda r: r["d"], reverse=True)[:12]
                        for k, v in store_posts.items()},
+        "storeMgr": {k: {"s": v["s"], "l": v["l"],
+                         "names": [{"n": n, "c": c} for n, c in v["names"].most_common(3)]}
+                     for k, v in store_mgr.items()},
+        "storeNeg": {k: dict(v) for k, v in store_neg.items()},
         "monItems": {k: {i: dict(vv) for i, vv in v.items()} for k, v in mon_items.items()},
         "monStores": {k: {s2: dict(vv) for s2, vv in v.items()} for k, v in mon_stores.items()},
         "items": {k: dict(v) for k, v in items.items()},

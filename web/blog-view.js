@@ -147,16 +147,29 @@
       (oS + oL >= 10
         ? `내돈내산 글의 브랜드는 삼성 <b>${fmtN(oS)}건</b> 대 LG <b class="warn">${fmtN(oL)}건</b>(삼성 ${sh}%)입니다. ` +
           `체험단 포함 시 삼성 ${fmtN(aS)} : LG ${fmtN(aL)} — 고객이 말한 양과 마케팅이 뿌린 양은 다른 이야기입니다.`
-        : `브랜드가 갈리는 내돈내산 글이 <b>${oS + oL}건</b>뿐이라 건수로만 적습니다(삼성 ${oS} : LG ${oL}).`) + `</p></div>`);
+        : `브랜드가 갈리는 내돈내산 글이 <b>${oS + oL}건</b>뿐이라 건수로만 적습니다(삼성 ${oS} : LG ${oL}). ` +
+          `한 사람의 글이 비율을 통째로 움직이는 표본이므로, 기간을 넓혀 흐름으로 읽는 것이 정확합니다.`) + `</p></div>`);
     if (stTop.length) {
       secs.push(`<div class="cy-sec"><h5>매장 언급</h5><p class="cy-note">` +
-        `매장이 적힌 글은 <b>${stTop.map((k) => `${k}(${ST[k].n})`).join(" · ")}</b> 순입니다. ` +
-        `지도에서 지역을 누르면 그 지역 매장별 현황으로 들어갑니다.</p></div>`);
+        (function () {
+        const t0 = ST[stTop[0]];
+        const lead0 = t0.s > t0.l ? "삼성" : t0.l > t0.s ? "LG" : null;
+        return `매장이 적힌 글은 <b>${stTop.map((k) => `${k}(${ST[k].n})`).join(" · ")}</b> 순입니다. ` +
+          (lead0 ? `최다 언급 매장 ${stTop[0]}의 글은 ${lead0 === "삼성" ? `<b>삼성 ${fmtN(t0.s)}건</b> 대 LG ${fmtN(t0.l)}건으로 우리 이야기가 검색을 쥐고 있습니다` : `삼성 ${fmtN(t0.s)}건 대 <b class="warn">LG ${fmtN(t0.l)}건</b>으로 검색 첫 화면을 상대가 쥐고 있습니다`} — ` +
+            `이 매장 이름을 검색해 보는 예비 고객이 매일 그 글을 만납니다. ` : ``) +
+          `지도에서 지역을 누르면 매장별 현황으로 들어갑니다.</p></div>`;
+      })());
     }
     if (hot.length) {
       secs.push(`<div class="cy-sec"><h5>품목 트렌드</h5><p class="cy-note">` +
-        `다뤄진 품목은 <b>${hot.join(" · ")}</b> 순입니다. 블로그는 검색으로 오래 읽히는 채널이라, ` +
-        `이 품목 검색 결과에 우리 매장 글이 있는지가 장기 노출을 가릅니다.</p></div>`);
+        (function () {
+        const lgUp = Object.keys(IT).filter((k) => IT[k].l > IT[k].s && IT[k].n >= 10)
+          .sort((a, b) => (IT[b].l - IT[b].s) - (IT[a].l - IT[a].s)).slice(0, 2);
+        return `다뤄진 품목은 <b>${hot.join(" · ")}</b> 순입니다. 블로그는 검색으로 오래 읽히는 채널이라, ` +
+          `이 품목 검색 결과에 우리 매장 글이 있는지가 장기 노출을 가릅니다.` +
+          (lgUp.length ? ` 특히 <b class="warn">${lgUp.join(" · ")}</b>${josa(lgUp[lgUp.length - 1], "은", "는")} LG 글이 더 많아, 이 품목을 검색한 고객은 상대 이야기부터 읽게 됩니다.` : ``) +
+          `</p></div>`;
+      })());
     }
     secs.push(rolePlan(
       spPct >= 40
@@ -384,6 +397,39 @@
       (V.s + V.l ? `(삼성 ${fmtN(V.s)} : LG ${fmtN(V.l)})` : "") +
       (V.sp ? ` · 체험단 표기 <b class="warn">${fmtN(V.sp)}건</b>` : "") + `입니다. ` +
       `블로그 글은 검색으로 오래 읽히므로, 이 매장 이름의 검색 결과가 곧 상시 간판입니다.</p></div>`);
+    /* 실명 언급 — 블로그 글에 적힌 담당자 이름(다결 후기 스타와 같은 잣대).
+       블로그는 검색에 오래 남으므로 실명 글은 그 담당자의 상시 간판이 된다. */
+    (function () {
+      const M2 = (B.storeMgr || {})[st2];
+      if (!M2 || !(M2.s + M2.l)) {
+        secs.push(`<div class="cy-sec"><h5>실명 언급</h5><p class="cy-note">` +
+          `이 매장 글에는 담당자 실명이 적힌 것이 없습니다. 블로그 후기는 검색에 오래 남아 ` +
+          `실명이 곧 지명 방문을 만듭니다 — 후기 요청 때 담당자 이름이 함께 적히도록 부탁하는 것부터가 과제입니다.</p></div>`);
+        return;
+      }
+      const lead2 = M2.s > M2.l ? "s" : M2.l > M2.s ? "l" : "even";
+      const star = (M2.names || [])[0];
+      secs.push(`<div class="cy-sec"><h5>실명 언급</h5><p class="cy-note">` +
+        `담당자 실명이 적힌 글은 삼성 <b>${fmtN(M2.s)}건</b> 대 LG <b class="warn">${fmtN(M2.l)}건</b>입니다. ` +
+        (lead2 === "l"
+          ? `검색에서 이 매장을 찾은 고객은 <b class="warn">상대 담당자의 이름</b>을 먼저 만나는 구조입니다 — 우리 계약 고객의 실명 후기가 시급합니다.`
+          : lead2 === "s"
+          ? `검색 첫 화면에 우리 담당자의 이름이 남아 있습니다 — 이 우위는 실명 후기 요청이 이어질 때만 유지됩니다.`
+          : `양쪽이 같은 수준입니다 — 실명 후기 한 건이 균형을 가릅니다.`) +
+        (star ? ` 삼성 쪽 최다 실명은 <b>${star.n}</b>(${fmtN(star.c)}건)입니다.` : "") + `</p></div>`);
+    })();
+    /* 우호·주의 — 긍부정 신호(다결 NEG 잣대 재사용). 주의 글은 원문 목록에 빨간 배지 */
+    (function () {
+      const NG = (B.storeNeg || {})[st2];
+      if (!NG || !NG.n) return;
+      secs.push(`<div class="cy-sec"><h5>우호·주의 신호</h5><p class="cy-note">` +
+        (NG.neg
+          ? `이 매장 글 ${fmtN(NG.n)}건 중 <b class="warn">${fmtN(NG.neg)}건</b>에서 불만·아쉬움 표현이 잡혔습니다` +
+            (use.some((x) => x.ng) ? `(목록의 <b class="warn">주의</b> 배지)` : `(전량 집계 기준 — 최신 표본 목록에는 없습니다)`) + `. ` +
+            `블로그의 부정 글은 검색에 오래 남아 상담 전 인상을 만듭니다 — 원문을 열어 어떤 대목(배송·상담·혜택)인지 확인하고, 같은 불만이 반복되지 않게 현장에서 짚어 두세요.`
+          : `이 매장 글 ${fmtN(NG.n)}건에서는 불만·아쉬움 표현이 검출되지 않았습니다. 졸업 후기 특성상 긍정 편향이 있으므로 '문제 없음'의 증명은 아니지만, 검색 첫인상은 우호적으로 유지되고 있습니다.`) +
+        `</p></div>`);
+    })();
     /* 검색 신선도 — 블로그 채널 고유의 축. 최근 글이 끊기면 검색 첫 화면이 낡는다. */
     (function () {
       const all2 = (B.months || []).slice(-3);      // 데이터 기준 최근 3개월
@@ -422,10 +468,14 @@
       `<div class="sv-revcols">` +
       `<div><h6 class="pos">내돈내산 ${own.length}</h6>${own.map((x, i) =>
         `<a href="${x.u}" target="_blank" rel="noopener"><span class="ca-sm-tag ${x.b || "b"}">${x.b === "s" ? "삼성" : x.b === "l" ? "LG" : "기타"}</span>` +
-        `<span class="ca-sm-t">${x.t}</span><span class="ca-sm-d">${(x.d || "").slice(2, 7)}</span></a>`).join("") || '<p class="ca-splx">없음</p>'}</div>` +
+        `<span class="ca-sm-t">${x.t}</span>` +
+        (x.ng ? `<span class="ca-sm-d ng">주의</span>` : "") +
+        `<span class="ca-sm-d">${(x.d || "").slice(2, 7)}</span></a>`).join("") || '<p class="ca-splx">없음</p>'}</div>` +
       `<div><h6 class="neg">체험단·협찬 ${spn.length}</h6>${spn.map((x) =>
         `<a href="${x.u}" target="_blank" rel="noopener"><span class="ca-sm-tag ${x.b || "b"}">${x.b === "s" ? "삼성" : x.b === "l" ? "LG" : "기타"}</span>` +
-        `<span class="ca-sm-t">${x.t}</span><span class="ca-sm-d">${(x.d || "").slice(2, 7)}</span></a>`).join("") || '<p class="ca-splx">표기 글 없음</p>'}</div>` +
+        `<span class="ca-sm-t">${x.t}</span>` +
+        (x.ng ? `<span class="ca-sm-d ng">주의</span>` : "") +
+        `<span class="ca-sm-d">${(x.d || "").slice(2, 7)}</span></a>`).join("") || '<p class="ca-splx">표기 글 없음</p>'}</div>` +
       `</div></div>` +
       `<div class="rv-third"><div class="ca-ncard yt-rep nb-rep">` +
       `<h4 class="ca-ch">매장 블로그 진단 <i class="ca-tag">${labOf()}</i></h4>` + secs.join("") +
