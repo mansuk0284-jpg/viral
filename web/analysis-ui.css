@@ -1163,3 +1163,6 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
   border-bottom: 1px dashed rgba(23,42,66,0.16); }
 .ca2 .nb-rep .cy-note { margin: 0 0 10px; }
 .ca2 .nb-rep .cy-note:last-child { margin-bottom: 0; }
+/* 블로그 진단은 박스 1개씩 세로 배치 — yt-rep 공용 2열 그리드를 1열로 되돌린다
+   (2026-08-27 사용자: "2개씩 종으로 하지말고 1개씩 세로로") */
+.ca2.yt-wrap .nb-rep { grid-template-columns: 1fr; }
