@@ -51,7 +51,17 @@
     const list = st.cat ? (D.cafes[st.cat] || []) : [];
     if (!st.cat) {
       // 1단계: 카테고리
+      /* 부울경 14곳은 수집이 끝났다 — 카테고리를 헤매지 않고 바로 들어가는
+         입구를 1단계에 둔다(2026-08-26 사용자 지시: "부울경 카페는 수집 완료"). */
+      const AD = window.AFFAD;
       mosaic.innerHTML = head("제휴카페", `${D.total}곳 · 회원 ${man(D.members)}명`, false) +
+        (AD ? tile({
+          cls: "src-cat src-hot zone-mine", attr: 'data-affads="1"',
+          v: Math.max(2000000, AD.total * 400),
+          name: "부울경 종합 분석", sub: `수집 ${AD.cafes}곳 · 광고 vs 고객 글`,
+          disp: fmt(AD.total), unit: "건", badge: "분석",
+          title: `부울경 제휴카페 ${AD.cafes}곳 · 가전 글 ${fmt(AD.total)}건 — 당사/경쟁사 광고와 고객 글을 갈라 봅니다`,
+        }) : "") +
         D.cats.map((c) => {
           const mine = (D.cafes[c.key] || []).filter((x) => zoneOf(x) === "buk").length;
           return tile({
@@ -171,6 +181,10 @@
         else st.zone = null;
       } else st.cat = null;
       build(); return;
+    }
+    if (e.target.closest("[data-affads]")) {
+      if (typeof window.openAffiliateAds === "function") window.openAffiliateAds();
+      return;
     }
     const c = e.target.closest("[data-cat]");
     if (c) {

@@ -195,3 +195,39 @@ body.view-af #channel .container { padding: 0 18px; max-width: min(1560px, 96vw)
   .af-body { grid-template-columns: 1fr; }
   .af-items { grid-template-columns: 1fr; }
 }
+
+/* ── 제휴카페 채널 화면(affiliate-channel.js) ───────────────────────────
+   좌 요약 / 중 분류별 목록 / 우 진단 — 블로그·다이렉트웨딩과 같은 3단 배치.
+   analysis-ui.css 는 다른 작업자가 쓰고 있어 건드리지 않고 여기에만 둔다. */
+.ca2 .afa-wrap { display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0; }
+.ca2 .afa-grid { display: grid; min-height: 0; flex: 1 1 auto; gap: 16px; align-items: stretch;
+  grid-template-columns: clamp(248px, 21vw, 300px) minmax(280px, 1fr) minmax(300px, 1.05fr);
+  /* 한 화면 원칙 — 페이지가 통째로 늘어나 하단이 잘리는 대신,
+     칼럼 안쪽에서 얇게 스크롤하게 묶는다(잘리느니 안쪽 스크롤). */
+  max-height: calc(100vh - 132px);
+  /* 행 높이를 컨테이너에 묶는다 — 이게 없으면 행이 내용 높이(1,209px)로
+     자라 max-height 를 뚫고 나간다(실측). */
+  grid-template-rows: minmax(0, 1fr); }
+@media (max-width: 1180px) { .ca2 .afa-grid { display: flex; flex-direction: column; gap: 12px; } }
+.ca2 .afa-left, .ca2 .afa-mid, .ca2 .afa-right { min-width: 0; min-height: 0; overflow: auto; }
+
+.ca2 .afa-bul li { font-size: 13.6px; line-height: 1.5; }
+.ca2 .afa-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ca2 .afa-col { background: #fff; border: 1px solid rgba(23,42,66,.1); border-radius: 12px; padding: 9px 10px; }
+.ca2 .afa-col h6 { margin: 0 0 6px; font-size: 12.8px; font-weight: 900; color: var(--text);
+  display: flex; justify-content: space-between; gap: 6px; letter-spacing: -.02em; }
+.ca2 .afa-col h6 b { font-weight: 900; color: #1f5fd0; }
+.ca2 .afa-col h6.pos { color: #1f5fd0; }
+.ca2 .afa-col h6.neg { color: #d23b54; }
+.ca2 .afa-col h6.neg b { color: #d23b54; }
+.ca2 .afa-col a { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items: center;
+  padding: 3px 0; border-top: 1px dashed rgba(23,42,66,.09); text-decoration: none; color: inherit; }
+.ca2 .afa-col a:first-of-type { border-top: 0; }
+.ca2 .afa-col a:hover .ca-sm-t { color: #1f5fd0; }
+.ca2 .afa-col .ca-sm-t { font-size: 12.2px; font-weight: 600; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.ca2 .afa-col .ca-sm-d { font-size: 11px; font-weight: 700; color: var(--muted); }
+.ca2 .afa-col .ca-sm-tag { font-size: 10.5px; font-weight: 800; padding: 1px 5px; border-radius: 6px;
+  background: #eef2f8; color: #5a6a80; white-space: nowrap; }
+.ca2 .afa-col .ca-sm-tag.s { background: rgba(31,95,208,.12); color: #1f5fd0; }
+.ca2 .afa-col .ca-sm-tag.l { background: rgba(210,59,84,.12); color: #d23b54; }

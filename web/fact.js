@@ -248,7 +248,9 @@
       .sort((a, b) => (b.s + b.l) - (a.s + a.l)).slice(0, n || 6);
   }
 
-  const label = (a, b) => a.replace(/-/g, ".") + " ~ " + b.replace(/-/g, ".");
+  /* 기간 라벨 표기는 화면마다 같아야 한다 — 여기만 점(2026.03.01)을 쓰고
+     나머지 화면은 하이픈이라 같은 기능이 다르게 보였다(2026-08-27 검수). */
+  const label = (a, b) => a + " ~ " + b;
 
   /* storeDetail / regionDetail 과 같은 모양으로 변환 — 화면 코드를 그대로 쓰기 위함 */
   function detail(a, kind, key) {

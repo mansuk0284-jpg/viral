@@ -163,6 +163,20 @@
       `</div>` +
       `<ul class="yt-act">${actLi.join("")}</ul>` +
       `</div>` +
+      `<div class="ca-ncard"><h4 class="ca-ch">실행 제안 <i class="ca-tag">역할별</i></h4>` +
+      (function () {
+        /* 제이웨딩은 매장·담당자 지목이 강한 채널이다(표본은 작다) —
+           역할별 제안도 그 강점에 맞춘다(2026-08-27 검수 지적: 표준 블록 누락). */
+        const hq = `표본이 작은 채널이라 비율보다 <b>매장·담당자 지목</b>에 무게가 있습니다 — ` +
+          `<b>칭찬 게시판 모니터링</b>을 정례화해 이름이 오르는 매장을 사례로 삼으세요.`;
+        const team = `지목된 매장의 상담 방식을 지역 <b>교육 사례</b>로 공유하고, 이름이 없는 매장에는 후기 요청 실행 여부를 점검하세요.`;
+        const store = `계약 마무리에 <b>담당자 이름이 남는 후기</b>를 요청하세요 — 이 채널은 이름이 곧 지명 방문을 만듭니다.`;
+        return `<ul class="role-plan">` +
+          `<li class="rp-hq"><em>본사</em><span>${hq}</span></li>` +
+          `<li class="rp-team"><em>영업팀</em><span>${team}</span></li>` +
+          `<li class="rp-store"><em>매장</em><span>${store}</span></li>` +
+          `</ul>`;
+      })() + `</div>` +
       `</div></div></div>`;
   }
 

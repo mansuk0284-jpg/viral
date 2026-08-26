@@ -10,6 +10,25 @@
    ⚠ 네이버 예약 '건수'는 외부에서 볼 수 없다(스마트플레이스 관리자 전용).
      화면의 '예약 경유'는 리뷰의 인증수단=예약 비율로 낸 **추정치**이며 그렇게 표기한다. */
 (function () {
+  /* 표준 기간 UI(VPER) — 다른 분석 화면과 같은 간단 버튼 + 직접 입력.
+     이 화면에는 자체 월 타임라인이 있었지만 칩·직접입력이 없어 요건 미달이었다
+     (2026-08-27 검수). 타임라인은 그대로 두고 표준 UI 를 병설한다 —
+     둘 다 st.ym / st.range 를 통해 같은 집계를 본다. */
+  let NRPER = null;
+  function nrPer(months) {
+    if (NRPER || !window.VPER || !months || !months.length) return NRPER;
+    NRPER = VPER.create({
+      months: months,
+      onChange: (api) => {
+        const r = api.range();
+        st.ym = null; st.range = [r[0], r[1]];
+        const h = document.getElementById("channelPanel");
+        if (h) paint(h);
+      },
+    });
+    return NRPER;
+  }
+
   "use strict";
   const NR = window.NAVER_REVIEW || null;
   const fmtN = (n) => (n || 0).toLocaleString("ko-KR");
@@ -17,7 +36,7 @@
   const ymLab = (ym) => ym ? `${+ym.slice(0, 4)}년 ${+ym.slice(5)}월` : "전체 기간";
   const R_YM = 0, R_VIA = 1, R_STAR = 2, R_P = 3, R_C = 4, R_R = 5, R_NEG = 6, R_MGR = 7, R_T = 8;
 
-  const st = { store: null, ym: null };
+  const st = { store: null, ym: null, range: null };
 
   /* ── 이름은 줄이지 않는다 ────────────────────────────────────────
      데이터의 백화점 라벨은 체인명이 잘려 있다("신세계 센텀"). 어디인지 알아볼 수
@@ -139,6 +158,26 @@
         `<h3>${r}<i>${byRg[r].length}</i></h3>` +
         `<div class="nrl-grid">` + byRg[r].map(cell).join("") + `</div></section>`).join("") +
       `</div>` +
+      /* 목록 화면의 표준 마무리 — 전국 리뷰 판세를 역할별 행동으로 옮긴다(2026-08-27) */
+      (function () {
+        const lose = both.filter((g) => g.share < 50);
+        const worst = lose.slice().sort((a, b) => (a.lv - a.sv) - (b.lv - b.sv)).pop();
+        const hq = lose.length
+          ? `양사 입점 ${both.length}곳 가운데 <b class="warn">${lose.length}곳</b>이 리뷰 열세입니다 — ` +
+            `방문 고객 대비 리뷰 회수를 매장 평가 항목에 넣고, 접객 교육에 리뷰 요청 절차를 포함해 주십시오.`
+          : `양사 입점 ${both.length}곳 전부 리뷰 우위입니다 — 현행 요청 방식을 표준 매뉴얼로 굳혀 주십시오.`;
+        const team = worst
+          ? `격차가 가장 큰 곳은 <b class="warn">${deptFull(worst.dept)}</b>(삼성 ${fmtN(worst.sv)} vs LG ${fmtN(worst.lv)})입니다 — ` +
+            `이 매장부터 리뷰 요청 실행 여부를 현장에서 확인하십시오.`
+          : `지역별 편차가 크지 않습니다 — 상위 매장의 요청 문안을 전 매장에 공유해 수준을 유지하십시오.`;
+        const store = `방문 고객이 떠나기 전에 <b>매장명과 담당자 이름이 남는 리뷰</b>를 요청하십시오 — ` +
+          `플레이스 리뷰는 다음 고객이 매장을 고르는 첫 화면입니다.`;
+        return `<ul class="role-plan nrl-role">` +
+          `<li class="rp-hq"><em>본사</em><span>${hq}</span></li>` +
+          `<li class="rp-team"><em>영업팀</em><span>${team}</span></li>` +
+          `<li class="rp-store"><em>매장</em><span>${store}</span></li>` +
+          `</ul>`;
+      })() +
       `<p class="af-foot nr-foot">` +
       `<span>양사 모두 입점한 <b>${both.length}곳</b>만 비교합니다.</span>` +
       `<span>한쪽만 입점한 ${one.length}곳(${one.map((g) => deptFull(g.dept)).slice(0, 4).join(", ")}${one.length > 4 ? " 외" : ""})은 뺐습니다.</span>` +
@@ -161,7 +200,14 @@
   function agg(store, ym) {
     const S = NR.stores[store];
     if (!S) return null;
-    const rows = ym ? S.rows.filter((r) => r[R_YM] === ym) : S.rows;
+    /* 기간 필터 — 자체 월 타임라인(ym)과 표준 기간 UI(st.range) 둘 다 받는다.
+       ym 이 지정되면 그 달만, 아니면 st.range 구간(월 단위)으로 자른다(2026-08-27). */
+    const rows = ym
+      ? S.rows.filter((r) => r[R_YM] === ym)
+      : (st.range
+          ? S.rows.filter((r) => r[R_YM] && r[R_YM] >= st.range[0].slice(0, 7)
+                                          && r[R_YM] <= st.range[1].slice(0, 7))
+          : S.rows);
     const o = { n: rows.length, via: {}, praise: {}, complain: {}, reason: {},
                 mgr: {}, neg: [], months: {}, stars: {} };
     rows.forEach((r) => {
@@ -366,7 +412,47 @@
       `<p class="af-sub nr-note"><span>네이버 리뷰 누적은 <b>매장 전체 기간</b> 기준입니다.</span>` +
       `<span>나머지 항목은 <b>선택 기간의 수집 표본</b> 기준입니다.</span>` +
       `<span><b>예약 경유는 추정</b>입니다 — 예약 건수는 외부에서 조회할 수 없습니다.</span></p>` +
+      nrRolePlan(name, A) +
       `</section>`;
+  }
+
+  /* 역할별 실행 제안(본사/영업팀/매장) — 모든 분석 화면의 표준 마무리 블록.
+     방문자 리뷰는 혼수 후기와 잣대가 다르므로, 문장도 '상담 품질 → 리뷰'로 간다. */
+  /* 받침에 따라 '로/으로' — 회사 전체가 보는 화면이라 조사 오류가 바로 눈에 걸린다 */
+  function josaRo(w) {
+    const c = (w || "").charCodeAt((w || "").length - 1);
+    if (c < 0xac00 || c > 0xd7a3) return "로";
+    const jong = (c - 0xac00) % 28;
+    return (jong === 0 || jong === 8) ? "로" : "으로";
+  }
+
+  function nrRolePlan(name, A) {
+    const S = NR.stores[name], P = pairOf(name), V = P && NR.stores[P.vs];
+    const lose = V && V.total > S.total;
+    const gapT = V ? Math.abs(V.total - S.total) : 0;
+    const praise = A.top("praise"), rival = V ? agg(P.vs, st.ym) : null;
+    const rp = rival ? rival.top("praise").map((x) => x[0]) : [];
+    const mine = praise.map((x) => x[0]);
+    const missing = rp.filter((k) => mine.indexOf(k) < 0).slice(0, 2);
+    const mg = A.top("mgr");
+
+    const hq = missing.length
+      ? `상대 매장은 <b class="warn">${missing.join(" · ")}</b>${josaRo(missing[missing.length - 1])} 칭찬받는데 우리 매장 리뷰에는 이 키워드가 없습니다 — ` +
+        `해당 항목을 상담 표준 절차와 <b>접객 교육 과정</b>에 반영해 주십시오.`
+      : `칭찬 키워드가 상대와 겹칩니다 — 차별점이 옅다는 뜻이므로 <b>혼수 전용 상담 프로그램</b>처럼 리뷰에 남을 만한 요소를 만들어 주십시오.`;
+    const team = lose
+      ? `같은 상권에서 <b class="warn">리뷰 ${fmtN(gapT)}건</b> 뒤집니다 — 방문 고객 대비 리뷰 회수율을 매장별로 점검하고, ` +
+        `회수율이 높은 매장의 요청 문안을 지역에 공유하십시오.`
+      : `상권 내 리뷰 우위를 지키고 있습니다 — 이 매장의 요청 방식을 지역 표준으로 삼아 열세 매장에 이식하십시오.`;
+    const store = mg.length
+      ? `리뷰에 <b>${mg[0][0]}</b> 매니저 실명이 ${mg[0][1]}회 등장합니다 — 실명이 남는 후기는 지명 방문으로 이어지므로, ` +
+        `구매 고객에게 담당자 이름을 적어 달라고 요청하십시오.`
+      : `리뷰에 담당자 실명이 한 번도 남지 않았습니다 — 응대를 마칠 때 <b>이름과 함께 후기를 남겨 달라는 요청</b>을 습관으로 만드십시오.`;
+    return `<div class="af-block role-block"><h4>실행 제안 <em>역할별</em></h4><ul class="role-plan">` +
+      `<li class="rp-hq"><em>본사</em><span>${hq}</span></li>` +
+      `<li class="rp-team"><em>영업팀</em><span>${team}</span></li>` +
+      `<li class="rp-store"><em>매장</em><span>${store}</span></li>` +
+      `</ul></div>`;
   }
 
   function render() {
@@ -383,6 +469,12 @@
       `<div class="af-hk ${V && V.total > S.total ? "zero" : ""}"><b>${fmtN(V ? V.total : 0)}</b>` +
       `<span>${P ? (P.mine === "삼성" ? "LG" : "삼성") + " 리뷰" : "상대"}</span></div>` +
       `</div></div>` +
+      /* 표준 기간 UI(간단 버튼 + 직접 입력) — 다른 분석 화면과 같은 한 벌.
+         아래 자체 월 타임라인은 이 화면 고유의 시각이라 함께 둔다(2026-08-27). */
+      (function () {
+        const P = nrPer(nrMonths());
+        return P ? `<div class="nr-perrow">${P.bar()}</div>` : "";
+      })() +
       periodBar(name) +
       `<div class="af-body">` + paneMine(name, A) + paneVs(name, A) + `</div>` +
       `<p class="af-foot nr-foot">` +
@@ -392,9 +484,22 @@
       `</div>`;
   }
 
+  /* 표준 기간 UI 가 쓸 월 목록 — 수집된 리뷰의 월 전체 */
+  function nrMonths() {
+    const NR = window.NAVER_REVIEW;
+    if (!NR || !NR.stores) return [];
+    /* 데이터에 months 필드가 없다(실측) — 리뷰 행의 월 칸에서 직접 모은다 */
+    const set = {};
+    Object.keys(NR.stores).forEach((k) => {
+      (NR.stores[k].rows || []).forEach((r) => { if (r[R_YM]) set[r[R_YM]] = 1; });
+    });
+    return Object.keys(set).sort();
+  }
+
   function paint(host) {
     host.innerHTML = st.store ? render() : renderList();
     fitText(host);          // 말줄임 대신 글씨를 줄여 이름 전체를 보인다
+    { const P = nrPer(nrMonths()); if (P) P.bind(host); }
     if (window.VNAV) VNAV.sync();
     host.querySelectorAll("[data-nrym]").forEach((b) => b.addEventListener("click", () => {
       if (b.disabled) return;

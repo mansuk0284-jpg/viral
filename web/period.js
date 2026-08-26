@@ -91,11 +91,34 @@
        화면 오른쪽 끝에 붙어 있었고(실측 x=1265), 다이렉트웨딩은 366px 에
        현재 기간 라벨까지 달려 있었다 — 같은 기능인데 눈에 띄는 정도가 달랐다.
        그래서 **없는 것처럼 보였다.** 라벨을 붙여 무게를 맞춘다. */
+    /* 기간 UI 한 벌 — **간단 버튼(연·월 칩) + 직접 입력**을 함께 낸다.
+       2026-08-26 사용자 지시: "간단 기간설정 버튼과 직접입력 기간 버튼 모두가
+       있어야 하고 … 기간 설정에 따라 분석 데이터 결과값이 변동되어야 해".
+       그동안 직접 입력은 다이렉트웨딩에만 있었다 — 여기로 올려 전 채널이 쓴다. */
     function bar() {
-      return `<div class="ca-periodnav" tabindex="0">` +
+      return `<div class="ca-perwrap">` +
+        `<div class="ca-periodnav" tabindex="0">` +
         `<span class="cpn-cur">${label()}<i>기간 ▸</i></span>` +
         html() +
+        `</div>` + rangeBox() +
         `</div>`;
+    }
+
+    function rangeBox() {
+      const a = (st.range && st.range[0]) || (months[0] + "-01");
+      const lastM = months[months.length - 1];
+      const b = (st.range && st.range[1]) ||
+        (lastM + "-" + pad(lastDay(+lastM.slice(0, 4), +lastM.slice(5))));
+      const min = months[0] + "-01";
+      const max = lastM + "-" + pad(lastDay(+lastM.slice(0, 4), +lastM.slice(5)));
+      return `<span class="ca-range${st.range ? " on" : ""}">` +
+        `<span class="car-lb">기간 직접 입력</span>` +
+        `<input type="date" class="car-d vper-a" value="${a}" min="${min}" max="${max}" aria-label="시작일">` +
+        `<i class="car-tilde">~</i>` +
+        `<input type="date" class="car-d vper-b" value="${b}" min="${min}" max="${max}" aria-label="종료일">` +
+        `<button type="button" class="car-go vper-go">적용</button>` +
+        (st.range ? `<button type="button" class="car-off vper-off" title="기간 버튼으로 되돌리기">해제</button>` : "") +
+        `</span>`;
     }
 
     /* 클릭 위임 — **자기 칩 묶음에만** 단다.
@@ -106,6 +129,29 @@
        칩 묶음(.vper)은 화면을 다시 그릴 때마다 새로 생기므로 서로 섞이지 않는다. */
     function bind(host) {
       if (!host) return;
+      /* 직접 입력(적용·해제·Enter) — 래퍼에 위임. 칩과 같은 화면 안이라
+         공유 컨테이너 가로채기 사고가 나지 않는다(2026-08-26). */
+      const wrap = host.querySelector(".ca-perwrap");
+      if (wrap && !wrap.dataset.vperRange) {
+        wrap.dataset.vperRange = "1";
+        const apply = () => {
+          const A = wrap.querySelector(".vper-a"), B = wrap.querySelector(".vper-b");
+          if (!A || !B || !A.value || !B.value) return;
+          let a = A.value, b = B.value;
+          if (a > b) { const t2 = a; a = b; b = t2; }   // 뒤집어 넣어도 동작하게
+          st.range = [a, b]; st.rangeLab = "";
+          fire();
+        };
+        wrap.addEventListener("click", (e) => {
+          if (e.target.closest(".vper-go")) { apply(); return; }
+          if (e.target.closest(".vper-off")) { st.range = null; st.rangeLab = ""; fire(); }
+        });
+        wrap.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && e.target.classList.contains("car-d")) {
+            e.preventDefault(); apply();
+          }
+        });
+      }
       const box = host.querySelector(".vper");
       if (!box || box.dataset.vperBound) return;
       box.dataset.vperBound = "1";

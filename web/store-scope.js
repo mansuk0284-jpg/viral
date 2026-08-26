@@ -341,6 +341,25 @@
       `</div>`;
   }
 
+  /* 역할별 실행 제안(본사/영업팀/매장) — 채널 공백을 근거로 문장을 만든다 */
+  function rolePlan(name) {
+    /* 채널 카드가 '표본 없음'으로 그려졌는지로 공백을 판정한다 —
+       채널마다 데이터 모양이 달라(카드 함수가 각기 다름) 카드 결과를 근거로 삼는 편이 어긋나지 않는다. */
+    const gaps = CHANNELS.filter((c) => c.live)
+      .filter((c) => /cx-empty/.test(channelCard(c, name)))
+      .map((c) => c.name);
+    const hq = gaps.length
+      ? `이 매장은 <b class="warn">${gaps.slice(0, 3).join(" · ")}</b>에 흔적이 없습니다 — 채널별 후기 콘텐츠 가이드와 촬영 지원이 필요합니다.`
+      : `이 매장은 주요 채널에 모두 흔적이 있습니다 — 현행 콘텐츠 지원을 유지하면서 품목 편중만 점검하세요.`;
+    const team = `채널 카드에서 비어 있는 칸을 짚어 <b>후기 요청 실행 여부</b>를 점검하고, 채워진 채널의 상담 방식을 인근 매장 교육 사례로 넓히세요.`;
+    const store = `계약을 마무리할 때 <b>매장명과 담당자 실명이 남는 후기</b>를 요청하세요 — 채널마다 그 이름이 검색의 간판이 됩니다.`;
+    return `<ul class="role-plan">` +
+      `<li class="rp-hq"><em>본사</em><span>${hq}</span></li>` +
+      `<li class="rp-team"><em>영업팀</em><span>${team}</span></li>` +
+      `<li class="rp-store"><em>매장</em><span>${store}</span></li>` +
+      `</ul>`;
+  }
+
   function channelCard(ch, name) {
     if (ch.key === "naver-review") return nrCard(ch, name);
     if (ch.key === "jwedding") return jwCard(ch, name);
@@ -451,8 +470,9 @@
       `<div class="cx-title"><h2 data-store="${name}">${name}</h2>` +
       `<span>${rg}${isMine ? " · <b>우리 권역</b>" : ""} · 채널 ${CHANNELS.length}개 중 <b>${live}개</b> 수집 완료` +
       `${per() ? ` · <b>${per().label()}</b>` : ""}</span></div>` +
-      (per() ? per().html() : "") +
-      rangeBox() +
+      /* 기간 UI 는 공용 bar() 한 벌로 — html() 만 쓰면 현재기간 라벨이 빠지고
+         칩이 화면 가운데 떠 다른 화면과 갈린다(2026-08-27 검수 지적). */
+      (per() ? per().bar() : rangeBox()) +
       `</div>` +
       `<div class="cx-body">` +
       `<div class="cx-left">` +
@@ -474,6 +494,9 @@
       `${isCus() ? `<p class="cx-note">표시 수치는 지정하신 기간만 잘라 집계한 값입니다.</p>` : ""}` +
       `</div></div>` +
       `<div class="cx-grid">${CHANNELS.map((c) => channelCard(c, name)).join("")}</div>` +
+      /* 표준 실행 제안 — 이 화면은 한 매장을 채널 축으로 본 것이라
+         '비어 있는 채널'이 곧 과제다(2026-08-27 검수: 표준 블록 누락). */
+      rolePlan(name) +
       `</div></div>`;
   }
 

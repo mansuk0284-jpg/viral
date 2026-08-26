@@ -958,6 +958,7 @@
       //       (실측: 도시와 매장이 같은 카드를 쓰고 있었다)
       `<div class="rv-third">` +
       cityCard(c.title, list, c) +
+      regionRolePlan(c.title, list, c) +
       `</div></div>`;
   }
 
@@ -1037,7 +1038,7 @@
                 `도시 평균(${sh}%)이 가려 온 격차입니다 — ${lo.n}의 열세 품목을 매장 페이지에서 먼저 확인하세요.`
               : `<b>${hi.n}</b>(${hi.sh}%)과 <b class="warn">${lo.n}</b>(${lo.sh}%) 사이가 ${spread}p 벌어져 있습니다. ` +
                 `잘 되는 매장의 상담 방식이 ${JOSA(lo.n, "으로", "로")} 아직 옮겨지지 않았다는 신호입니다 — 두 매장의 품목 구성을 나란히 비교해 보세요.`;
-            return `<div class="cy-sec"><h5>매장 간 격차</h5>` +
+            return `<div class="cy-sec"><h5>매장 구도 <i>격차·집중도</i></h5>` +
               `<div class="cy-spread ${gapCls}">` +
               `<span class="cs-hi">${hi.n} <b>${hi.sh}%</b></span>` +
               `<span class="cs-line"></span>` +
@@ -1049,7 +1050,7 @@
 
       // 표본 집중도 — 어느 매장의 후기가 도시 지표를 움직이는가
       (byVol[0]
-        ? `<div class="cy-sec"><h5>표본 집중도</h5>` +
+        ? `<div class="cy-sec cy-sub"><h5 class="sr-only">표본 집중도</h5>` +
           `<div class="cy-head"><span class="ch-nm">${byVol[0].n}</span>` +
           `<span class="ch-bar"><i style="width:${headShare}%"></i></span>` +
           `<span class="ch-v">${headShare}<u>%</u></span></div>` +
@@ -1096,7 +1097,7 @@
           if (!mgTop || (d.s + d.l) > mgTop.t) mgTop = { n: x.n, t: (d.s || 0) + (d.l || 0) }; });
         const tot = mgS + mgL;
         const natMgr = G ? pct(G.s_on, G.l_on) : null;
-        if (!tot) return `<div class="cy-sec"><h5>실명 언급</h5>` +
+        if (!tot) return `<div class="cy-sec"><h5>상담 접점 <i>실명·비교</i></h5>` +
           `<p class="cy-note">이 기간 이 도시 매장의 <b class="warn">담당자 실명이 적힌 후기가 없습니다</b> — ` +
           `후기 요청 때 상담한 담당자 이름이 함께 남도록 부탁하는 것부터가 과제입니다.</p></div>`;
         const sh = pct(mgS, mgL);
@@ -1109,7 +1110,7 @@
                 : ` — 전국(${natMgr}%)보다 <b class="warn">${natMgr - sh}p 낮습니다</b>.`)
               : `.`)
           : `실명이 적힌 후기가 삼성 <b>${fmtN(mgS)}건</b> vs LG <b class="warn">${fmtN(mgL)}건</b>뿐이라 비중을 말하기엔 표본이 작습니다.`;
-        return `<div class="cy-sec"><h5>실명 언급</h5>` +
+        return `<div class="cy-sec"><h5>상담 접점 <i>실명·비교</i></h5>` +
           `<p class="cy-note">${line}` +
           (mgTop ? ` 실명 언급이 가장 많은 곳은 <b>${mgTop.n}</b>(${fmtN(mgTop.t)}건)입니다.` : "") +
           `</p></div>`;
@@ -1131,7 +1132,7 @@
                 : ` — 전국(${natSh}%)보다 <b class="warn">${natSh - sh}p 낮습니다</b>. 비교 질문에 답할 준비가 상담의 승부처입니다.`)
               : `.`)
           : `양사를 나란히 견준 후기가 <b>${fmtN(tot)}건</b>이라 비중을 말하기엔 표본이 작습니다(삼성 ${fmtN(cp.s)} : LG ${fmtN(cp.l)}).`;
-        return `<div class="cy-sec"><h5>비교 상담</h5><p class="cy-note">${line}</p></div>`;
+        return `<div class="cy-sec cy-sub"><p class="cy-note">${line}</p></div>`;
       })() +
 
       // 품목 편차(전국 대비) — 이 도시에서만 유독 강하거나 약한 품목
@@ -1156,9 +1157,27 @@
           })()
         : "") +
 
-      /* 실행 제안 — 역할별(본사/영업팀/매장). 모든 분석 페이지의 표준 마무리
-         (2026-08-26 사용자: "교육이 될 수도 있고 판촉행사가 될 수도 있고 …
-          지역단위 영업팀, 매장, 혹은 본사에서의 역할도 각각 다를거야"). */
+      `</div>`;
+  }
+
+  /* 실행 제안(역할별) — 진단 카드에서 **분리**했다(2026-08-26 사용자 지시:
+     "전반적인 진단 박스 아래에 실행제안 박스를 위치시키도록 해 그래야 좌우 균형이 맞아").
+     같은 데이터로 만들되 카드를 따로 세워 3열 아래에 놓는다. */
+  function regionRolePlan(rgName, list, c) {
+    const A0 = hasF() ? A() : null;
+    let itemDiff = [];
+    if (A0 && A0.regionItems && A0.regionItems[rgName] && A0.items) {
+      const RI = A0.regionItems[rgName];
+      itemDiff = Object.keys(RI).map((k) => {
+        const r = RI[k], n = A0.items[k];
+        if (!n || r.s + r.l < 5) return null;
+        return { n: k, city: pct(r.s, r.l), nat: pct(n.s, n.l) };
+      }).filter(Boolean).map((x) => ({ ...x, d: x.city - x.nat }))
+        .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 2);
+    }
+    const sized = list.filter((x) => x.s + x.l >= 5)
+      .map((x) => ({ n: x.n, sh: pct(x.s, x.l) })).sort((a, b) => b.sh - a.sh);
+    return `<div class="ca-ncard rv-roleplan"><h4 class="ca-ch">실행 제안 <i class="ca-tag">역할별</i></h4>` +
       (function () {
         const negIt = itemDiff.find((x) => x.d < 0);
         const hq = negIt
@@ -1170,11 +1189,11 @@
           ? `<b class="warn">${sized[sized.length - 1].n}</b>의 상담 방식 점검과 <b>${sized[0].n}</b> 사례 전파(<b>매니저 교육</b>)를 병행하세요.`
           : `매장별 표본이 얇습니다 — 매장 방문 시 <b>후기 요청 실행 여부</b>를 점검하세요.`;
         const store = `계약 고객에게 <b>담당자 실명이 남는 후기</b> 작성을 요청하세요 — 실명 후기가 다음 고객의 지명 방문을 만듭니다.`;
-        return `<div class="cy-sec"><h5>실행 제안 <i>역할별</i></h5><ul class="role-plan">` +
+        return `<ul class="role-plan">` +
           `<li class="rp-hq"><em>본사</em><span>${hq}</span></li>` +
           `<li class="rp-team"><em>영업팀</em><span>${team}</span></li>` +
           `<li class="rp-store"><em>매장</em><span>${store}</span></li>` +
-          `</ul></div>`;
+          `</ul>`;
       })() +
       `</div>`;
   }

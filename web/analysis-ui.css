@@ -863,3 +863,283 @@ body.view-channel #channel .container > #channelPanel { min-height: 0; }
 .ca2 .oh-sc { color: #1f5fd0; font-weight: 800; }
 .ca2 .oh-tags span { font-size: 11px; white-space: nowrap; }
 .ca2 .oh-lead .cy-sec p + p { margin-top: 8px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   활자 1.2배 + 역할 위계 강화 (2026-08-26 사용자 지시)
+   "분석페이지의 글씨크기를 지금보다 1.2배는 크게 … 제목과 부제목, 본문에
+    따라 굵기·글자 크기 차별을 줘야 하고 분석 페이지들의 ui는 전부 통일감 있게"
+
+   확대 전 실측(1440×900, 11개 분석 화면 computed):
+     대제목  26px/900      — 유일하게 이미 통일돼 있었다
+     카드제목 16.6px/900
+     소제목  14 · 15.5 · 21px  ← **세 값**으로 갈려 있었다
+                (.cy-sec>h5·.fc-sec>h5 14 / .nsc-st·.yt-trend>h4 15.5 /
+                 .cx-sum-h h3·.af-ph h3 21)
+     본문    13px/600 · 13px/400 · 14px/400  ← 크기도 굵기도 갈렸다
+     각주    12/600 · 12.5/400 · 12.5/600
+   대제목(26)과 카드제목(16.6) 사이는 1.57배인데 소제목~본문~각주 구간은
+   15.5 → 13 → 12.5 로 **간격이 1.19배·1.04배**밖에 안 됐다. 그래서 키우기만
+   해서는 위계가 안 산다 — 아래 계단은 배율을 역할마다 달리 줘 **간격을 벌린다.**
+
+     역할      전 → 후        배율    굵기
+     대제목    26   → 31      1.19    900
+     카드제목  16.6 → 20      1.20    900
+     소제목    14~21→ 16.5    1.18*   800   (*세 값을 하나로 수렴)
+     본문      13~14→ 15.5    1.19    600
+     각주      12~12.5→13.5   1.13    600
+
+   토큰을 새로 세 개(--an-cardt/--an-sect/--an-foot) 만든다. 지금까지는
+   소제목·각주에 토큰이 없어 화면마다 리터럴을 적었고, 그래서 갈라졌다.
+   값을 또 적지 말고 **반드시 이 토큰을 가리킨다.**
+
+   !important 를 쓰는 이유는 이 파일 위쪽 블록들과 같다 —
+   cafe-analysis.css 의 `body.view-cafe .x`(특이도 0,2,1) 하드코딩 150여 개를
+   전역 계단이 항상 이겨야 한다는 것이 이 블록의 목적 자체다.
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  --an-title: 31px;        /* 대제목 — 화면 제목 (was 26) */
+  --an-cardt: 20px;        /* 카드제목 (was 16.6, 토큰 신설) */
+  --an-sect: 16.5px;       /* 소제목 — 섹션 박스 제목 (was 14·15.5·21, 토큰 신설) */
+  --an-body: 15.5px;       /* 본문 (was 13·14) */
+  --an-foot: 13.5px;       /* 각주·보조 라벨 (was 12·12.5, 토큰 신설) */
+  --an-sub: 13.5px;        /* 제목 아래 한 줄 설명 = 각주 계단 */
+  --an-hero: 55px;         /* 카드 앞면 대표 수치 (was 46) */
+  --an-big: 50px;          /* 브랜드 비중 (was 42) */
+  --an-num: 38px;          /* 총 건수 (was 32) */
+  --an-mid: 23px;          /* 중간 수치 (was 19) */
+  --an-cap: 17.5px;        /* 캡션 (was 14.5) */
+  /* 굵기도 역할에 묶는다 — 크기만 다르고 굵기가 같으면 위계가 흐리다 */
+  --anw-title: 900; --anw-cardt: 900; --anw-sect: 800;
+  --anw-body: 600;  --anw-foot: 600;
+}
+
+/* ── ① 대제목 31/900 ──
+   .cx-sum-h h3(채널 좌측 요약)·.ca-stat-h h3 가 21px 이었다. 이들은 위
+   622줄에서 .nsc-h/.rv-head 와 **같은 페이지-타이틀 박스**로 묶여 있는데
+   글자만 한 계단 눌려 있었다 — 같은 박스면 같은 계단이다. */
+.ca2 .cx-title h2, .ca2 .ca-head h2,
+.ca2 .ca-nsumcol .nsc-h h3, .ca2 .rv-head h3,
+.ca2 .cx-sum-h h3, .ca2 .ca-stat-h h3,
+body.view-cx .cx-sum-h h3,
+.af-title h2, .nr-wrap .af-title h2 {
+  font-size: var(--an-title) !important; font-weight: var(--anw-title) !important;
+  letter-spacing: -0.03em; line-height: 1.14;
+}
+
+/* ── ② 카드제목 20/900 ── */
+.ca2 .ca-ch, body.view-cx .ca-ch,
+.ca2 .rv-rhead > h4, .ca2 .rv-dhead > h4,
+.af-block h4, .nr-wrap .af-block h4,
+.nr-wrap .af-ph h3, .nr-wrap .af-ph.tight h3 {
+  font-size: var(--an-cardt) !important; font-weight: var(--anw-cardt) !important;
+  letter-spacing: -0.02em; line-height: 1.25;
+}
+.ca2 .ca-ch .ca-tag, body.view-cx .ca-tag { font-size: var(--an-foot) !important; font-weight: 700; }
+.ca2 .rv-rhead > h4 em, .ca2 .rv-dhead > h4 em {
+  font-size: var(--an-foot) !important; font-weight: var(--anw-foot); }
+
+/* ── ③ 소제목 16.5/800 — 세 값(14·15.5·21)을 하나로 ── */
+.ca2 .nsc-st,
+.ca2 .cy-sec > h5, .ca2 .fc-sec > h5,
+.ca2 .yt-rep .cy-sec > h5, .ca2 .rv-third .cy-sec > h5,
+.ca2 .yt-trend > h4, .ca2 .yt-cmp > h4,
+.ca2 .ca-sv .pf-lb {
+  font-size: var(--an-sect) !important; font-weight: var(--anw-sect) !important;
+  letter-spacing: -0.015em; line-height: 1.3;
+}
+/* 소제목 우측 보조 라벨은 각주 계단 */
+.ca2 .nsc-st i, .ca2 .cy-sec > h5 i, .ca2 .fc-sec > h5 i,
+.ca2 .ca-sv .pf-lb em {
+  font-size: var(--an-foot) !important; font-weight: var(--anw-foot) !important; }
+
+/* ── ④ 본문 15.5/600 — 13·13/400·14 세 갈래를 하나로 ── */
+.ca2 .cy-note, .ca2 .yt-note, .ca2 .fc-plain, .ca2 .pf-sum, .ca2 .sc-tip,
+.ca2 .mgr-tip, .ca2 .yt-trend li, .ca2 .role-plan li, .ca2 .ca-splx,
+.ca2 .sv-action, .ca2 .rv-act, .ca2 .rv-dtext, .ca2 .rv-dtext .pl,
+.ca2 .fc-sec p, .ca2 .fc-sec.tip p, .ca2 .fc-pts li,
+.ca2 .ca-reasons li span, .ca2 li.warn-li,
+.ca2 .nsc-sec .nw-sub, .ca2 .rv-diag p {
+  font-size: var(--an-body) !important; font-weight: var(--anw-body) !important;
+  line-height: 1.62 !important;
+}
+/* 본문 안 강조 수치는 본문과 같은 크기·900 — 크기까지 키우면 문장이 계단처럼 튄다 */
+.ca2 .fc-sec p b, .ca2 .cy-note b, .ca2 .yt-note b, .ca2 .role-plan b,
+.ca2 .yt-trend li b, .ca2 .nsc-foot b {
+  font-size: inherit; font-weight: 900; }
+
+/* ── ⑤ 각주 13.5/600 ── */
+.ca2 .nsc-foot, .ca2 .jw-note, .ca2 .ca-geonote,
+.ca2 .cx-title > span, .ca2 .ca-head > span,
+.ca2 .nsc-h span, .ca2 .rv-head span, .ca2 .cx-sum-h span,
+.af-title span, .nr-wrap .af-title span,
+.ca2 .ca-geo-legend .gl, .ca2 .ca-geo-legend .gl-hint,
+.ca2 i.car-tilde, .ca2 h6.pos, .ca2 h6.neg, .ca2 .ca-sm-tag {
+  font-size: var(--an-foot) !important; font-weight: var(--anw-foot) !important;
+  line-height: 1.55 !important;
+}
+
+/* ── ⑥ 중간 계단(목록 행·품목·칩·수치) — 같은 1.2배로 함께 올린다.
+   본문(15.5)을 넘지 않게 두어 위계를 지킨다. */
+/* 매장명 — **여기만 !important 를 쓰면 안 된다.**
+   text-fit.js 가 `el.style.fontSize` (인라인·!important 없음) 로 칸에 맞을
+   때까지 글자를 줄여 이름을 통째로 보여주는데, CSS 쪽 !important 가 그
+   인라인 값을 이겨 버려 축소가 먹히지 않는다. 실측: 15.5px !important 로
+   "신세계 센텀시티"가 부산 10px·블로그 부산 25px 잘렸다.
+   대신 `body.view-cafe .ca2 .rv-name` (0,3,1) 로 특이도만 올려
+   cafe-analysis.css 의 `body.view-cafe .rv-name`(17.2px) 를 이기고,
+   축소 권한은 text-fit.js 에 그대로 넘긴다. */
+body.view-cafe .ca2 .rv-name, body.view-cx .ca2 .rv-name, .ca2 .rv-name {
+  font-size: 15.5px; }
+.ca2 .rv-num, .ca2 .rv-sh { font-size: 15px !important; }
+.ca2 .rv-rank, .ca2 .rv-leg { font-size: 13.5px !important; }
+.ca2 .rv-row i.s, .ca2 .rv-row i.l,
+.ca2 .rv-bar i.s, .ca2 .rv-bar i.l { font-size: 14px !important; }
+.ca2 .rv-none { font-size: 13.5px; }
+.ca2 .it-n { font-size: 15px !important; }
+.ca2 .it-c { font-size: 13.5px !important; }
+.ca2 .it-v { font-size: 15.5px !important; }
+.ca2 .ca-sm-t { font-size: 15px !important; }
+.ca2 .mr-sh { font-size: 15px !important; }
+/* .mr-nm 도 text-fit.js 관리 대상(SEL)이라 !important 를 붙이면 축소가 막힌다 */
+body.view-cx .ca2 .mr-nm, body.view-cafe .ca2 .mr-nm, .ca2 .mr-nm { font-size: 15px; }
+.ca2 .nsc-ends > span.s, .ca2 .nsc-ends > span.l { font-size: 16px !important; }
+.ca2 .nsc-nums b { font-size: 15.5px; letter-spacing: -0.03em; }
+.ca2 .nsc-nums i { font-size: 13px; }
+.ca2 .nsc-vs2 span { font-size: 14.5px; }
+.ca2 .nsc-vs2 span b { font-size: 16px; }
+.ca2 .geo-rsum .gr { font-size: 15.5px; }
+.ca2 .nsc-total i { font-size: 25px; }
+.ca2 .nsc-h span, .ca2 .nsc-hits .nh-top b { font-size: 21px; }
+.ca2 .ca-reasons li b, .ca2 .ca-reasons li span b { font-size: 22px; }
+.ca2 .nsc-sec .nw-p1 b, .ca2 .nsc-sec .nw-p2 b, .ca2 .nsc-sec .nw-p3 b { font-size: 28px; }
+.ca2 .nsc-sec .nw-pair.split .nw-p1 b, .ca2 .nsc-sec .nw-pair.split .nw-p2 b { font-size: 33px; }
+.ca2 .nsc-sec .nw-p1 i, .ca2 .nsc-sec .nw-p2 i, .ca2 .nsc-sec .nw-p3 i { font-size: 13.5px; }
+.ca2 .role-plan em { font-size: 12.5px; flex-basis: 58px; padding: 2.5px 0; }
+.ca2 .fc-label { font-size: 15.5px; }
+body.view-cx .ys-k b, body.view-cx .yo-k b { font-size: 23px; }
+body.view-cx .ys-k span, body.view-cx .yo-k span { font-size: 13.5px; }
+body.view-cx .yo-k em { font-size: 13px; }
+body.view-cx .cx-sum-n b { font-size: var(--an-num); }
+body.view-cx .cx-sum-n i { font-size: 17px; }
+body.view-cx .cx-vs span { font-size: 14.5px; }
+body.view-cx .cx-vs b { font-size: 16px; }
+body.view-cx .ytc-body b, body.view-cx .igp-mid b { font-size: 15px; }
+body.view-cx .ytc-body em, body.view-cx .igp-mid em { font-size: 13px; }
+body.view-cx .ytc-foot u, body.view-cx .igp-v { font-size: 15px; }
+body.view-cx .igp-rank, body.view-cx .yp-rank { font-size: 24px; }
+body.view-cx .yv-h span, body.view-cx .yv-h b { font-size: 14.5px; }
+body.view-cx .yv-row b { font-size: 14px; }
+body.view-cx .yv-row em, body.view-cx .yv-row i { font-size: 13px; }
+body.view-cx .yt-own { font-size: 12px; }
+.ca2 .yc-row em { font-size: 13px; }
+.ca2 .yc-s, .ca2 .yc-l { font-size: 12.5px; }
+.ca2 .oh-tags span { font-size: 12.5px; }
+.ca2.yt-wrap .it-n { font-size: 14px; }
+.ca2.yt-wrap .ytc-rank { font-size: 14px; }
+.ca2.yt-wrap .yt-podium > .ytc:first-child .ytc-rank { font-size: 16.5px; }
+/* 기간 칩은 '읽을거리'가 아닌 조작 도구라 본문보다 한 계단 아래로 둔다.
+   다만 12.5px 는 새 본문(15.5)과 3px 벌어져 눌려 보였다 — 14px 로 반 계단만. */
+.ca2 .vper button.cur, .ca2 button.cur { font-size: 14px !important; }
+.ca2 .ca-nav .ca-yrb, body.view-cafe .ca2 .ca-nav .ca-yrb {
+  min-height: 36px; padding: 6px 14px; font-size: 14px; }
+.ca2 .ca-range .car-d, body.view-cafe .ca2 .ca-range .car-d,
+.ca2 .ca-range .car-go, body.view-cafe .ca2 .ca-range .car-go { font-size: 13.5px; }
+
+/* ── ⑦ 활자를 키운 만큼 담는 칸도 넓힌다 ──
+   좌측 칼럼(288px)에서 일곱 자리 조회수 두 개는 13.5px 이 상한이었다.
+   15.5px 로 올렸으므로 칼럼을 같은 비율(≈1.16)로 넓힌다 — 활자를 다시
+   줄이는 대신 칸을 넓히는 쪽이 이번 지시의 방향이다. */
+@media (min-width: 1181px) {
+  .ca2 .ca-npanel { grid-template-columns: clamp(258px, 21.5vw, 310px) minmax(0, 1fr) !important; }
+  .ca2 .ca-rv { grid-template-columns: clamp(258px, 21.5vw, 310px) minmax(0, 1.22fr) minmax(0, 1fr) !important; }
+  .ca2 .nb-nation { grid-template-columns: clamp(258px, 21.5vw, 310px) minmax(280px, 0.86fr) minmax(0, 1.1fr); }
+}
+/* 매장 목록 한 행 — 고정 칸들이 13.5px 기준이라 15.5px 글자를 잘랐다.
+   이름 칸은 말줄임 금지 원칙(text-fit)이 있어 가장 넉넉히 준다.
+   ※ !important 필수 — text-fit.css 46줄이 같은 속성을 !important 로 잡고 있어
+     `.ca2 .rv-row`(0,2,0) 특이도만으로는 못 이긴다(실측: override 무시됨). */
+/* 이름 칸과 막대 칸의 균형 —
+   처음엔 고정 수치 칸을 66/46/56/44/48 → 76/54/62/50/54 로 42px 키웠는데,
+   이 행은 **고정 칸이 먼저 다 먹고 남은 폭을 이름·막대가 나눠 쓰는** 구조라
+   그 42px 이 그대로 막대에서 빠졌다(블로그 부산 막대 트랙 27px 까지 실측).
+   막대는 이 표의 유일한 그림이라 줄면 표가 숫자 나열이 된다.
+   → 수치 칸은 +18px 만 키우고(70/50/58/46/50) 칸 사이 간격도 5px 로 조인다.
+     이름은 부족하면 text-fit.js 가 글자를 줄여 **전부 보여준다**(설계된 안전장치)
+     — 잘리지 않으므로 정보 손실은 없다. */
+.ca2 .rv-row { grid-template-columns: 22px minmax(100px, 1.5fr) 70px minmax(0, 1.5fr)
+  50px 58px 46px 50px !important; column-gap: 5px; }
+.ca2 .rv-list.two .rv-row { grid-template-columns: minmax(100px, 1.6fr) 70px
+  minmax(0, 1.2fr) 50px !important; column-gap: 5px; }
+.ca2 .rv-num, .ca2 .rv-sh { font-size: 14px !important; }
+.ca2 .rv-cnt, .ca2 .rv-hit, .ca2 .rv-gap { font-size: 13.5px !important; }
+/* 여백은 조인다 — 활자가 커진 만큼 박스가 숨쉴 자리를 여백에서 뺀다 */
+.ca2 .rv-row { padding: 3px 7px; }
+.ca2 .nsc-sec { padding: 9px 11px 10px; }
+.ca2 .rv-left { padding: 20px 16px; gap: 11px; }
+.ca2 .sv-left { padding: 17px 15px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   내부 박스 가로 중앙 정렬 (2026-08-26 사용자 지시)
+   "박스 안에 박스가 있는 경우 내부 박스는 큰 외부박스의 가로정렬상
+    가운데 위치하도록 해야 해. 그래야 균형감 있고 보기에 좋아."
+
+   실측으로 잡힌 비대칭은 좌측 요약 칼럼 하나였다:
+     .ca-nsumcol > .nsc-sec   좌 8.6px / 우 15.0px  (6.4px 치우침)
+   원인 — .ca-nsumcol 의 패딩이 `0 clamp(6,1vw,14) 0 clamp(4,.6vw,10)` 로
+   좌우가 애초에 달랐고(10 vs 14), 거기에 border-right 1px 이 더해졌다.
+   지도와의 구분선(border-right)은 살리되 그 두께를 좌측 패딩이 흡수해
+   **안쪽 내용 상자가 정확히 가운데 서게** 한다.
+   ══════════════════════════════════════════════════════════════════════ */
+.ca2 .ca-nsumcol { padding-right: clamp(6px, 1vw, 14px);
+  padding-left: calc(clamp(6px, 1vw, 14px) + 1px); }   /* +1px = border-right 두께 */
+
+/* 제목을 31px 로 키우자 매장별현황 h2 가 자기 상자에서 3px 잘렸다(실측).
+   제목은 잘리면 안 되는 글이므로 줄높이를 주고 자름을 푼다. */
+.ca2 .cx-title h2, .ca2 .ca-head h2, .ca2 .rv-head h3,
+.ca2 .ca-nsumcol .nsc-h h3, .ca2 .cx-sum-h h3 {
+  overflow: visible; line-height: 1.28; }
+
+/* ── 활자를 키운 뒤 남은 하단 잘림 — 매장 상세 우측 그리드 ──
+   실측: 실행 제안(.role-plan)이 162px 인데 담는 칸(.sv-action)은 101px 만
+   보여 '본사' 줄이 문서 스크롤 범위 밖 33px 로 밀려났다.
+   원인은 활자가 아니라 **행 높이 고정**이다 — .ca-sv 가 한 행(838px)에
+   묶여 있고 .sv-right 가 그 안에서 네 행을 나눠 갖는 구조라, 내용이 늘어도
+   칸이 안 늘고 안쪽 스크롤로 숨었다.
+   2026-08-26 에 세로 스크롤 허용 체제로 바꿨으므로 이 그리드도 내용만큼
+   자라게 푼다(같은 취지의 .ca-nright 처리와 짝을 맞춘다).
+   행 안에서 카드끼리 높이를 맞추는 stretch 는 그대로 둔다 — 균일감은 유지. */
+.ca2 .ca-sv { grid-template-rows: auto !important; }
+.ca2 .sv-right { grid-template-rows: auto !important; grid-auto-rows: auto !important;
+  overflow-y: visible !important; max-height: none !important; }
+.ca2 .sv-actcard, .ca2 .ca-sv .sv-action, .ca2 .ca-sv .sv-peers, .ca2 .ca-sv .sv-revcols {
+  overflow: visible !important; max-height: none !important; }
+
+/* 내부 박스는 폭 상한을 두고 좌우 auto — 외부 박스가 아무리 넓어져도
+   한쪽에 붙지 않는다. 100% 가 기본이므로 평소엔 아무 변화가 없고,
+   외부 박스가 상한보다 넓어질 때만 가운데로 모인다. */
+.ca2 .nsc-sec, .ca2 .rv-third .cy-sec, .ca2 .yt-rep .cy-sec, .ca2 .nb-rep .cy-sec,
+.ca2 .oh-lead .cy-sec, .ca2.yt-wrap .yt-trend, .ca2.yt-wrap .yt-cmp,
+.ca2 .role-plan, .ca2 .rv-third .ca-splx,
+.ca2 .ca-sv .pf-top, .ca2 .ca-sv .pf-items, .ca2 .ca-sv .pf-sum,
+.ca2 .ca-sv .sc-kpis, .ca2 .ca-sv .sc-tip,
+.ca2 .ca-sv .mgr-names, .ca2 .ca-sv .mgr-tip,
+.ca2 .ca-sv .sv-action, .ca2 .ca-sv .sv-peers, .ca2 .ca-sv .sv-revcols {
+  width: 100%; max-width: 100%; margin-inline: auto; box-sizing: border-box;
+}
+
+/* ── 2026-08-27 최종 검수 반영 ─────────────────────────────────────
+   ① 다결 머리줄: 칩이 좌측(로고 옆)에 있고 직접 입력만 우측이라 갈라져 있었다.
+      기간 UI 한 덩어리를 통째로 우측으로 보낸다(다른 화면과 같은 자리). */
+.ca2 .ca-head-row > .ca-periodnav { margin-left: auto; }
+.ca2 .ca-head-row > .ca-range { margin-left: 10px; }
+/* ② 네이버 리뷰·매장별현황도 같은 활자 계단에 넣는다(선택자 목록에서 빠져 있었다) */
+.ca2 .nr-wrap .af-sec > h4, .ca2 .af-pane h4, .ca2 .nr-wrap h5,
+body.view-nr .af-sec > h4, body.view-nr .af-pane h4 {
+  font-size: var(--an-sect, 16.5px) !important; font-weight: 800 !important; }
+body.view-nr .af-txt, body.view-nr .af-note, body.view-nr .af-line,
+body.view-nr .nr-note span, .cx-card .cx-sub, .cx-card .cx-empty span {
+  font-size: 15.5px !important; font-weight: 600 !important; line-height: 1.6 !important; }
+body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
+/* ③ 네이버 리뷰의 표준 기간 UI 줄 — 우측 정렬 */
+.nr-perrow { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+.afa-col h6 .afa-smp { font-size: 12px; font-weight: 600; color: #7c8698; font-style: normal; margin-left: 6px; }

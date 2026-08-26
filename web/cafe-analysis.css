@@ -2090,3 +2090,19 @@ body.view-cx .cx-top > .ca-ic { width: 44px; height: 44px; border-radius: 13px; 
 .ca2 .ca-sm-d { margin-left: auto; align-self: center; font-size: 10px; font-weight: 800;
   color: var(--muted); background: rgba(23,42,66,.06); border-radius: 999px;
   padding: 1px 7px; white-space: nowrap; flex: 0 0 auto; }
+
+/* ── 기간 UI 우측 정렬 + 직접 입력 한 벌 (2026-08-26 사용자 지시) ──
+   "모든 분석 페이지에서 기간 버튼탭을 우측으로 이동" ·
+   "간단 기간설정 버튼과 직접입력 기간 버튼 모두가 있어야" */
+.ca-perwrap { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-wrap: wrap;
+  justify-content: flex-end; }
+.cx-top > .ca-perwrap { margin-left: auto; }
+.ca2 .cx-top { align-items: center; }
+/* 다결 머리줄도 같은 문법 — 좌측 아이콘·칩, 우측 직접 입력 */
+.ca-head-row { gap: 12px; }
+/* 합쳐진 소제목의 이어지는 문단 — 제목 없이 앞 섹션에 붙는다(2026-08-26) */
+.ca2 .cy-sec.cy-sub { margin-top: -4px; border-top: 0; padding-top: 4px; }
+.ca2 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; }
+.ca2 .cy-sec > h5 > i { font-style: normal; font-size: .78em; font-weight: 700;
+  color: var(--muted); margin-left: auto; }
