@@ -1027,7 +1027,10 @@
       (spread !== null
         ? (function () {
             const hi = sized[0], lo = sized[sized.length - 1];
-            const note = spread < 25
+            const note = spread === 0
+              ? `표본 5건 이상 ${sized.length}곳의 삼성 비중이 <b>모두 ${hi.sh}%로 같습니다</b>. ` +
+                `매장 간 차이가 없다는 뜻이므로, 매장별 처방보다 도시 공통(품목·비교 상담 대비)으로 접근하는 것이 맞습니다.`
+              : spread < 25
               ? `표본 5건 이상 ${sized.length}곳이 <b>${spread}p</b> 안에 모여 있습니다. ` +
                 `특정 매장의 문제가 아니라 도시 공통의 흐름이 성적을 만들고 있다는 뜻입니다 — 처방도 도시 공통(품목·비교 상담 대비)으로 접근하는 것이 맞습니다.`
               : lo.sh >= 50
@@ -1048,39 +1051,65 @@
           })()
         : `<p class="ca-splx">표본 5건 이상 매장이 2곳 미만이라 매장 간 격차를 말할 수 없습니다 — 기간을 넓히면 비교가 가능해집니다.</p>`) +
 
-      // 표본 집중도 — 어느 매장의 후기가 도시 지표를 움직이는가
-      (byVol[0]
-        ? `<div class="cy-sec cy-sub"><h5 class="sr-only">표본 집중도</h5>` +
-          `<div class="cy-head"><span class="ch-nm">${byVol[0].n}</span>` +
-          `<span class="ch-bar"><i style="width:${headShare}%"></i></span>` +
-          `<span class="ch-v">${headShare}<u>%</u></span></div>` +
-          `<p class="cy-note">` +
-          (headShare >= 50
-            ? `도시 표본의 <b>${headShare}%</b>가 <b>${byVol[0].n}</b> 한 곳에서 나옵니다 — 이 매장의 후기 요청 습관이 곧 도시 지표입니다. ` +
-              `나머지 매장은 후기 자체가 적어 잘하고 있어도 수치에 드러나지 않습니다 — 그쪽의 후기 요청부터 채워야 도시 전체가 읽힙니다.`
-            : headShare >= 30
-            ? `<b>${byVol[0].n}</b>이 표본의 <b>${headShare}%</b>를 차지합니다. ` +
-              `이 매장의 성적이 흔들리면 도시 수치가 함께 흔들리는 구조라, 도시 지표를 읽을 때 이 매장의 변동을 먼저 확인해야 합니다.`
-            : `표본이 여러 매장에 고르게 퍼져 있어(1위 비중 ${headShare}%) 한 매장의 부침이 도시 지표를 좌우하지 않습니다. ` +
-              `도시 수치를 매장 전체의 흐름으로 읽어도 되는 상태입니다.`) + `</p></div>`
-        : "") +
 
-      /* 조회수 관점 — 건수와 읽힘은 다른 축이다(2026-08-25 깊이 보강).
-         후기 수 1위와 조회수 1위가 다른 매장이면, 바이럴 파급은 후자가 크다. */
+      /* 후기·조회수 선두 매장 — "이 지역에서 가장 많은 후기를 보여주는 매장,
+         가장 읽히는 매장"을 이름·건수로 먼저 못박는다(2026-08-27 사용자 지시:
+         단편적 지표 설명이 아니라 지역의 실체가 드러나게). */
       (function () {
+        const volTop = byVol[0];
+        if (!volTop) return "";
+        const vt = volTop.s + volTop.l, vsh = pct(volTop.s, volTop.l);
         const withHits = list.filter((x) => (x.hs || 0) + (x.hl || 0) > 0);
-        if (withHits.length < 2) return "";
-        const volTop = list.slice().sort((a, b) => (b.s + b.l) - (a.s + a.l))[0];
-        const hitTop = withHits.slice().sort((a, b) => ((b.hs || 0) + (b.hl || 0)) - ((a.hs || 0) + (a.hl || 0)))[0];
-        const ht = (hitTop.hs || 0) + (hitTop.hl || 0);
+        const hitTop = withHits.length
+          ? withHits.slice().sort((a, b) => ((b.hs || 0) + (b.hl || 0)) - ((a.hs || 0) + (a.hl || 0)))[0] : null;
+        const ht = hitTop ? (hitTop.hs || 0) + (hitTop.hl || 0) : 0;
         const per = (x) => { const t = x.s + x.l; return t ? Math.round(((x.hs || 0) + (x.hl || 0)) / t) : 0; };
-        return `<div class="cy-sec"><h5>조회수 파급</h5>` +
-          (hitTop.n === volTop.n
-            ? `<p class="cy-note">후기도 조회도 <b>${hitTop.n}</b>에 몰립니다(${fmtN(ht)}회). ` +
-              `이 매장의 글이 도시 바이럴의 관문입니다 — 여기서 담당자 실명이 남도록 후기 요청을 거는 것이 가장 효율적입니다.</p>`
-            : `<p class="cy-note">후기 수 1위는 <b>${volTop.n}</b>지만, 조회수 1위는 <b>${hitTop.n}</b>(${fmtN(ht)}회)입니다. ` +
-              `한 건당 <b>${fmtN(per(hitTop))}회</b>씩 읽히는 셈이라, 고객 눈에 실제로 띄는 바이럴 파급은 ${JOSA(hitTop.n, "이", "가")} 더 큽니다.</p>`) +
-          `</div>`;
+        let line = `후기가 가장 많이 나오는 곳은 <b>${volTop.n}</b> — 이 기간 <b>${fmtN(vt)}건</b>` +
+          (vt >= 10 ? `(삼성 ${fmtN(volTop.s)} vs LG ${fmtN(volTop.l)}, 삼성 <b class="${vsh >= 50 ? "" : "warn"}">${vsh}%</b>)` :
+            `(삼성 ${fmtN(volTop.s)} vs LG ${fmtN(volTop.l)})`) +
+          `, ${rgName} 표본의 ${headShare}%입니다. `;
+        if (hitTop && hitTop.n !== volTop.n) {
+          line += `반면 가장 많이 <b>읽히는</b> 곳은 <b>${hitTop.n}</b>(${fmtN(ht)}회, 한 건당 약 ${fmtN(per(hitTop))}회)입니다 — ` +
+            `글이 쌓이는 매장과 고객 눈에 띄는 매장이 다릅니다. ${JOSA(hitTop.n, "은", "는")} 어떤 품목·제목의 글이 읽히는지 보여주는 창이니, 그 소재를 ${JOSA(volTop.n, "은", "는")} 후기 요청에 반영하면 두 흐름이 합쳐집니다.`;
+        } else if (hitTop) {
+          line += `조회수 1위도 같은 매장(${fmtN(ht)}회)입니다 — 글도 많고 읽힘도 많은 이 매장이 ${rgName} 바이럴의 관문입니다. `;
+          line += headShare >= 50
+            ? `다만 도시 표본의 절반 이상이 이 한 곳에서 나오는 구조라, 나머지 매장은 잘하고 있어도 수치에 드러나지 않습니다 — 다른 매장의 후기 요청부터 채워야 ${rgName} 전체가 제대로 읽힙니다.`
+            : `이 매장에서 담당자 실명이 남는 후기가 늘수록 지역 전체의 검색 첫인상이 좋아집니다.`;
+        } else {
+          line += `이 기간 조회수가 집계된 후기는 없어 읽힘 비교는 생략합니다.`;
+        }
+        return `<div class="cy-sec"><h5>후기·조회수 선두 매장</h5><p class="cy-note">${line}</p></div>`;
+      })() +
+
+      /* 경쟁사 동향 — LG 시각에서 이 지역을 다시 본다(2026-08-27 사용자 지시).
+         어느 매장에서 LG 후기가 몰리고, 어디서 앞서 있고, 어떤 품목이 강한가. */
+      (function () {
+        const totL = list.reduce((a, x) => a + x.l, 0);
+        if (!totL) return `<div class="cy-sec"><h5>경쟁사 동향</h5>` +
+          `<p class="cy-note">이 기간 ${rgName} 매장이 특정된 LG 후기가 없습니다 — 경쟁 비교보다 우리 후기 표본을 넓히는 것이 먼저입니다.</p></div>`;
+        const lgTop = list.slice().sort((a, b) => b.l - a.l)[0];
+        if (totL <= 2) return `<div class="cy-sec"><h5>경쟁사 동향</h5>` +
+          `<p class="cy-note">이 기간 매장이 특정된 LG 후기는 <b>${fmtN(totL)}건</b>(${lgTop.n})뿐입니다 — ` +
+          `표본이 작아 경쟁 구도를 말하기엔 이릅니다. 지금은 LG가 조용한 구간이라는 사실 자체가 정보입니다 — 이 시기에 우리 후기가 쌓이면 검색 결과의 첫 화면을 우리가 차지합니다.</p></div>`;
+        const lose2 = list.filter((x) => x.l > x.s).sort((a, b) => (b.l - b.s) - (a.l - a.s));
+        const totS = list.reduce((a, x) => a + x.s, 0);
+        const hS = list.reduce((a, x) => a + (x.hs || 0), 0), hL = list.reduce((a, x) => a + (x.hl || 0), 0);
+        // LG 강세 품목 — 지역 품목표에서 LG가 앞선 것 중 격차 최대
+        const rd = regionDetailOf(rgName);
+        const lgItem = rd && rd.items ? rd.items.filter((x) => x.l > x.s)
+          .sort((a, b) => (b.l - b.s) - (a.l - a.s))[0] : null;
+        let line = `LG 후기가 가장 몰리는 곳은 <b class="warn">${lgTop.n}</b>(${fmtN(lgTop.l)}건)입니다. `;
+        line += lose2.length
+          ? `LG가 앞선 매장은 <b class="warn">${lose2.length}곳</b>이고, 격차가 가장 큰 곳은 ${lose2[0].n}(<b class="warn">${fmtN(lose2[0].l - lose2[0].s)}건</b> 뒤)입니다. `
+          : `다만 건수로 LG가 앞선 매장은 없습니다 — 매장 단위로는 전 매장이 우위 또는 동률입니다. `;
+        if (lgItem && lgItem.s + lgItem.l >= 10) {
+          line += `품목으로는 <b class="warn">${lgItem.n}</b>에서 LG ${fmtN(lgItem.l)}건 vs 삼성 ${fmtN(lgItem.s)}건으로 밀립니다 — 이 품목의 비교 질문이 상담의 승부처입니다.`;
+        } else if (totS + totL >= 10 && hS + hL > 0) {
+          line += `조회수 합계는 삼성 ${fmtN(hS)}회 vs LG ${fmtN(hL)}회` +
+            (hS === hL ? `로 같은 수준입니다.` : hS > hL ? `로 읽힘에서는 우리가 앞섭니다.` : `<b class="warn">로 읽힘에서도 밀립니다</b> — 고객 눈에 닿는 양부터 뒤집어야 합니다.`);
+        }
+        return `<div class="cy-sec"><h5>경쟁사 동향</h5><p class="cy-note">${line}</p></div>`;
       })() +
 
       /* 실명 언급 — 전국 카드에서 다루던 주제의 도시판(2026-08-25 사용자:
@@ -1133,6 +1162,24 @@
               : `.`)
           : `양사를 나란히 견준 후기가 <b>${fmtN(tot)}건</b>이라 비중을 말하기엔 표본이 작습니다(삼성 ${fmtN(cp.s)} : LG ${fmtN(cp.l)}).`;
         return `<div class="cy-sec cy-sub"><p class="cy-note">${line}</p></div>`;
+      })() +
+
+      // 지역 특이점 — 후기 내용에서 드러나는 이 지역만의 성격(혜택 언급 + 품목 편차)
+      (function () {
+        const rd = regionDetailOf(rgName);
+        const ben = rd && rd.ben && rd.ben.length ? rd.ben : null;
+        if (!ben) return "";
+        const b0 = ben[0];
+        const rest = ben.slice(1, 3).map((x) => `${x.n} ${fmtN(x.c)}회`).join(" · ");
+        // 언급 2회 이하로 "이 지역의 특성"을 단정하면 과장이다(퍼센트 소표본 원칙의 연장)
+        const body = b0.c <= 2
+          ? `이 기간 혜택 언급이 드뭅니다(최다 ${b0.n} ${fmtN(b0.c)}회) — 지역 특성으로 일반화하기엔 표본이 작습니다. ` +
+            `기간을 넓히면 이 지역 고객이 어떤 혜택에 반응하는지 경향이 보입니다.`
+          : `이 지역 후기가 가장 자주 언급한 혜택은 <b>${b0.n}</b>(${fmtN(b0.c)}회)` +
+            (rest ? `이고, 그다음이 ${rest}입니다. ` : `입니다. `) +
+            `고객이 후기에 남길 만큼 체감한 항목이라는 뜻입니다 — 상담에서 이 혜택을 먼저 꺼내면 이 지역 고객의 관심사와 바로 맞물립니다.`;
+        return `<div class="cy-sec"><h5>지역 특이점 <i>후기 속 언급</i></h5>` +
+          `<p class="cy-note">${body}</p></div>`;
       })() +
 
       // 품목 편차(전국 대비) — 이 도시에서만 유독 강하거나 약한 품목
