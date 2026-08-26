@@ -24,7 +24,19 @@ try:
 except Exception:
     pass
 
-from build_web_data import dept_store_of, region_of, ITEMS, ITEM_KEYS, STORE_EXCLUDE
+from build_web_data import (dept_store_of, region_of, ITEMS, ITEM_KEYS,
+                            STORE_EXCLUDE, STORE_REGION)
+
+
+def store_region_of(st):
+    """매장명 → 시도. 지점 토큰이 지역을 결정한다(build_web_data 와 같은 기준)."""
+    br = st.split(" ")[-1]
+    rg = STORE_REGION.get(br)
+    if not rg:
+        for tk, r in STORE_REGION.items():
+            if tk in br:
+                return r
+    return rg
 
 
 def load():
@@ -68,6 +80,10 @@ def main():
     mon = defaultdict(lambda: {"n": 0, "s": 0, "l": 0, "sp": 0, "os": 0, "ol": 0})
     mon_items = defaultdict(lambda: defaultdict(lambda: {"n": 0, "s": 0, "l": 0, "sp": 0}))
     mon_stores = defaultdict(lambda: defaultdict(lambda: {"n": 0, "s": 0, "l": 0, "sp": 0}))
+    # 지역 축(전국 지도·드릴, 2026-08-26) — 본문 지역추정은 제목+요약 기반 추정치
+    mon_regions = defaultdict(lambda: defaultdict(lambda: {"n": 0, "s": 0, "l": 0, "sp": 0}))
+    store_region = {}          # 매장 → 시도(지점 토큰 기준)
+    store_posts = defaultdict(list)   # 매장 상세 글 목록(최신 위주)
     items = defaultdict(lambda: {"n": 0, "s": 0, "l": 0, "sp": 0})
     stores = {}
     by_ym = defaultdict(list)
@@ -98,8 +114,25 @@ def main():
                     tgt[b] += 1
                 if sp:
                     tgt["sp"] += 1
+        rg0 = region_of(txt)
+        if rg0 and ym:
+            mv = mon_regions[ym][rg0]
+            mv["n"] += 1
+            if b:
+                mv[b] += 1
+            if sp:
+                mv["sp"] += 1
         st = dept_store_of(txt)
         if st and st not in STORE_EXCLUDE:
+            if st not in store_region:
+                srg = store_region_of(st)
+                if srg:
+                    store_region[st] = srg
+            store_posts[st].append({
+                "t": (x.get("title") or "")[:56], "bg": (x.get("blogger") or "")[:14],
+                "d": (x.get("date") or "")[:10], "u": x.get("url"),
+                "b": b, "sp": 1 if sp else 0,
+            })
             v = stores.setdefault(st, {"n": 0, "s": 0, "l": 0, "sp": 0, "top": None})
             v["n"] += 1
             if b:
@@ -137,6 +170,11 @@ def main():
         "total": len(rows), "s": s_tot, "l": l_tot, "sp": n_sp,
         "months": months,
         "mon": {k: dict(v) for k, v in mon.items()},
+        "monRegions": {k: {r: dict(vv) for r, vv in v.items()} for k, v in mon_regions.items()},
+        "storeRegion": store_region,
+        # 매장 상세 글 목록 — 최신 12건(내돈내산 우선 정렬은 화면 몫)
+        "storePosts": {k: sorted(v, key=lambda r: r["d"], reverse=True)[:12]
+                       for k, v in store_posts.items()},
         "monItems": {k: {i: dict(vv) for i, vv in v.items()} for k, v in mon_items.items()},
         "monStores": {k: {s2: dict(vv) for s2, vv in v.items()} for k, v in mon_stores.items()},
         "items": {k: dict(v) for k, v in items.items()},

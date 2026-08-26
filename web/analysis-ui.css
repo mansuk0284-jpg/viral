@@ -650,3 +650,21 @@ body.view-nr .nr-note { padding-bottom: 12px; }
    이름을 자르지 않는다(원칙) — 이름 칸을 내용만큼 주고 막대가 남는 폭을 쓴다. */
 .ca2.yt-wrap .it-row { grid-template-columns: minmax(68px, auto) minmax(40px, 1fr) 44px 42px; }
 .ca2.yt-wrap .it-n { font-size: 12px; }
+
+/* 네이버 블로그 3단 드릴(2026-08-26) — 전국 3칼럼 그리드.
+   좌측 폭은 다결과 같은 식(clamp) — 페이지 전환 시 안 튀게. */
+@media (min-width: 1181px) {
+  .ca2 .nb-nation { display: grid; min-height: 0; flex: 1 1 auto;
+    grid-template-columns: clamp(230px, 20vw, 288px) minmax(300px, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(12px, 1.6vw, 20px); align-items: stretch; }
+}
+@media (max-width: 1180px) { .ca2 .nb-nation { display: flex; flex-direction: column; gap: 12px; } }
+.ca2 .nb-wrap { display: flex; flex-direction: column; min-height: 0; }
+.ca2 .nb-geo svg { height: min(66vh, 580px); width: auto; max-width: 100%; display: block; margin: 0 auto; }
+.ca2 .nb-mapcol { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.ca2 .nb-rep { overflow-y: auto; min-height: 0; }
+.ca2 .nb-right { min-height: 0; display: flex; }
+.ca2 .nb-right > .ca-ncard { flex: 1; }
+.ca2 .nb-posts .sv-revcols { flex: 1; min-height: 0; overflow-y: auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ca2 .nb-posts { display: flex; flex-direction: column; min-height: 0; }
