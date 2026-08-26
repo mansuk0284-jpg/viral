@@ -85,6 +85,14 @@
   /* ── 백화점별 묶음 ────────────────────────────────────────────────
      139곳을 긁고 나니 매장 하나만 보여주는 화면으로는 "백화점별로 개별로"
      볼 수가 없었다(고를 방법 자체가 없었다). 목록 층을 앞에 둔다. */
+  /* 선택 기간의 리뷰 수 — 기간 미지정이면 매장 누적 총계 */
+  function cnt(v) {
+    if (!v) return 0;
+    if (!st.range) return v.total || 0;
+    const a = st.range[0].slice(0, 7), b = st.range[1].slice(0, 7);
+    return (v.rows || []).filter((r) => r[R_YM] && r[R_YM] >= a && r[R_YM] <= b).length;
+  }
+
   function byDept() {
     const m = {};
     Object.keys(NR.stores).forEach((k) => {
@@ -94,7 +102,9 @@
     });
     return Object.keys(m).map((d) => {
       const g = m[d];
-      g.sv = g.s ? g.s.total : 0; g.lv = g.l ? g.l.total : 0;
+      /* 기간을 지정하면 그 구간의 수집 표본으로, 아니면 매장 누적 총계로 센다.
+         기간 UI 를 달아 놓고 수치가 안 변하면 '연동'이 아니다(2026-08-27). */
+      g.sv = cnt(g.s); g.lv = cnt(g.l);
       g.tot = g.sv + g.lv;
       g.share = g.tot ? Math.round(g.sv / g.tot * 100) : null;
       g.both = !!(g.s && g.l);
@@ -151,6 +161,7 @@
       `<div class="af-hk zero"><b>${fmtN(L)}</b><span>LG 리뷰</span></div>` +
       `<div class="af-hk"><b>${win}<u>/${both.length}</u></b><span>삼성 우세 백화점</span></div>` +
       `</div></div>` +
+      (function () { const P = nrPer(nrMonths()); return P ? `<div class="nr-perrow">${P.bar()}</div>` : ""; })() +
       `<div class="nrl-body">` +
       // 서울·경기처럼 매장이 몰린 지역은 두 칸을 차지하게 해 세로를 반으로 줄인다.
       // (한 지역이 길어지면 그 줄 전체가 그만큼 높아져 한 화면을 깨뜨린다)
@@ -182,7 +193,7 @@
       `<span>양사 모두 입점한 <b>${both.length}곳</b>만 비교합니다.</span>` +
       `<span>한쪽만 입점한 ${one.length}곳(${one.map((g) => deptFull(g.dept)).slice(0, 4).join(", ")}${one.length > 4 ? " 외" : ""})은 뺐습니다.</span>` +
       rosterNote() +
-      `<span>네이버 플레이스 방문자 리뷰 <b>누적 총계</b> 기준 · 표본 기준 추정치(전수 아님).</span>` +
+      `<span>네이버 플레이스 방문자 리뷰 · ${st.range ? "<b>선택 기간의 수집 표본</b>" : "<b>누적 총계</b>"} 기준 · 표본 기준 추정치(전수 아님).</span>` +
       `<span><b>예약 건수는 외부 조회 불가</b> — 스마트플레이스 관리자 전용.</span>` +
       `</p>` +
       `</div>`;
