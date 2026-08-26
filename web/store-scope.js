@@ -51,7 +51,7 @@
     { key: "busan-mom-cafe", name: "맘카페", sub: "지역 커뮤니티", cls: "cx-mom" },
     { key: "youtube", name: "유튜브", sub: "혼수 브이로그", cls: "cx-youtube", live: true },
     { key: "instagram", name: "인스타그램", sub: "매장 인스타 활동", cls: "cx-insta", live: true },
-    { key: "ohou", name: "오늘의집", sub: "인테리어 앱", cls: "cx-ohou" },
+    { key: "ohou", name: "오늘의집", sub: "인테리어 앱", cls: "cx-ohou", live: true },
   ];
 
   /* 지역별 매장 목록 — 우리 권역 먼저 */
@@ -126,6 +126,26 @@
     };
     document.getElementById("storeGo").addEventListener("click", go);
     document.getElementById("storeSel").addEventListener("change", go);
+  }
+
+  /* 채널별 노출 집계 — 좌측 '전체 노출'과 '주요 채널'의 근거.
+     카드마다 데이터 모양이 달라 여기 한 곳에서 채널→건수로 편다(2026-08-27).
+     brand=1 인 채널만 삼성/LG 비중 막대에 넣는다(리뷰·인스타는 브랜드 비교가 아님). */
+  function chCounts(name) {
+    const out = [];
+    const row = storeRow(name);
+    if (row && row.s + row.l) out.push({ key: "dagyeolun", label: "다이렉트웨딩", n: row.s + row.l, s: row.s, l: row.l, brand: 1, unit: "건" });
+    const nr = nrFind(name);
+    if (nr && nr.total) out.push({ key: "naver-review", label: "네이버 리뷰", n: nr.total, s: 0, l: 0, brand: 0, unit: "건", cum: 1 });
+    const J = window.JWEDDING, jv = J && J.stores ? (J.stores[name] || pick(J.stores, name)) : null;
+    if (jv && jv.s + jv.l) out.push({ key: "jwedding", label: "제이웨딩", n: jv.s + jv.l, s: jv.s, l: jv.l, brand: 1, unit: "건" });
+    const NB = window.NBLOG, bv = NB && NB.stores ? (NB.stores[name] || pick(NB.stores, name)) : null;
+    if (bv && bv.n) out.push({ key: "naver-blog", label: "네이버 블로그", n: bv.n, s: bv.s || 0, l: bv.l || 0, brand: 1, unit: "건" });
+    const Y = window.YOUTUBE, yv = Y && Y.stores ? (Y.stores[name] || pick(Y.stores, name)) : null;
+    if (yv && yv.n) out.push({ key: "youtube", label: "유튜브", n: yv.n, s: yv.s || 0, l: yv.l || 0, brand: 1, unit: "편" });
+    const G = window.INSTAGRAM, gv = G && G.stores ? (G.stores[name] || pick(G.stores, name)) : null;
+    if (gv && gv.n) out.push({ key: "instagram", label: "인스타그램", n: gv.n, s: 0, l: 0, brand: 0, unit: "건" });
+    return out;
   }
 
   /* 네이버 플레이스 리뷰 — 매장명으로 찾아 카드에 요약을 싣는다 */
@@ -345,7 +365,7 @@
   function rolePlan(name) {
     /* 채널 카드가 '표본 없음'으로 그려졌는지로 공백을 판정한다 —
        채널마다 데이터 모양이 달라(카드 함수가 각기 다름) 카드 결과를 근거로 삼는 편이 어긋나지 않는다. */
-    const gaps = CHANNELS.filter((c) => c.live)
+    const gaps = CHANNELS.filter((c) => c.live && c.key !== "ohou")
       .filter((c) => /cx-empty/.test(channelCard(c, name)))
       .map((c) => c.name);
     const hq = gaps.length
@@ -360,8 +380,24 @@
       `</ul>`;
   }
 
+  /* 카드 전체를 채널 진입 버튼으로 — display:contents 래퍼라 그리드가 안 깨진다 */
+  const GO_KEYS = { dagyeolun: 1, jwedding: 1, "naver-blog": 1, youtube: 1, instagram: 1, ohou: 1 };
+  function cardWithGo(ch, name) {
+    const html = channelCard(ch, name);
+    if (!GO_KEYS[ch.key]) return html;   // 네이버 리뷰는 자체 이동(data-nrgo)
+    return `<div class="cx-gowrap" data-chgo="${ch.key}" title="눌러서 ${ch.name} 상세 보기">${html}</div>`;
+  }
+
   function channelCard(ch, name) {
     if (ch.key === "naver-review") return nrCard(ch, name);
+    if (ch.key === "ohou") {
+      /* 오늘의집은 매장 단서가 사실상 없다(집들이 3/182) — 없는 축을 지어내지 않고
+         채널 화면으로 안내한다. '수집 대기'라던 옛 문구는 사실과 달랐다(182건 수집됨). */
+      return `<div class="cx-card cx-live ${ch.cls}">` +
+        `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i></div>` +
+        `<div class="cx-empty"><em>매장 축 없음</em>` +
+        `<span>게시물에 매장 단서가 없어 채널 단위로만 봅니다 — 눌러서 모델·공간 트렌드 보기</span></div></div>`;
+    }
     if (ch.key === "jwedding") return jwCard(ch, name);
     if (ch.key === "youtube") return ytCard(ch, name);
     if (ch.key === "instagram") return igCard(ch, name);
@@ -465,6 +501,15 @@
     const agg = sib.reduce((o, x) => (o.s += x.s, o.l += x.l, o), { s: 0, l: 0 });
     const rSh = pct(agg.s, agg.l);
     const diff = sh - rSh;
+    /* 전 채널 합산 — 좌측 큰 숫자는 다결만이 아니라 노출된 채널 전부의 합이어야 한다
+       ("수집된 채널 합산"이라 적어 놓고 다결만 세고 있었다 — 2026-08-27 사용자 지적) */
+    const CH = chCounts(name);
+    const expTot = CH.reduce((a, c) => a + c.n, 0);
+    const chTop = CH.slice().sort((a, b) => b.n - a.n).slice(0, 3);
+    const hasCum = CH.some((c) => c.cum);
+    const bS = CH.filter((c) => c.brand).reduce((a, c) => a + c.s, 0);
+    const bL = CH.filter((c) => c.brand).reduce((a, c) => a + c.l, 0);
+    const bT = bS + bL, bSh = pct(bS, bL);
     return `<div class="ca2 cx-wrap">` +
       `<div class="cx-top">` +
       `<div class="cx-title"><h2 data-store="${name}">${name}</h2>` +
@@ -477,23 +522,29 @@
       `<div class="cx-body">` +
       `<div class="cx-left">` +
       `<div class="cx-sum">` +
-      `<div class="cx-sum-h"><h3>전체 바이럴</h3><span>수집된 채널 합산</span></div>` +
-      `<div class="cx-sum-n"><b>${fmtN(tot)}</b><i>건</i></div>` +
-      `<div class="cx-bar big"><i class="s" style="width:${tot ? (row.s / tot * 100).toFixed(1) : 50}%"></i>` +
-      `<i class="l" style="width:${tot ? (row.l / tot * 100).toFixed(1) : 50}%"></i></div>` +
-      `<div class="cx-vs big"><span class="s">삼성 ${sh}%</span><span class="l">LG ${100 - sh}%</span></div>` +
+      `<div class="cx-sum-h"><h3>전체 노출</h3><span>노출 채널 ${CH.length}곳 합산${hasCum ? " · 리뷰는 누적" : ""}</span></div>` +
+      `<div class="cx-sum-n"><b>${fmtN(expTot)}</b><i>건</i></div>` +
+      (chTop.length
+        ? `<div class="cx-mainch"><span class="cx-lb">주요 채널</span>` +
+          chTop.map((c) => `<span class="cx-chip chgo" data-chgo="${c.key}" title="눌러서 ${c.label} 보기">${c.label} <b>${fmtN(c.n)}</b>${c.unit}</span>`).join("") + `</div>`
+        : `<p class="cx-note">이 매장이 노출된 채널이 아직 없습니다 — 후기 요청부터가 과제입니다.</p>`) +
+      (bT ? `<div class="cx-bar big"><i class="s" style="width:${(bS / bT * 100).toFixed(1)}%"></i>` +
+        `<i class="l" style="width:${(bL / bT * 100).toFixed(1)}%"></i></div>` +
+        `<div class="cx-vs big"><span class="s">삼성 ${bSh}%</span><span class="l">LG ${100 - bSh}%</span></div>` +
+        `<p class="cx-scopenote">브랜드 비중은 삼성/LG 가 갈리는 채널(웨딩카페·제이웨딩·블로그·유튜브) 합산 기준입니다.</p>` : "") +
       `<div class="cx-kpis">` +
       `<div><b>${rank || "-"}<i>위</i></b><span>${rg} 내</span></div>` +
       `<div class="${diff >= 0 ? "up" : "down"}"><b>${diff >= 0 ? "+" : ""}${diff}<i>p</i></b><span>지역평균 대비</span></div>` +
       `<div><b>${sib.length}<i>곳</i></b><span>${rg} 매장</span></div>` +
       `</div>` +
+      `<p class="cx-scopenote">순위·지역평균 대비는 웨딩카페(다이렉트웨딩) 표본 기준입니다.</p>` +
       compBlock(name) +
       /* 순위·편차를 뽑아만 두고 해석이 없었다(2026-08-24 점검).
          숫자 옆에 "그래서 무엇"이 없으면 매니저는 읽고 지나간다. */
       `<ul class="yt-act cx-act">${insightLi(name, row, rank, diff, sib, rg).join("")}</ul>` +
       `${isCus() ? `<p class="cx-note">표시 수치는 지정하신 기간만 잘라 집계한 값입니다.</p>` : ""}` +
       `</div></div>` +
-      `<div class="cx-grid">${CHANNELS.map((c) => channelCard(c, name)).join("")}</div>` +
+      `<div class="cx-grid">${CHANNELS.map((c) => cardWithGo(c, name)).join("")}</div>` +
       /* 표준 실행 제안 — 이 화면은 한 매장을 채널 축으로 본 것이라
          '비어 있는 채널'이 곧 과제다(2026-08-27 검수: 표준 블록 누락). */
       rolePlan(name) +
@@ -520,6 +571,18 @@
       else st.range = null;
       paint(host);
     });
+    host.querySelectorAll("[data-chgo]").forEach((el) => el.addEventListener("click", () => {
+      const k = el.getAttribute("data-chgo"), nm = st.name;
+      if (k === "dagyeolun") return window.openCafeStore ? window.openCafeStore(nm)
+        : (window.openCafeAnalysis && window.openCafeAnalysis());
+      if (k === "naver-blog") return window.openBlogStore ? window.openBlogStore(nm)
+        : (window.openBlog && window.openBlog());
+      if (k === "naver-review") { const s = nrFind(nm); if (s && window.openNaverReview) return window.openNaverReview(s.key); return; }
+      if (k === "jwedding") return window.openJwedding && window.openJwedding();
+      if (k === "youtube") return window.openYoutube && window.openYoutube();
+      if (k === "instagram") return window.openInstagram && window.openInstagram();
+      if (k === "ohou") return window.openOhou && window.openOhou();
+    }));
     host.querySelectorAll("[data-nrgo]").forEach((el) => el.addEventListener("click", () => {
       const k = el.getAttribute("data-nrgo");
       if (k && typeof window.openNaverReview === "function") window.openNaverReview(k);

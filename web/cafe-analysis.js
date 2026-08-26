@@ -2183,4 +2183,18 @@
      화면은 8월인데 툴팁은 누계를 보여주면 두 숫자가 따로 논다. */
   window.VPERIOD = function () { return st.range ? null : st.period; };
   window.openCafeAnalysis = openCafeAnalysis;
+  /* 매장별 현황(store-scope)에서 카드를 누르면 그 매장 화면으로 바로 들어온다.
+     openCafeAnalysis 가 전국으로만 열려 다결 진입이 미작동이던 것의 해법(2026-08-27). */
+  window.openCafeStore = function (name) {
+    openCafeAnalysis();
+    const host = document.getElementById("channelPanel");
+    const S = (CD && CD.stores) || {};
+    for (const rg of Object.keys(S)) {
+      if (S[rg].some((x) => x.n === name)) { st.region = rg; break; }
+    }
+    st.store = name; st.level = "store";
+    rerender(host);
+    if (window.VNAV) VNAV.push({ id: "cafe-store:" + name, label: name,
+      open: () => window.openCafeStore(name) });
+  };
 })();

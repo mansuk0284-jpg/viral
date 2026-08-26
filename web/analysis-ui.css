@@ -1171,3 +1171,16 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
   background: transparent; box-shadow: none; margin: 0 0 12px; overflow: visible; }
 .ca2 .nb-overall .cy-sec { margin-bottom: 0; }
 .ca2 .nb-geo svg { height: min(52vh, 470px); }   /* 진단 박스가 위에 앉는 만큼 지도는 살짝 줄인다 */
+
+/* ── 매장별 현황: 카드=채널 진입 버튼, 좌측 주요 채널 칩(2026-08-27) ── */
+.ca2 .cx-gowrap { display: contents; }
+.ca2 .cx-gowrap .cx-card { cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease; }
+.ca2 .cx-gowrap .cx-card:hover { transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(23,42,66,0.12); }
+.ca2 .cx-mainch { display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  margin: 10px 0 6px; }
+.ca2 .cx-mainch .cx-chip.chgo { cursor: pointer; }
+.ca2 .cx-mainch .cx-chip.chgo:hover { filter: brightness(0.94); }
+.ca2 .cx-scopenote { font-size: 12.5px; font-weight: 600; color: #7c8698;
+  margin: 8px 0 0; line-height: 1.5; }

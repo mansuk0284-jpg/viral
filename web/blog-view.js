@@ -584,4 +584,20 @@
       : document.body.classList.add("mode-results", "view-channel", "view-cx");
     window.scrollTo({ top: 0, behavior: "auto" });
   };
+
+  /* 매장별 현황에서 블로그 카드를 누르면 그 매장의 블로그 화면으로 바로 */
+  window.openBlogStore = function (name) {
+    const host = document.getElementById("channelPanel");
+    const sec = document.getElementById("channel");
+    if (!host || !sec || !B) return;
+    stv.level = "store"; stv.store = name;
+    stv.region = (B.storeRegion || {})[name] || stv.region || null;
+    if (window.VNAV) VNAV.push({ id: "blog-store:" + name, label: "블로그 " + name,
+      open: () => window.openBlogStore(name) });
+    paint(host);
+    sec.hidden = false;
+    window.setView ? setView("view-channel", "view-cx")
+      : document.body.classList.add("mode-results", "view-channel", "view-cx");
+    window.scrollTo({ top: 0, behavior: "auto" });
+  };
 })();
