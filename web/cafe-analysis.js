@@ -2006,7 +2006,10 @@
       `<div class="ca-head ca-head-row">` +
       /* 채널 아이콘은 머리줄 **왼쪽 제자리**에 둔다 — 기간 UI 안에 들어 있던 탓에
          기간 묶음을 우측으로 보내자 아이콘까지 딸려 갔다(2026-08-27 사용자 지적). */
+      `<span class="ca-ic-lead-wrap">` +
       `<span class="ca-ic ca-ic-lead" title="다이렉트결혼준비"><svg viewBox="0 0 40 40" fill="none"><text x="20" y="18.5" text-anchor="middle" fill="#fff" font-family="Arial Black,Arial,sans-serif" font-size="10.5" font-weight="900" letter-spacing="-0.6">DIRECT</text><text x="21" y="29.5" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-style="italic" font-size="9.5">Wedding</text></svg></span>` +
+      `<b class="ca-ic-name">다이렉트결혼준비</b>` +
+      `</span>` +
       `<div class="ca-periodnav" tabindex="0">` +
       `<span class="cpn-cur">${perLab(st.period)}<i>기간 ▸</i></span>` +
       nav() +

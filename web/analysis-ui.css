@@ -1145,3 +1145,8 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
 .afa-col h6 .afa-smp { font-size: 12px; font-weight: 600; color: #7c8698; font-style: normal; margin-left: 6px; }
 /* 다결 머리줄 — 아이콘은 왼쪽 제자리, 기간 묶음만 오른쪽 */
 .ca2 .ca-head-row > .ca-ic-lead { flex: 0 0 auto; margin-right: 8px; }
+/* 아이콘 옆 채널명(2026-08-27 사용자 지시) */
+.ca2 .ca-ic-lead-wrap { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; margin-right: 12px; }
+.ca2 .ca-ic-lead-wrap .ca-ic-lead { margin-right: 0; }
+.ca2 .ca-ic-name { font-size: 16px; font-weight: 800; color: #1a2333; letter-spacing: -0.01em; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { .ca2 .ca-ic-name { color: #e7ecf5; } }
