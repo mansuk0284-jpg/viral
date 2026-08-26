@@ -129,7 +129,7 @@
     // 좌측 트렌드 불릿
     const bullets = [];
     if (byNew.length) bullets.push(`최신 글은 ‘${(byNew[0].t || "").slice(0, 22)}…’(${byNew[0].d})입니다.`);
-    if (spCnt) bullets.push(`체험단·협찬 표기 글이 <b class="warn">${fmtN(spCnt)}건${total >= 10 ? `(${spPct}%)` : ""}</b> — 마케팅 물량은 별도 집계했습니다.`);
+    if (spCnt) bullets.push(`체험단·협찬 표기 글이 <b class="warn">${fmtN(spCnt)}건${total >= 10 ? `(${spPct}%)` : ""}</b>은 별도 집계했습니다.`);
     if (stTop.length) bullets.push(`매장이 적힌 글은 <b>${stTop[0]}</b>${josa(stTop[0], "이", "가")} ${ST[stTop[0]].n}건으로 가장 많습니다.`);
     if (hot.length) bullets.push(`다뤄진 품목은 <b>${hot.join(" · ")}</b> 순입니다.`);
 
@@ -170,7 +170,7 @@
           (lead0
             ? (lead0 === "삼성"
               ? `최다 언급 ${stTop[0]}${josa(stTop[0], "은", "는")} <b>삼성 ${fmtN(t0.s)}건</b> 대 LG ${fmtN(t0.l)}건 — 이 매장 이름을 검색하는 예비 고객은 우리 이야기부터 만납니다. `
-              : `최다 언급 ${stTop[0]}${josa(stTop[0], "은", "는")} 삼성 ${fmtN(t0.s)}건 대 <b class="warn">LG ${fmtN(t0.l)}건</b> — 검색 첫 화면을 상대가 쥐고 있는 매장입니다. `)
+              : `최다 언급 ${stTop[0]}${josa(stTop[0], "은", "는")} 삼성 ${fmtN(t0.s)}건 대 <b class="warn">LG ${fmtN(t0.l)}건</b> — 검색 상위 노출을 경쟁사가 점유한 매장입니다. `)
             : ``);
       }
       line += `조회수가 비공개인 채널이라 순위는 게시 건수 기준이며, 검색에 오래 남는 채널 특성상 건수가 곧 노출 점유의 근사치입니다.`;
@@ -184,7 +184,7 @@
       const rgL = Object.keys(RG).filter((k) => RG[k].l > 0).sort((a, b) => RG[b].l - RG[a].l)[0];
       if (!totL && !rgL) {
         secs.push(`<div class="cy-sec"><h5>경쟁사 동향</h5><p class="cy-note">이 기간 매장이 특정된 LG 글이 없습니다 — ` +
-          `LG가 조용한 구간이라는 사실 자체가 정보입니다. 이 시기에 우리 후기가 쌓이면 매장명 검색 결과를 우리가 차지합니다.</p></div>`);
+          `경쟁사 노출이 적은 구간이라는 점 자체가 기회입니다. 이 시기에 당사 후기가 쌓이면 매장명 검색 결과를 선점할 수 있습니다.</p></div>`);
         return;
       }
       const stL = Object.keys(ST).sort((a, b) => ST[b].l - ST[a].l)[0];
@@ -194,8 +194,8 @@
         .sort((a, b) => (IT[b].l - IT[b].s) - (IT[a].l - IT[a].s))[0];
       const spS = aS - oS, spL = aL - oL;   // 브랜드별 체험단·협찬 물량
       let line = "";
-      if (rgL) line += `LG 글이 가장 몰리는 지역은 <b class="warn">${rgL}</b>(${fmtN(RG[rgL].l)}건)`;
-      if (stL && ST[stL].l) line += (rgL ? `, 매장으로는 ` : `LG 글이 가장 몰리는 매장은 `) +
+      if (rgL) line += `LG 게시물이 가장 집중된 지역은 <b class="warn">${rgL}</b>(${fmtN(RG[rgL].l)}건)`;
+      if (stL && ST[stL].l) line += (rgL ? `, 매장으로는 ` : `LG 게시물이 가장 집중된 매장은 `) +
         `<b class="warn">${stL}</b>(${fmtN(ST[stL].l)}건)입니다. `;
       else line += `입니다. `;
       line += loseSt.length
@@ -204,10 +204,10 @@
       if (lgItem) line += `품목으로는 <b class="warn">${lgItem}</b>에서 LG ${fmtN(IT[lgItem].l)}건 vs 삼성 ${fmtN(IT[lgItem].s)}건 — 이 품목을 검색한 고객은 상대 글부터 읽습니다. `;
       if (spS + spL >= 5) {
         line += spS === spL
-          ? `체험단·협찬 물량은 양사 <b>같은 수준</b>(각 ${fmtN(spS)}건)입니다.`
+          ? `체험단·협찬 게시물은 양사 <b>같은 수준</b>(각 ${fmtN(spS)}건)입니다.`
           : spL > spS
-          ? `체험단·협찬 물량은 <b class="warn">LG ${fmtN(spL)}건</b> vs 삼성 ${fmtN(spS)}건 — 상대가 마케팅 글을 더 뿌리고 있어, 내돈내산 후기로 맞서는 쪽이 신뢰에서 유리합니다.`
-          : `체험단·협찬 물량은 삼성 <b>${fmtN(spS)}건</b> vs LG ${fmtN(spL)}건으로 우리 쪽이 많습니다 — 고객 글(내돈내산)이 함께 늘어야 마케팅으로만 보이지 않습니다.`;
+          ? `체험단·협찬 게시물은 <b class="warn">LG ${fmtN(spL)}건</b> vs 삼성 ${fmtN(spS)}건 — 경쟁사의 협찬 마케팅 집행이 더 활발합니다. 내돈내산 후기가 많은 쪽이 신뢰도에서 유리합니다.`
+          : `체험단·협찬 게시물은 삼성 <b>${fmtN(spS)}건</b> vs LG ${fmtN(spL)}건으로 당사가 많습니다 — 내돈내산 후기가 함께 늘어야 협찬 일변으로 비치지 않습니다.`;
       }
       secs.push(`<div class="cy-sec"><h5>경쟁사 동향</h5><p class="cy-note">${line}</p></div>`);
     })();
@@ -229,8 +229,8 @@
         ? `<b class="warn">${c0.n}</b>${josa(c0.n, "은", "는")} 삼성 ${fmtN(c0.s)}건 vs LG <b class="warn">${fmtN(c0.l)}건</b>(삼성 ${c0.sh}%)으로 전국(${natAll}%)보다 <b class="warn">${-c0.d}p 낮은</b>, 흐름이 반대인 지역입니다. ` +
           `이 지역 매장의 후기 요청 실행 여부부터 점검할 이유가 됩니다.`
         : `<b>${c0.n}</b>${josa(c0.n, "은", "는")} 삼성 ${fmtN(c0.s)}건 vs LG ${fmtN(c0.l)}건(삼성 ${c0.sh}%)으로 전국(${natAll}%)보다 <b>${c0.d}p 높은</b> 강세 지역입니다. ` +
-          `이 지역에서 무엇이 잘 되는지가 다른 지역에 옮길 교본입니다.`;
-      if (spRg) line += ` 체험단·협찬 글은 <b>${spRg}</b>에 ${fmtN(RG[spRg].sp)}건으로 가장 몰려 있습니다 — 마케팅 물량이 집중되는 지역이라는 뜻입니다.`;
+          `이 지역의 성과 요인을 정리하면 타 지역에 적용할 모범 사례가 됩니다.`;
+      if (spRg) line += ` 체험단·협찬 글은 <b>${spRg}</b>에 ${fmtN(RG[spRg].sp)}건으로 가장 많습니다 — 협찬 마케팅이 집중 집행되는 지역입니다.`;
       secs.push(`<div class="cy-sec"><h5>지역 특이점 <i>전국 대비</i></h5><p class="cy-note">${line}</p></div>`);
     })();
     if (hot.length) {
@@ -239,7 +239,7 @@
         const lgUp = Object.keys(IT).filter((k) => IT[k].l > IT[k].s && IT[k].n >= 10)
           .sort((a, b) => (IT[b].l - IT[b].s) - (IT[a].l - IT[a].s)).slice(0, 2);
         const t0 = IT[hot[0]] || { s: 0, l: 0 };
-        return `다뤄진 품목은 <b>${hot.join(" · ")}</b> 순입니다. 블로그는 검색으로 오래 읽히는 채널이라, ` +
+        return `다뤄진 품목은 <b>${hot.join(" · ")}</b> 순입니다. 블로그는 검색 노출이 오래 지속되는 채널이라, ` +
           `이 품목 검색 결과에 우리 매장 글이 있는지가 장기 노출을 가릅니다.` +
           (t0.s + t0.l >= 10 ? (t0.l > t0.s
             ? ` 수요 1위 ${hot[0]}의 브랜드 구도는 삼성 ${fmtN(t0.s)}건 vs <b class="warn">LG ${fmtN(t0.l)}건</b> — 가장 찾는 품목에서 상대 글이 더 많습니다.`
@@ -249,7 +249,7 @@
     }
     secs.push(rolePlan(
       spPct >= 40
-        ? `체험단 물량(${spPct}%)이 고객 글을 덮고 있습니다 — <b>구매 고객 블로그 후기 캠페인</b>으로 내돈내산 비중을 키우는 설계가 필요합니다.`
+        ? `체험단·협찬 게시물 비중이 ${spPct}%로 높아 고객 후기의 노출이 가려집니다 — <b>구매 고객 블로그 후기 캠페인</b>으로 내돈내산 비중을 키우는 설계가 필요합니다.`
         : `블로그는 검색 장기 노출 채널입니다 — 상위 품목(${hot[0] || "주요 품목"}) 중심의 <b>후기 콘텐츠 가이드</b> 배포가 유효합니다.`,
       stTop.length
         ? `<b>${stTop[0]}</b> 등 언급 상위 매장의 글을 지역 <b>교육 자료</b>로 공유하세요 — 고객이 계약을 결심한 문장이 그대로 적혀 있습니다.`
@@ -472,7 +472,7 @@
       `이 기간 <b>${st2}</b>${josa(st2, "이", "가")} 적힌 글은 <b>${fmtN(V.n)}건</b>` +
       (V.s + V.l ? `(삼성 ${fmtN(V.s)} : LG ${fmtN(V.l)})` : "") +
       (V.sp ? ` · 체험단 표기 <b class="warn">${fmtN(V.sp)}건</b>` : "") + `입니다. ` +
-      `블로그 글은 검색으로 오래 읽히므로, 이 매장 이름의 검색 결과가 곧 상시 간판입니다.</p></div>`);
+      `블로그 글은 검색 노출이 오래 지속되므로, 이 매장 이름의 검색 결과가 곧 상시 홍보 지면입니다.</p></div>`);
     /* 실명 언급 — 블로그 글에 적힌 담당자 이름(다결 후기 스타와 같은 잣대).
        블로그는 검색에 오래 남으므로 실명 글은 그 담당자의 상시 간판이 된다. */
     (function () {
@@ -521,7 +521,7 @@
     })();
     secs.push(rolePlan(
       V.sp > (V.n - V.sp)
-        ? `이 매장 글은 <b class="warn">체험단 물량이 절반을 넘습니다</b> — 내돈내산 후기가 쌓이도록 캠페인 설계가 필요합니다.`
+        ? `이 매장 글은 <b class="warn">체험단·협찬 게시물이 절반을 넘습니다</b> — 내돈내산 후기가 쌓이도록 캠페인 설계가 필요합니다.`
         : `이 매장의 글 흐름을 유지하려면 <b>후기 콘텐츠 가이드</b>(사진·혜택 정리 팁) 지원이 유효합니다.`,
       `이 매장 상위 글을 열어 고객이 계약을 결심한 문장(혜택·상담)을 <b>교육 자료</b>로 공유하세요.`,
       `계약 고객 중 블로그 운영 고객에게 <b>매장명·담당자 실명이 든 후기</b>를 요청하세요.`));

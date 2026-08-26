@@ -780,7 +780,7 @@
          조회수 보강이 안 끝난 과거 구간은 0이라 칸을 비운다. */
       const hs = x.hs || 0, hl = x.hl || 0, ht = hs + hl;
       const hsh = ht ? Math.round(hs / ht * 100) : 0;
-      const hTip = ht ? ` · 읽힘 ${fmtN(ht)}회(삼성 ${fmtN(hs)} : LG ${fmtN(hl)})` : "";
+      const hTip = ht ? ` · 조회수 ${fmtN(ht)}회(삼성 ${fmtN(hs)} : LG ${fmtN(hl)})` : "";
       return `<button type="button" class="rv-row ${lead}" ${attr}="${x.n}" title="${x.n} · 삼성 ${x.s} vs LG ${x.l}${hTip}">` +
         `<span class="rv-rank">${i}</span>` +
         `<span class="rv-name">${x.n}</span>` +
@@ -788,7 +788,7 @@
         `<span class="rv-bar"><i class="s" style="width:${(x.s / max * 100).toFixed(1)}%"></i>` +
         `<i class="l" style="width:${(x.l / max * 100).toFixed(1)}%"></i></span>` +
         `<span class="rv-num">${fmtN(tot)}</span>` +
-        (ht ? `<span class="rv-hit ${hsh >= 50 ? "s" : "l"}" title="읽힘 ${fmtN(ht)}회 · 삼성 ${hsh}%">` +
+        (ht ? `<span class="rv-hit ${hsh >= 50 ? "s" : "l"}" title="조회수 ${fmtN(ht)}회 · 삼성 ${hsh}%">` +
               `${fmtN(ht)}<u>회</u></span>` : `<span class="rv-hit off">-</span>`) +
         `<span class="rv-sh ${lead}">${sh}%</span>` +
         `<span class="rv-gap ${gap >= 0 ? "s" : "l"}">${gap >= 0 ? "+" : ""}${fmtN(gap)}</span></button>`;
@@ -1069,15 +1069,15 @@
             `(삼성 ${fmtN(volTop.s)} vs LG ${fmtN(volTop.l)})`) +
           `, ${rgName} 표본의 ${headShare}%입니다. `;
         if (hitTop && hitTop.n !== volTop.n) {
-          line += `반면 가장 많이 <b>읽히는</b> 곳은 <b>${hitTop.n}</b>(${fmtN(ht)}회, 한 건당 약 ${fmtN(per(hitTop))}회)입니다 — ` +
-            `글이 쌓이는 매장과 고객 눈에 띄는 매장이 다릅니다. ${JOSA(hitTop.n, "은", "는")} 어떤 품목·제목의 글이 읽히는지 보여주는 창이니, 그 소재를 ${JOSA(volTop.n, "은", "는")} 후기 요청에 반영하면 두 흐름이 합쳐집니다.`;
+          line += `반면 <b>조회수</b>가 가장 많은 곳은 <b>${hitTop.n}</b>(${fmtN(ht)}회, 후기당 약 ${fmtN(per(hitTop))}회)입니다 — ` +
+            `게시가 많은 매장과 노출이 큰 매장이 다르다는 뜻입니다. ${JOSA(hitTop.n, "은", "는")} 어떤 품목·제목의 글이 조회수를 얻는지 보여주는 지표이니, 그 소재를 ${JOSA(volTop.n, "은", "는")} 후기 요청에 반영하면 게시량과 노출이 함께 늘어납니다.`;
         } else if (hitTop) {
-          line += `조회수 1위도 같은 매장(${fmtN(ht)}회)입니다 — 글도 많고 읽힘도 많은 이 매장이 ${rgName} 바이럴의 관문입니다. `;
+          line += `조회수 1위도 같은 매장(${fmtN(ht)}회)입니다 — 게시와 조회 모두 최다인 이 매장이 ${rgName} 바이럴의 핵심 거점입니다. `;
           line += headShare >= 50
-            ? `다만 도시 표본의 절반 이상이 이 한 곳에서 나오는 구조라, 나머지 매장은 잘하고 있어도 수치에 드러나지 않습니다 — 다른 매장의 후기 요청부터 채워야 ${rgName} 전체가 제대로 읽힙니다.`
+            ? `다만 도시 표본의 절반 이상이 이 한 곳에서 나오는 구조라, 나머지 매장은 잘하고 있어도 수치에 드러나지 않습니다 — 다른 매장의 후기 요청부터 채워야 ${rgName} 전체 현황이 정확히 파악됩니다.`
             : `이 매장에서 담당자 실명이 남는 후기가 늘수록 지역 전체의 검색 첫인상이 좋아집니다.`;
         } else {
-          line += `이 기간 조회수가 집계된 후기는 없어 읽힘 비교는 생략합니다.`;
+          line += `이 기간 조회수가 집계된 후기는 없어 조회수 비교는 생략합니다.`;
         }
         return `<div class="cy-sec"><h5>후기·조회수 선두 매장</h5><p class="cy-note">${line}</p></div>`;
       })() +
@@ -1091,7 +1091,7 @@
         const lgTop = list.slice().sort((a, b) => b.l - a.l)[0];
         if (totL <= 2) return `<div class="cy-sec"><h5>경쟁사 동향</h5>` +
           `<p class="cy-note">이 기간 매장이 특정된 LG 후기는 <b>${fmtN(totL)}건</b>(${lgTop.n})뿐입니다 — ` +
-          `표본이 작아 경쟁 구도를 말하기엔 이릅니다. 지금은 LG가 조용한 구간이라는 사실 자체가 정보입니다 — 이 시기에 우리 후기가 쌓이면 검색 결과의 첫 화면을 우리가 차지합니다.</p></div>`;
+          `표본이 작아 경쟁 구도를 말하기엔 이릅니다. 경쟁사 노출이 적은 구간이라는 점 자체가 기회입니다 — 이 시기에 당사 후기가 쌓이면 검색 결과 상위를 선점할 수 있습니다.</p></div>`;
         const lose2 = list.filter((x) => x.l > x.s).sort((a, b) => (b.l - b.s) - (a.l - a.s));
         const totS = list.reduce((a, x) => a + x.s, 0);
         const hS = list.reduce((a, x) => a + (x.hs || 0), 0), hL = list.reduce((a, x) => a + (x.hl || 0), 0);
@@ -1099,7 +1099,7 @@
         const rd = regionDetailOf(rgName);
         const lgItem = rd && rd.items ? rd.items.filter((x) => x.l > x.s)
           .sort((a, b) => (b.l - b.s) - (a.l - a.s))[0] : null;
-        let line = `LG 후기가 가장 몰리는 곳은 <b class="warn">${lgTop.n}</b>(${fmtN(lgTop.l)}건)입니다. `;
+        let line = `LG 후기가 가장 집중된 곳은 <b class="warn">${lgTop.n}</b>(${fmtN(lgTop.l)}건)입니다. `;
         line += lose2.length
           ? `LG가 앞선 매장은 <b class="warn">${lose2.length}곳</b>이고, 격차가 가장 큰 곳은 ${lose2[0].n}(<b class="warn">${fmtN(lose2[0].l - lose2[0].s)}건</b> 뒤)입니다. `
           : `다만 건수로 LG가 앞선 매장은 없습니다 — 매장 단위로는 전 매장이 우위 또는 동률입니다. `;
@@ -1107,7 +1107,7 @@
           line += `품목으로는 <b class="warn">${lgItem.n}</b>에서 LG ${fmtN(lgItem.l)}건 vs 삼성 ${fmtN(lgItem.s)}건으로 밀립니다 — 이 품목의 비교 질문이 상담의 승부처입니다.`;
         } else if (totS + totL >= 10 && hS + hL > 0) {
           line += `조회수 합계는 삼성 ${fmtN(hS)}회 vs LG ${fmtN(hL)}회` +
-            (hS === hL ? `로 같은 수준입니다.` : hS > hL ? `로 읽힘에서는 우리가 앞섭니다.` : `<b class="warn">로 읽힘에서도 밀립니다</b> — 고객 눈에 닿는 양부터 뒤집어야 합니다.`);
+            (hS === hL ? `로 같은 수준입니다.` : hS > hL ? `로 조회수에서는 당사가 우위입니다.` : `<b class="warn">로 조회수에서도 열세입니다</b> — 노출량 확대가 우선 과제입니다.`);
         }
         return `<div class="cy-sec"><h5>경쟁사 동향</h5><p class="cy-note">${line}</p></div>`;
       })() +
@@ -1566,9 +1566,9 @@
         const rTot = sib.reduce((a, x) => a + x.s + x.l, 0);
         const rPer = rTot ? Math.round(rHt / rTot) : 0;
         const foot = per && rPer
-          ? (per > rPer ? `후기당 <b>${fmtN(per)}회</b> 읽힙니다 — ${st.region} 평균(${fmtN(rPer)}회)보다 잘 읽히는 글입니다.`
-            : per < rPer ? `후기당 <b class="warn">${fmtN(per)}회</b> 읽힙니다 — ${st.region} 평균(${fmtN(rPer)}회)에 못 미칩니다.`
-            : `후기당 ${fmtN(per)}회 읽힙니다 — ${st.region} 평균과 같은 수준입니다.`)
+          ? (per > rPer ? `후기당 조회수 <b>${fmtN(per)}회</b> — ${st.region} 평균(${fmtN(rPer)}회)을 웃돕니다.`
+            : per < rPer ? `후기당 조회수 <b class="warn">${fmtN(per)}회</b> — ${st.region} 평균(${fmtN(rPer)}회)에 못 미칩니다.`
+            : `후기당 조회수 ${fmtN(per)}회 — ${st.region} 평균과 같은 수준입니다.`)
           : "";
         return `<div class="nsc-sec"><h4 class="nsc-st">조회수<i>매장 특정 후기 기준</i></h4>` +
           `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
@@ -1711,11 +1711,11 @@
       /* 한 달만 선택하면 최다·최저가 같은 달이 되어 "8월 최다, 8월 최저" 같은
          무의미한 문장이 나온다(2026-08-25 사용자 지적). 그 경우는 비교가 아니라
          기간 안내로 바꾸고, 여러 달일 때는 격차의 뜻과 활용까지 두 줄 이상으로 푼다. */
-      (peak ? `<div class="fc-sec"><h5>③ 후기가 몰리는 시기</h5>` +
+      (peak ? `<div class="fc-sec"><h5>③ 후기 집중 시기</h5>` +
         (peak === low
           ? `<p class="fc-plain">한 달 기간에서는 <b>월별 추이를 확인할 수 없습니다</b> — 기간을 연간·전체로 넓히면 성수기가 보입니다.</p>`
           : `<p class="fc-plain">후기는 <b>${+peak}월</b>에 가장 많고 <b>${+low}월</b>에 가장 적습니다(격차 <b>${ratio}배</b>). ` +
-            `후기가 몰리는 달은 곧 혼수 계약이 몰리는 달이므로, <b>${+peak}월 직전부터</b> 구매 고객에게 ` +
+            `후기가 집중되는 달은 곧 혼수 계약이 집중되는 달이므로, <b>${+peak}월 직전부터</b> 구매 고객에게 ` +
             `후기 작성을 요청해 두면 성수기 검색에서 우리 매장 글이 먼저 보입니다.</p>`) +
         `</div>` : "") +
       `<div class="fc-sec tip"><h5>실행</h5><p>` +

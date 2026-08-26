@@ -335,7 +335,7 @@
       (tot ? `<div class="cx-bar"><i class="s" style="width:${(v.s / tot * 100).toFixed(1)}%"></i>` +
         `<i class="l" style="width:${(v.l / tot * 100).toFixed(1)}%"></i></div>` : "") +
       (v.sp ? `<div class="cx-sub"><span class="cx-lb">체험단 표기</span>` +
-        `<span class="cx-chip warn">${fmtN(v.sp)}건 — 마케팅 물량 포함</span></div>` : "") +
+        `<span class="cx-chip warn">${fmtN(v.sp)}건 — 체험단·협찬 포함</span></div>` : "") +
       (v.top ? `<div class="cx-sub"><span class="cx-lb">대표 글</span>` +
         `<span class="cx-chip">${v.top.t}</span></div>` : "") +
       `</div>`;
