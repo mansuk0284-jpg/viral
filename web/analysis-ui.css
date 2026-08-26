@@ -858,3 +858,8 @@ body.view-channel #channel .container > #channelPanel { min-height: 0; }
 /* ⑭ 기간 칩(현재 선택) — 다결 17.2px vs 나머지 전 화면 12.5px.
       같은 VPER 칩인데 다결에서만 한 계단 크게 떠 있었다. */
 .ca2 .vper button.cur, .ca2 button.cur { font-size: 12.5px !important; }
+/* 오늘의집 공감 배지 — 좋아요(공감·빨강)와 저장(구매 의향·파랑)을 색으로 가른다 */
+.ca2 .oh-lk { color: #d23b54; font-weight: 800; }
+.ca2 .oh-sc { color: #1f5fd0; font-weight: 800; }
+.ca2 .oh-tags span { font-size: 11px; white-space: nowrap; }
+.ca2 .oh-lead .cy-sec p + p { margin-top: 8px; }
