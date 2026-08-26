@@ -120,7 +120,7 @@
   const head = () =>
     `<div class="cx-top">` +
     `<div class="cx-title"><h2>제휴카페 — 부울경</h2>` +
-    `<span>지역 생활 커뮤니티 ${A.cafes}곳 · 가전 글 ${fmtN(A.total)}건 · 광고와 고객 글을 갈라 봅니다</span></div>` +
+    `<span>지역 생활 커뮤니티 ${A.cafes}곳 · 가전 글 ${fmtN(A.total)}건 · 광고와 고객 글을 구분 집계합니다</span></div>` +
     `${per() ? per().bar() : ""}</div>`;
 
   function bar2(aVal, bVal, aLab, bLab) {

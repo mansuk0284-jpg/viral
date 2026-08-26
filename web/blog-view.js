@@ -129,7 +129,7 @@
     // 좌측 트렌드 불릿
     const bullets = [];
     if (byNew.length) bullets.push(`최신 글은 ‘${(byNew[0].t || "").slice(0, 22)}…’(${byNew[0].d})입니다.`);
-    if (spCnt) bullets.push(`체험단·협찬 표기 글이 <b class="warn">${fmtN(spCnt)}건${total >= 10 ? `(${spPct}%)` : ""}</b> — 마케팅 물량을 갈라 세고 있습니다.`);
+    if (spCnt) bullets.push(`체험단·협찬 표기 글이 <b class="warn">${fmtN(spCnt)}건${total >= 10 ? `(${spPct}%)` : ""}</b> — 마케팅 물량은 별도 집계했습니다.`);
     if (stTop.length) bullets.push(`매장이 적힌 글은 <b>${stTop[0]}</b>${josa(stTop[0], "이", "가")} ${ST[stTop[0]].n}건으로 가장 많습니다.`);
     if (hot.length) bullets.push(`다뤄진 품목은 <b>${hot.join(" · ")}</b> 순입니다.`);
 
@@ -141,7 +141,7 @@
     }
     secs.push(`<div class="cy-sec"><h5>게시 동향</h5><p class="cy-note">` +
       `선택 기간의 글은 <b>${fmtN(total)}건</b> — 내돈내산 <b>${fmtN(ownCnt)}건</b> · 체험단·협찬 <b class="warn">${fmtN(spCnt)}건</b>${total >= 10 ? `(${spPct}%)` : ""}입니다. ` +
-      (spPct >= 40 ? `마케팅성 글의 비중이 높아 브랜드 수치는 내돈내산만 갈라 읽어야 합니다.`
+      (spPct >= 40 ? `마케팅성 글의 비중이 높아 브랜드 수치는 내돈내산 글 기준으로 집계했습니다.`
         : `내돈내산 글이 중심이라 고객이 스스로 남긴 이야기로 읽을 수 있습니다.`) + `</p></div>`);
     secs.push(`<div class="cy-sec"><h5>브랜드 반응</h5><p class="cy-note">` +
       (oS + oL >= 10
@@ -282,7 +282,7 @@
       `<div class="nh-bar"><i class="s" style="width:${sh}%"></i><i class="l" style="width:${100 - sh}%"></i></div>` +
       `<div class="nsc-nums"><span class="s"><b>${fmtN(oS)}건</b>${oS + oL >= 10 ? `<i>(${sh}%)</i>` : ""}</span>` +
       `<span class="l"><b>${fmtN(oL)}건</b>${oS + oL >= 10 ? `<i>(${100 - sh}%)</i>` : ""}</span></div>` +
-      `<p class="nsc-foot">체험단·협찬 <b class="warn">${fmtN(spCnt)}건</b>${total >= 10 ? `(${spPct}%)` : ""}은 갈라 셌습니다.${momLine ? " " + momLine : ""}</p>` +
+      `<p class="nsc-foot">체험단·협찬 <b class="warn">${fmtN(spCnt)}건</b>${total >= 10 ? `(${spPct}%)` : ""}은 별도 집계했습니다.${momLine ? " " + momLine : ""}</p>` +
       `</div>` +
 
       `<div class="nsc-sec"><h4 class="nsc-st">매장 우위·열세<i>매장 특정 글 ${stNames.length}곳</i></h4>` +

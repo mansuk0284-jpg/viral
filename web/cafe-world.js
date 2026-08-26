@@ -60,7 +60,7 @@
           v: Math.max(2000000, AD.total * 400),
           name: "부울경 종합 분석", sub: `수집 ${AD.cafes}곳 · 광고 vs 고객 글`,
           disp: fmt(AD.total), unit: "건", badge: "분석",
-          title: `부울경 제휴카페 ${AD.cafes}곳 · 가전 글 ${fmt(AD.total)}건 — 당사/경쟁사 광고와 고객 글을 갈라 봅니다`,
+          title: `부울경 제휴카페 ${AD.cafes}곳 · 가전 글 ${fmt(AD.total)}건 — 당사/경쟁사 광고와 고객 글을 구분 집계합니다`,
         }) : "") +
         D.cats.map((c) => {
           const mine = (D.cafes[c.key] || []).filter((x) => zoneOf(x) === "buk").length;
