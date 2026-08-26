@@ -1166,3 +1166,8 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
 /* 블로그 진단은 박스 1개씩 세로 배치 — yt-rep 공용 2열 그리드를 1열로 되돌린다
    (2026-08-27 사용자: "2개씩 종으로 하지말고 1개씩 세로로") */
 .ca2.yt-wrap .nb-rep { grid-template-columns: 1fr; }
+/* 전체 진단 박스는 지도 위(중앙 칼럼) — 카드 껍데기 없이 박스 하나만 보이게 */
+.ca2 .nb-overall { display: block; width: 100%; padding: 0; border: 0;
+  background: transparent; box-shadow: none; margin: 0 0 12px; overflow: visible; }
+.ca2 .nb-overall .cy-sec { margin-bottom: 0; }
+.ca2 .nb-geo svg { height: min(52vh, 470px); }   /* 진단 박스가 위에 앉는 만큼 지도는 살짝 줄인다 */

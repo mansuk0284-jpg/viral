@@ -146,6 +146,8 @@
     const secs = [];
 
     // ① 전체 진단 — 총론. 규모→브랜드 구도→분포를 단락으로 가른다.
+    //    자리 = 지도 위(중앙 칼럼). 당사·경쟁사·실행 제안은 우측(2026-08-27 배치 지시).
+    let overallSec = "";
     (function () {
       const ps = [];
       ps.push(`선택 기간의 네이버 블로그 게시물은 <b>${fmtN(total)}건</b>입니다 — ` +
@@ -170,8 +172,8 @@
       if (hot.length) p3 += `품목은 <b>${hot.join(" · ")}</b> 순으로 다뤄졌습니다. `;
       p3 += `조회수가 비공개인 채널이라 수치는 게시 건수 기준이며, 검색 노출이 오래 지속되는 채널 특성상 건수가 곧 노출 점유의 근사치입니다.`;
       ps.push(p3);
-      secs.push(`<div class="cy-sec"><h5>전체 진단</h5>` +
-        ps.map((x) => `<p class="cy-note">${x}</p>`).join("") + `</div>`);
+      overallSec = `<div class="cy-sec"><h5>전체 진단</h5>` +
+        ps.map((x) => `<p class="cy-note">${x}</p>`).join("") + `</div>`;
     })();
 
     // ② 당사 특이사항 — 삼성 시각: 어디가 강하고, 어느 매장이 대표하는가.
@@ -279,7 +281,9 @@
       `<p class="jw-note">지역은 제목·요약 기반 <b>추정</b> · 매장은 지점명 기준 · 목록은 최신순 표본(수치는 전량 집계)입니다.</p>` +
       `</div>` +
       // 중앙 — 지도
-      `<div class="nb-mapcol"><div id="nbGeoHost" class="nb-geo"></div>` +
+      `<div class="nb-mapcol">` +
+      `<div class="ca-ncard nb-rep nb-overall">${overallSec}</div>` +
+      `<div id="nbGeoHost" class="nb-geo"></div>` +
       `<div class="ca-geo-legend"><span class="gl s">삼성 우위</span><span class="gl l">LG 우위</span><span class="gl off">미집계</span></div>` +
       `<p class="ca-geonote">지도는 글의 지역 언급 기준(제목·요약 추정)입니다. ` +
       `<b>지역을 누르면</b> 그 지역 백화점 매장별 블로그 현황으로 들어갑니다.</p></div>` +
