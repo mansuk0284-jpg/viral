@@ -51,6 +51,17 @@
 
   /* 월별 사전집계를 기간으로 합산 */
   const aggMon = (f) => monthsInRange().reduce((a, m) => a + (((B.mon || {})[m] || {})[f] || 0), 0);
+  /* 직전 같은 길이 구간 합산 — "직전 대비" 문장용(다결 노하우).
+     비교가 성립 안 하면(직전 구간 없음) null — ±0 원칙대로 삼지선다로 쓴다. */
+  function prevSum(f) {
+    const ms = monthsInRange();
+    if (!ms.length) return null;
+    const all = B.months || [];
+    const i0 = all.indexOf(ms[0]);
+    if (i0 < ms.length) return null;              // 직전 구간이 데이터 밖
+    const prev = all.slice(i0 - ms.length, i0);
+    return prev.reduce((a, m) => a + (((B.mon || {})[m] || {})[f] || 0), 0);
+  }
   function aggMap(SRC) {
     const out = {};
     monthsInRange().forEach((m) => {
@@ -122,8 +133,12 @@
     if (stTop.length) bullets.push(`매장이 적힌 글은 <b>${stTop[0]}</b>${josa(stTop[0], "이", "가")} ${ST[stTop[0]].n}건으로 가장 많습니다.`);
     if (hot.length) bullets.push(`다뤄진 품목은 <b>${hot.join(" · ")}</b> 순입니다.`);
 
-    // 진단
+    // 진단 — 첫 섹션은 이 기간 트렌드 불릿(좌측에서 승격)
     const secs = [];
+    if (bullets.length) {
+      secs.push(`<div class="cy-sec"><h5>이 기간 트렌드</h5>` +
+        `<ul class="yt-trend nb-trendlist">${bullets.slice(0, 4).map((b2) => `<li>${b2}</li>`).join("")}</ul></div>`);
+    }
     secs.push(`<div class="cy-sec"><h5>게시 동향</h5><p class="cy-note">` +
       `선택 기간의 글은 <b>${fmtN(total)}건</b> — 내돈내산 <b>${fmtN(ownCnt)}건</b> · 체험단·협찬 <b class="warn">${fmtN(spCnt)}건</b>${total >= 10 ? `(${spPct}%)` : ""}입니다. ` +
       (spPct >= 40 ? `마케팅성 글의 비중이 높아 브랜드 수치는 내돈내산만 갈라 읽어야 합니다.`
@@ -152,28 +167,53 @@
         : `매장이 적힌 글이 적습니다 — 매장 방문 시 <b>블로그 후기 요청</b> 실행 여부를 점검하세요.`,
       `계약 고객 중 블로그 운영 고객에게 <b>매장명·담당자 실명이 든 후기</b>를 요청하세요 — 검색에 오래 남는 후기가 다음 고객을 부릅니다.`));
 
+    /* 매장 우위·열세 — 매장이 특정된 글 기준(다결 좌측 박스 노하우) */
+    const stNames = Object.keys(ST);
+    const stWin = stNames.filter((k) => ST[k].s > ST[k].l).length;
+    const stLose = stNames.filter((k) => ST[k].l > ST[k].s).length;
+    /* 직전 대비 — 삼지선다(±0 원칙) */
+    const pv = prevSum("n");
+    const momLine = pv === null ? ""
+      : pv === 0 ? ""
+      : (function () {
+          const d = Math.round((total - pv) / pv * 100);
+          return d === 0 ? `직전 같은 길이 구간과 <b>같은 수준</b>입니다.`
+            : d > 0 ? `직전 같은 길이 구간보다 <b>${d}% 늘었습니다</b>.`
+            : `직전 같은 길이 구간보다 <b class="warn">${-d}% 줄었습니다</b>.`;
+        })();
+
     return `<div class="ca2 yt-wrap nb-wrap">` + head() +
       `<div class="nb-nation">` +
-      // 좌측 — 다결 전국과 같은 섹션 박스 문법
+      // 좌측 — 다결 전국과 같은 타이틀·섹션 박스 문법
       `<div class="cx-sum nb-left">` +
-      `<div class="cx-sum-h"><h3>게시 현황</h3><span>${labOf()} · ${fmtN(total)}건</span></div>` +
-      `<div class="cx-sum-n"><b>${fmtN(total)}</b><i>건 게시</i></div>` +
-      `<p class="yt-note">내돈내산 <b>${fmtN(ownCnt)}건</b> · 체험단·협찬 <b class="warn">${fmtN(spCnt)}건</b>${total >= 10 ? `(${spPct}%)` : ""}. ` +
-      `브랜드 비교는 <b>내돈내산만</b> 셌습니다.</p>` +
-      (bullets.length ? `<div class="yt-trend"><h4>이 기간 블로그 트렌드</h4>` +
-        `<ul>${bullets.slice(0, 4).map((b2) => `<li>${b2}</li>`).join("")}</ul></div>` : "") +
-      `<div class="yt-cmp"><h4>삼성 vs LG 게시 대비</h4>` +
-      `<div class="yc-row"><em>내돈내산</em>` +
-      `<span class="yc-s">삼성 <b>${fmtN(oS)}건</b></span>` +
-      `<span class="yc-bar"><i class="s" style="width:${(oS / ((oS + oL) || 1) * 100).toFixed(1)}%"></i>` +
-      `<i class="l" style="width:${(oL / ((oS + oL) || 1) * 100).toFixed(1)}%"></i></span>` +
-      `<span class="yc-l">LG <b>${fmtN(oL)}건</b></span></div>` +
-      `<div class="yc-row"><em>협찬 포함</em>` +
-      `<span class="yc-s">삼성 <b>${fmtN(aS)}건</b></span>` +
-      `<span class="yc-bar"><i class="s" style="width:${(aS / ((aS + aL) || 1) * 100).toFixed(1)}%"></i>` +
-      `<i class="l" style="width:${(aL / ((aS + aL) || 1) * 100).toFixed(1)}%"></i></span>` +
-      `<span class="yc-l">LG <b>${fmtN(aL)}건</b></span></div></div>` +
-      `<p class="jw-note">지역은 제목·요약 기반 <b>추정</b>, 매장은 지점명 기준입니다. 목록은 최신순 표본(수치는 전량 집계). ${B.note}</p>` +
+      `<div class="rv-head"><h3>전국</h3><span>네이버 블로그 · ${labOf()}</span></div>` +
+      `<div class="nsc-total"><b>${fmtN(total)}</b><i>건 분석</i></div>` +
+      `<div class="nsc-sec"><h4 class="nsc-st">게시 건수<i>내돈내산 기준</i></h4>` +
+      `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
+      `<div class="nh-bar"><i class="s" style="width:${sh}%"></i><i class="l" style="width:${100 - sh}%"></i></div>` +
+      `<div class="nsc-nums"><span class="s"><b>${fmtN(oS)}건</b>${oS + oL >= 10 ? `<i>(${sh}%)</i>` : ""}</span>` +
+      `<span class="l"><b>${fmtN(oL)}건</b>${oS + oL >= 10 ? `<i>(${100 - sh}%)</i>` : ""}</span></div>` +
+      `<p class="nsc-foot">체험단·협찬 <b class="warn">${fmtN(spCnt)}건</b>${total >= 10 ? `(${spPct}%)` : ""}은 갈라 셌습니다.${momLine ? " " + momLine : ""}</p>` +
+      `</div>` +
+
+      `<div class="nsc-sec"><h4 class="nsc-st">매장 우위·열세<i>매장 특정 글 ${stNames.length}곳</i></h4>` +
+      `<div class="nw-pair split">` +
+      `<span class="nw-p1"><b>${stWin}</b><i>곳 우위</i></span>` +
+      `<span class="nw-p2"><i>곳 열세</i><b class="warn">${stLose}</b></span>` +
+      `</div>` +
+      (stNames.length - stWin - stLose ? `<span class="nw-sub">그 외 ${stNames.length - stWin - stLose}곳은 동률이거나 브랜드가 특정되지 않았습니다.</span>` : "") +
+      `</div>` +
+
+      /* 조회수 — 네이버가 공개하지 않는다. 지어내지 않고 그 사실을 명시한다
+         (2026-08-26 사용자: "조회수에 대한 언급도 빠져있고"). */
+      `<div class="nsc-sec"><h4 class="nsc-st">조회수</h4>` +
+      `<p class="nsc-foot">네이버 블로그는 <b>조회수를 외부에 공개하지 않아</b> 싣지 않습니다 — ` +
+      `이 화면의 모든 수치는 <b>게시 건수</b> 기준입니다. 검색 노출이 오래가는 채널 특성상 ` +
+      `건수가 곧 검색 점유의 근사치입니다.</p></div>` +
+      /* 트렌드 불릿은 좌측이 아니라 우측 진단 첫 섹션으로 — 좌측에 두면
+         칼럼이 화면(900px)을 넘겨 하단이 잘렸다(실측). 대비 블록은 게시 건수
+         박스와 정보가 겹쳐 걷었다(협찬 포함 수치는 브랜드 반응 단락에 있다). */
+      `<p class="jw-note">지역은 제목·요약 기반 <b>추정</b> · 매장은 지점명 기준 · 목록은 최신순 표본(수치는 전량 집계)입니다.</p>` +
       `</div>` +
       // 중앙 — 지도
       `<div class="nb-mapcol"><div id="nbGeoHost" class="nb-geo"></div>` +
@@ -264,6 +304,35 @@
       (RG.n >= 10 ? `(삼성 ${fmtN(RG.s)} : LG ${fmtN(RG.l)})` : RG.n ? ` — 표본이 작아 건수로만 적습니다(삼성 ${RG.s} : LG ${RG.l})` : "") + `. ` +
       (top ? `매장이 특정된 글은 <b>${top.name}</b>${josa(top.name, "이", "가")} ${fmtN(top.cnt)}건으로 가장 많습니다.` :
         `이 기간 매장이 특정된 글이 없습니다 — 구매 고객 블로그 후기 요청부터가 과제입니다.`) + `</p></div>`);
+    /* 매장 간 격차·표본 집중도 — 다결 지역 카드에서 자리 잡은 시각.
+       분기마다 문장이 달라야 한다(승패가 바뀌어도 같으면 인사이트가 아니다). */
+    (function () {
+      const sized = list.filter((x) => x.s + x.l >= 5)
+        .map((x) => ({ name: x.name, sh2: pct(x.s, x.l), tot: x.s + x.l }))
+        .sort((a, b) => b.sh2 - a.sh2);
+      if (sized.length >= 2) {
+        const hi = sized[0], lo = sized[sized.length - 1];
+        const spread = hi.sh2 - lo.sh2;
+        secs.push(`<div class="cy-sec"><h5>매장 간 격차</h5><p class="cy-note">` +
+          (spread < 25
+            ? `브랜드 표본 5건 이상 ${sized.length}곳이 <b>${spread}p</b> 안에 모여 있습니다 — 특정 매장이 아니라 도시 공통의 흐름이 블로그 지형을 만들고 있습니다.`
+            : lo.sh2 >= 50
+            ? `가장 낮은 <b>${lo.name}</b>(삼성 ${lo.sh2}%)도 우위여서 ${spread}p 는 우위 안의 편차입니다 — 격차를 굳히려면 표본이 얇은 매장의 후기 요청부터입니다.`
+            : `<b>${hi.name}</b>(${hi.sh2}%)과 <b class="warn">${lo.name}</b>(${lo.sh2}%) 사이가 <b>${spread}p</b> 벌어져 있습니다 — 같은 도시에서 검색 첫 화면의 주인이 매장마다 다릅니다.`) +
+          `</p></div>`);
+      }
+      const totAll = list.reduce((a, x) => a + x.cnt, 0) || 1;
+      if (list[0]) {
+        const headShare = Math.round(list[0].cnt / totAll * 100);
+        secs.push(`<div class="cy-sec"><h5>표본 집중도</h5><p class="cy-note">` +
+          (headShare >= 50
+            ? `매장 특정 글의 <b>${headShare}%</b>가 <b>${list[0].name}</b> 한 곳에서 나옵니다 — 이 매장의 글이 곧 ${rg} 블로그 검색의 첫인상입니다. 나머지 매장은 글 자체가 적어 검색에 보이지 않습니다.`
+            : headShare >= 30
+            ? `<b>${list[0].name}</b>${josa(list[0].name, "이", "가")} ${headShare}%를 차지합니다 — 이 매장의 게시 흐름이 도시 지표를 좌우합니다.`
+            : `여러 매장에 고르게 퍼져 있습니다(1위 비중 ${headShare}%) — 도시 수치를 매장 전체의 흐름으로 읽어도 되는 상태입니다.`) +
+          `</p></div>`);
+      }
+    })();
     secs.push(rolePlan(
       `지역 언급 대비 매장 특정 글이 ${list.length ? "적은 편" : "없는 수준"}입니다 — <b>매장명이 들어간 후기 캠페인</b>이 검색 노출을 만듭니다.`,
       top ? `<b>${top.name}</b>의 글을 지역 교육 사례로 공유하고, 목록 하위 매장에는 <b>후기 요청 실행 여부</b>를 점검하세요.`
@@ -315,6 +384,19 @@
       (V.s + V.l ? `(삼성 ${fmtN(V.s)} : LG ${fmtN(V.l)})` : "") +
       (V.sp ? ` · 체험단 표기 <b class="warn">${fmtN(V.sp)}건</b>` : "") + `입니다. ` +
       `블로그 글은 검색으로 오래 읽히므로, 이 매장 이름의 검색 결과가 곧 상시 간판입니다.</p></div>`);
+    /* 검색 신선도 — 블로그 채널 고유의 축. 최근 글이 끊기면 검색 첫 화면이 낡는다. */
+    (function () {
+      const all2 = (B.months || []).slice(-3);      // 데이터 기준 최근 3개월
+      const rec = all2.reduce((a, m) => a + ((((B.monStores || {})[m] || {})[st2] || {}).n || 0), 0);
+      const last = (B.storePosts && B.storePosts[st2] && B.storePosts[st2][0]) ? B.storePosts[st2][0].d : "";
+      secs.push(`<div class="cy-sec"><h5>검색 신선도</h5><p class="cy-note">` +
+        (rec >= 3
+          ? `최근 3개월에 <b>${fmtN(rec)}건</b>이 새로 올라왔습니다 — 검색 결과가 살아 있는 매장입니다. 이 흐름이 끊기지 않도록 후기 요청을 이어가세요.`
+          : rec > 0
+          ? `최근 3개월 새 글이 <b>${fmtN(rec)}건</b>뿐입니다 — 검색 첫 화면이 낡아가기 시작하는 신호입니다. 이번 달 계약 고객에게 후기 요청을 걸어 두세요.`
+          : `최근 3개월 <b class="warn">새 글이 없습니다</b>${last ? `(마지막 글 ${last})` : ""} — 이 매장 이름을 검색한 고객은 낡은 정보만 봅니다. 후기 요청 재가동이 급합니다.`) +
+        `</p></div>`);
+    })();
     secs.push(rolePlan(
       V.sp > (V.n - V.sp)
         ? `이 매장 글은 <b class="warn">체험단 물량이 절반을 넘습니다</b> — 내돈내산 후기가 쌓이도록 캠페인 설계가 필요합니다.`

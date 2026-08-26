@@ -668,3 +668,6 @@ body.view-nr .nr-note { padding-bottom: 12px; }
 .ca2 .nb-posts .sv-revcols { flex: 1; min-height: 0; overflow-y: auto;
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .ca2 .nb-posts { display: flex; flex-direction: column; min-height: 0; }
+/* 진단 안 트렌드 불릿 — yt-trend 박스 스타일이 아니라 리스트만 */
+.ca2 .nb-trendlist { border: 0; background: none; padding: 0; margin: 0;
+  list-style: none; display: flex; flex-direction: column; gap: 5px; }
