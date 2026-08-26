@@ -1184,3 +1184,22 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
 .ca2 .cx-mainch .cx-chip.chgo:hover { filter: brightness(0.94); }
 .ca2 .cx-scopenote { font-size: 12.5px; font-weight: 600; color: #7c8698;
   margin: 8px 0 0; line-height: 1.5; }
+
+/* ── 채널 카드 전월비 추세 화살표(주식 시세판풍) — 2026-08-27 ──
+   색은 이 하네스의 원칙(긍정=파랑·부정=빨강)을 따른다: 상승=파랑·하락=빨강. */
+.ca2 .cx-trend { margin-left: auto; display: inline-flex; align-items: center;
+  gap: 4px; padding: 2px 8px 2px 6px; border-radius: 999px;
+  font-style: normal; line-height: 1; cursor: help; }
+.ca2 .cx-trend u { text-decoration: none; font-size: 12px; }
+.ca2 .cx-trend em { font-style: normal; font-size: 11px; font-weight: 800;
+  letter-spacing: -0.01em; }
+.ca2 .cx-trend.up { color: #1f5fd0; background: rgba(31,95,208,0.10); }
+.ca2 .cx-trend.down { color: #d23b54; background: rgba(210,59,84,0.10); }
+.ca2 .cx-trend.flat { color: #7c8698; background: rgba(124,134,152,0.12); }
+.ca2 .cx-trend.up u { animation: cxTrUp 1.6s ease-in-out infinite; }
+.ca2 .cx-trend.down u { animation: cxTrDn 1.6s ease-in-out infinite; }
+@keyframes cxTrUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes cxTrDn { 0%,100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
+@media (prefers-reduced-motion: reduce) {
+  .ca2 .cx-trend u { animation: none !important; }
+}

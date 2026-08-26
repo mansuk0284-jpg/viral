@@ -128,6 +128,62 @@
     document.getElementById("storeSel").addEventListener("change", go);
   }
 
+  /* 전월비 추세 화살표 — 절대 건수로 당월 vs 전월을 비교하면 당월이 진행
+     중이라 항상 '하락'으로 오독된다(2026-08-27 사용자 설계 지시). 그래서
+     당월을 경과일로 환산한 **월말 페이스**와 전월을 견주고, 방향만 표시한다.
+     월 단위 매장 데이터가 있는 채널(다결·네이버리뷰·블로그)에만 단다 —
+     없는 채널에 추세를 지어내지 않는다. */
+  function moTrend(key, name) {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    const pad = (n) => (n < 10 ? "0" : "") + n;
+    const curYM = y + "-" + pad(m + 1);
+    const pd = new Date(y, m, 0);                       // 전월 말일
+    const prevYM = pd.getFullYear() + "-" + pad(pd.getMonth() + 1);
+    const dim = new Date(y, m + 1, 0).getDate();
+    const elapsed = Math.min(1, now.getDate() / dim);
+
+    let cur = null, prev = null;
+    if (key === "dagyeolun" && window.VFACT) {
+      const cnt = (a) => { if (!a) return 0; let n = 0;
+        Object.keys(a.stores || {}).forEach((rg) => (a.stores[rg] || []).forEach((x) => {
+          if (x.n === name) n += x.s + x.l; }));
+        return n; };
+      cur = cnt(VFACT.agg(curYM + "-01", curYM + "-" + pad(now.getDate())));
+      prev = cnt(VFACT.agg(prevYM + "-01", prevYM + "-" + pad(pd.getDate())));
+    } else if (key === "naver-review") {
+      const s = nrFind(name);
+      if (!s || !s.rows) return null;
+      cur = s.rows.filter((r) => r[0] === curYM).length;
+      prev = s.rows.filter((r) => r[0] === prevYM).length;
+    } else if (key === "naver-blog") {
+      const NB = window.NBLOG;
+      if (!NB || !NB.monStores) return null;
+      const g = (ym) => (((NB.monStores || {})[ym] || {})[name] || {}).n || 0;
+      cur = g(curYM); prev = g(prevYM);
+    } else return null;
+
+    if (cur === null || prev === null || (!cur && !prev)) return null;
+    const proj = elapsed > 0 ? Math.round(cur / elapsed) : cur;
+    const small = prev < 3 && proj < 3;                 // 소표본 — 방향을 단정하지 않는다
+    const dir = small ? "flat"
+      : !prev ? "up"
+      : proj >= prev * 1.15 ? "up"
+      : proj <= prev * 0.85 ? "down" : "flat";
+    const tip = `전월(${+prevYM.slice(5)}월) ${fmtN(prev)}건 → 이번 달 현재 ${fmtN(cur)}건` +
+      `(월말 페이스 환산 약 ${fmtN(proj)}건)` +
+      (small ? " · 표본이 작아 방향을 단정하지 않습니다" : "");
+    return { dir, tip };
+  }
+
+  function trendTag(key, name) {
+    const tr = moTrend(key, name);
+    if (!tr) return "";
+    const A = { up: ["▲", "상승세"], down: ["▼", "하락세"], flat: ["―", "보합"] }[tr.dir];
+    return `<i class="cx-trend ${tr.dir}" title="전월비 추세 — ${tr.tip}">` +
+      `<u>${A[0]}</u><em>${A[1]}</em></i>`;
+  }
+
   /* 채널별 노출 집계 — 좌측 '전체 노출'과 '주요 채널'의 근거.
      카드마다 데이터 모양이 달라 여기 한 곳에서 채널→건수로 편다(2026-08-27).
      brand=1 인 채널만 삼성/LG 비중 막대에 넣는다(리뷰·인스타는 브랜드 비교가 아님). */
@@ -179,7 +235,7 @@
     const w = tot ? (S.total / tot * 100).toFixed(1) : 50;
     const win = vs && S.total > vs.total;
     return `<div class="cx-card cx-live ${ch.cls}" data-nrgo="${S.key}" title="눌러서 리뷰·예약 분석 보기">` +
-      `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i></div>` +
+      `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i>${trendTag(ch.key, name)}</div>` +
       `<div class="cx-main">` +
       `<div class="cx-big"><b>${fmtN(S.total)}</b><span>리뷰</span></div>` +
       (vs ? `<div class="cx-vs"><span class="s">삼성 ${fmtN(S.total)}</span><span class="l">LG ${fmtN(vs.total)}</span></div>` +
@@ -339,7 +395,7 @@
     const NB = window.NBLOG;
     const v = NB && NB.stores ? (NB.stores[name] || pick(NB.stores, name)) : null;
     const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
-      `<i class="cx-live-tag">실데이터</i></div>`;
+      `<i class="cx-live-tag">실데이터</i>${trendTag(ch.key, name)}</div>`;
     if (!v || !v.n) {
       return `<div class="cx-card ${ch.cls}">${head}` +
         `<div class="cx-empty"><em>이 채널에 흔적 없음</em>` +
@@ -410,11 +466,11 @@
     }
     const row = storeRow(name);
     if (!row) {
-      return `<div class="cx-card ${ch.cls}"><div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +
+      return `<div class="cx-card ${ch.cls}"><div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>${trendTag(ch.key, name)}</div>` +
         `<div class="cx-empty"><em>표본 없음</em><span>이 매장 후기가 확인되지 않았습니다</span></div></div>`;
     }
     if (!(row.s + row.l)) {
-      return `<div class="cx-card ${ch.cls}"><div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span></div>` +
+      return `<div class="cx-card ${ch.cls}"><div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>${trendTag(ch.key, name)}</div>` +
         `<div class="cx-empty"><em>표본 없음</em><span>이 기간에는 후기가 없습니다</span></div></div>`;
     }
     const tot = row.s + row.l, sh = pct(row.s, row.l);
@@ -424,7 +480,7 @@
     const items = (D.items || []).slice(0, 3);
     const star = mgr && mgr.names && mgr.names.length ? mgr.names[0] : null;
     return `<div class="cx-card cx-live ${ch.cls}">` +
-      `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i></div>` +
+      `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i>${trendTag(ch.key, name)}</div>` +
       `<div class="cx-main">` +
       `<div class="cx-big"><b>${fmtN(tot)}</b><span>건</span></div>` +
       `<div class="cx-vs"><span class="s">삼성 ${fmtN(row.s)}</span><span class="l">LG ${fmtN(row.l)}</span></div>` +
