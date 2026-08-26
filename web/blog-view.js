@@ -149,25 +149,101 @@
           `체험단 포함 시 삼성 ${fmtN(aS)} : LG ${fmtN(aL)} — 고객이 말한 양과 마케팅이 뿌린 양은 다른 이야기입니다.`
         : `브랜드가 갈리는 내돈내산 글이 <b>${oS + oL}건</b>뿐이라 건수로만 적습니다(삼성 ${oS} : LG ${oL}). ` +
           `한 사람의 글이 비율을 통째로 움직이는 표본이므로, 기간을 넓혀 흐름으로 읽는 것이 정확합니다.`) + `</p></div>`);
-    if (stTop.length) {
-      secs.push(`<div class="cy-sec"><h5>매장 언급</h5><p class="cy-note">` +
-        (function () {
+    /* 선두 지역·매장 — "전국에서 가장 많은 후기를 보여주는 지역·매장"을
+       이름·건수·브랜드 분해로 못박는다(2026-08-27 사용자 지시). 조회수는
+       네이버가 공개하지 않으므로 게시 건수 기준임을 문장 안에서도 밝힌다. */
+    (function () {
+      const rgTop = Object.keys(RG).sort((a, b) => RG[b].n - RG[a].n).slice(0, 3);
+      if (!rgTop.length && !stTop.length) return;
+      let line = "";
+      if (rgTop.length) {
+        const r0 = RG[rgTop[0]], rTot = Object.keys(RG).reduce((a, k) => a + RG[k].n, 0) || 1;
+        const rSh = Math.round(r0.n / rTot * 100);
+        line += `글이 가장 많이 나오는 지역은 <b>${rgTop[0]}</b> — <b>${fmtN(r0.n)}건</b>` +
+          (r0.s + r0.l >= 10 ? `(브랜드가 갈린 글 삼성 ${fmtN(r0.s)} vs LG ${fmtN(r0.l)})` : ``) +
+          `, 지역이 짚인 글의 ${rSh}%입니다. 그다음이 ${rgTop.slice(1).map((k) => `${k}(${fmtN(RG[k].n)})`).join(" · ")} 순입니다. `;
+      }
+      if (stTop.length) {
         const t0 = ST[stTop[0]];
         const lead0 = t0.s > t0.l ? "삼성" : t0.l > t0.s ? "LG" : null;
-        return `매장이 적힌 글은 <b>${stTop.map((k) => `${k}(${ST[k].n})`).join(" · ")}</b> 순입니다. ` +
-          (lead0 ? `최다 언급 매장 ${stTop[0]}의 글은 ${lead0 === "삼성" ? `<b>삼성 ${fmtN(t0.s)}건</b> 대 LG ${fmtN(t0.l)}건으로 우리 이야기가 검색을 쥐고 있습니다` : `삼성 ${fmtN(t0.s)}건 대 <b class="warn">LG ${fmtN(t0.l)}건</b>으로 검색 첫 화면을 상대가 쥐고 있습니다`} — ` +
-            `이 매장 이름을 검색해 보는 예비 고객이 매일 그 글을 만납니다. ` : ``) +
-          `지도에서 지역을 누르면 매장별 현황으로 들어갑니다.</p></div>`;
-      })());
-    }
+        line += `매장 단위로는 <b>${stTop.map((k) => `${k}(${ST[k].n})`).join(" · ")}</b> 순입니다. ` +
+          (lead0
+            ? (lead0 === "삼성"
+              ? `최다 언급 ${stTop[0]}${josa(stTop[0], "은", "는")} <b>삼성 ${fmtN(t0.s)}건</b> 대 LG ${fmtN(t0.l)}건 — 이 매장 이름을 검색하는 예비 고객은 우리 이야기부터 만납니다. `
+              : `최다 언급 ${stTop[0]}${josa(stTop[0], "은", "는")} 삼성 ${fmtN(t0.s)}건 대 <b class="warn">LG ${fmtN(t0.l)}건</b> — 검색 첫 화면을 상대가 쥐고 있는 매장입니다. `)
+            : ``);
+      }
+      line += `조회수가 비공개인 채널이라 순위는 게시 건수 기준이며, 검색에 오래 남는 채널 특성상 건수가 곧 노출 점유의 근사치입니다.`;
+      secs.push(`<div class="cy-sec"><h5>선두 지역·매장</h5><p class="cy-note">${line}</p></div>`);
+    })();
+
+    /* 경쟁사 동향 — LG 시각에서 전국을 다시 본다: 어디에 몰리고, 어떤 품목이
+       강하고, 마케팅(체험단) 물량은 어느 쪽이 더 뿌리는가. */
+    (function () {
+      const totL = Object.keys(ST).reduce((a, k) => a + ST[k].l, 0);
+      const rgL = Object.keys(RG).filter((k) => RG[k].l > 0).sort((a, b) => RG[b].l - RG[a].l)[0];
+      if (!totL && !rgL) {
+        secs.push(`<div class="cy-sec"><h5>경쟁사 동향</h5><p class="cy-note">이 기간 매장이 특정된 LG 글이 없습니다 — ` +
+          `LG가 조용한 구간이라는 사실 자체가 정보입니다. 이 시기에 우리 후기가 쌓이면 매장명 검색 결과를 우리가 차지합니다.</p></div>`);
+        return;
+      }
+      const stL = Object.keys(ST).sort((a, b) => ST[b].l - ST[a].l)[0];
+      const loseSt = Object.keys(ST).filter((k) => ST[k].l > ST[k].s)
+        .sort((a, b) => (ST[b].l - ST[b].s) - (ST[a].l - ST[a].s));
+      const lgItem = Object.keys(IT).filter((k) => IT[k].l > IT[k].s && IT[k].s + IT[k].l >= 10)
+        .sort((a, b) => (IT[b].l - IT[b].s) - (IT[a].l - IT[a].s))[0];
+      const spS = aS - oS, spL = aL - oL;   // 브랜드별 체험단·협찬 물량
+      let line = "";
+      if (rgL) line += `LG 글이 가장 몰리는 지역은 <b class="warn">${rgL}</b>(${fmtN(RG[rgL].l)}건)`;
+      if (stL && ST[stL].l) line += (rgL ? `, 매장으로는 ` : `LG 글이 가장 몰리는 매장은 `) +
+        `<b class="warn">${stL}</b>(${fmtN(ST[stL].l)}건)입니다. `;
+      else line += `입니다. `;
+      line += loseSt.length
+        ? `LG가 앞선 매장은 <b class="warn">${loseSt.length}곳</b>이고 격차 최대는 ${loseSt[0]}(<b class="warn">${fmtN(ST[loseSt[0]].l - ST[loseSt[0]].s)}건</b> 뒤)입니다. `
+        : `건수로 LG가 앞선 매장은 없습니다. `;
+      if (lgItem) line += `품목으로는 <b class="warn">${lgItem}</b>에서 LG ${fmtN(IT[lgItem].l)}건 vs 삼성 ${fmtN(IT[lgItem].s)}건 — 이 품목을 검색한 고객은 상대 글부터 읽습니다. `;
+      if (spS + spL >= 5) {
+        line += spS === spL
+          ? `체험단·협찬 물량은 양사 <b>같은 수준</b>(각 ${fmtN(spS)}건)입니다.`
+          : spL > spS
+          ? `체험단·협찬 물량은 <b class="warn">LG ${fmtN(spL)}건</b> vs 삼성 ${fmtN(spS)}건 — 상대가 마케팅 글을 더 뿌리고 있어, 내돈내산 후기로 맞서는 쪽이 신뢰에서 유리합니다.`
+          : `체험단·협찬 물량은 삼성 <b>${fmtN(spS)}건</b> vs LG ${fmtN(spL)}건으로 우리 쪽이 많습니다 — 고객 글(내돈내산)이 함께 늘어야 마케팅으로만 보이지 않습니다.`;
+      }
+      secs.push(`<div class="cy-sec"><h5>경쟁사 동향</h5><p class="cy-note">${line}</p></div>`);
+    })();
+
+    /* 지역 특이점 — 전국 흐름과 다른 방향으로 움직이는 지역을 짚는다 */
+    (function () {
+      const natAll = aS + aL >= 10 ? pct(aS, aL) : null;
+      if (natAll === null) return;
+      const cand = Object.keys(RG).filter((k) => RG[k].s + RG[k].l >= 20)
+        .map((k) => ({ n: k, s: RG[k].s, l: RG[k].l, sh: pct(RG[k].s, RG[k].l) }))
+        .map((x) => Object.assign(x, { d: x.sh - natAll }))
+        .sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
+      if (!cand.length) return;
+      const c0 = cand[0];
+      const spRg = Object.keys(RG).filter((k) => RG[k].sp >= 5).sort((a, b) => RG[b].sp - RG[a].sp)[0];
+      let line = c0.d === 0
+        ? `표본 20건 이상 지역의 브랜드 구도가 전국(삼성 ${natAll}%)과 같은 수준입니다 — 지역별 처방보다 전국 공통 전략이 유효한 구간입니다.`
+        : c0.d < 0
+        ? `<b class="warn">${c0.n}</b>${josa(c0.n, "은", "는")} 삼성 ${fmtN(c0.s)}건 vs LG <b class="warn">${fmtN(c0.l)}건</b>(삼성 ${c0.sh}%)으로 전국(${natAll}%)보다 <b class="warn">${-c0.d}p 낮은</b>, 흐름이 반대인 지역입니다. ` +
+          `이 지역 매장의 후기 요청 실행 여부부터 점검할 이유가 됩니다.`
+        : `<b>${c0.n}</b>${josa(c0.n, "은", "는")} 삼성 ${fmtN(c0.s)}건 vs LG ${fmtN(c0.l)}건(삼성 ${c0.sh}%)으로 전국(${natAll}%)보다 <b>${c0.d}p 높은</b> 강세 지역입니다. ` +
+          `이 지역에서 무엇이 잘 되는지가 다른 지역에 옮길 교본입니다.`;
+      if (spRg) line += ` 체험단·협찬 글은 <b>${spRg}</b>에 ${fmtN(RG[spRg].sp)}건으로 가장 몰려 있습니다 — 마케팅 물량이 집중되는 지역이라는 뜻입니다.`;
+      secs.push(`<div class="cy-sec"><h5>지역 특이점 <i>전국 대비</i></h5><p class="cy-note">${line}</p></div>`);
+    })();
     if (hot.length) {
       secs.push(`<div class="cy-sec"><h5>품목 트렌드</h5><p class="cy-note">` +
         (function () {
         const lgUp = Object.keys(IT).filter((k) => IT[k].l > IT[k].s && IT[k].n >= 10)
           .sort((a, b) => (IT[b].l - IT[b].s) - (IT[a].l - IT[a].s)).slice(0, 2);
+        const t0 = IT[hot[0]] || { s: 0, l: 0 };
         return `다뤄진 품목은 <b>${hot.join(" · ")}</b> 순입니다. 블로그는 검색으로 오래 읽히는 채널이라, ` +
           `이 품목 검색 결과에 우리 매장 글이 있는지가 장기 노출을 가릅니다.` +
-          (lgUp.length ? ` 특히 <b class="warn">${lgUp.join(" · ")}</b>${josa(lgUp[lgUp.length - 1], "은", "는")} LG 글이 더 많아, 이 품목을 검색한 고객은 상대 이야기부터 읽게 됩니다.` : ``) +
+          (t0.s + t0.l >= 10 ? (t0.l > t0.s
+            ? ` 수요 1위 ${hot[0]}의 브랜드 구도는 삼성 ${fmtN(t0.s)}건 vs <b class="warn">LG ${fmtN(t0.l)}건</b> — 가장 찾는 품목에서 상대 글이 더 많습니다.`
+            : ` 수요 1위 ${hot[0]}의 브랜드 구도는 <b>삼성 ${fmtN(t0.s)}건</b> vs LG ${fmtN(t0.l)}건입니다.`) : ``) +
           `</p></div>`;
       })());
     }
