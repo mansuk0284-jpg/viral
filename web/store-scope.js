@@ -127,6 +127,24 @@
     document.getElementById("storeSel").addEventListener("change", go);
   }
 
+  /* 선택 기간의 월 목록 — 리뷰(rows)·블로그(monStores)를 기간으로 자를 때 쓴다.
+     st.range 는 per() 생성 시 항상 채워진다(기본 = 이번 달) — 그래서 "기간 미지정"
+     분기가 아니라 언제나 이 목록으로 자르는 것이 맞다(2026-08-27 기간 연동 점검). */
+  function curMonths() {
+    if (!st.range) return null;
+    const a = st.range.a.slice(0, 7), b = st.range.b.slice(0, 7);
+    const out = [];
+    let y = +a.slice(0, 4), m = +a.slice(5);
+    for (let i = 0; i < 240; i++) {
+      const ym = y + "-" + (m < 10 ? "0" : "") + m;
+      out.push(ym);
+      if (ym === b) break;
+      m++; if (m > 12) { m = 1; y++; }
+    }
+    return out;
+  }
+  const inMs = (ms, ym) => !ms || (ym && ms.indexOf(ym.slice(0, 7)) >= 0);
+
   /* 전월비 추세 화살표 — 절대 건수로 당월 vs 전월을 비교하면 당월이 진행
      중이라 항상 '하락'으로 오독된다(2026-08-27 사용자 설계 지시). 그래서
      당월을 경과일로 환산한 **월말 페이스**와 전월을 견주고, 방향만 표시한다.
@@ -190,16 +208,20 @@
     const out = [];
     const row = storeRow(name);
     if (row && row.s + row.l) out.push({ key: "dagyeolun", label: "다이렉트웨딩", n: row.s + row.l, s: row.s, l: row.l, brand: 1, unit: "건" });
+    const ms = curMonths();
     const nr = nrFind(name);
-    if (nr && nr.total) out.push({ key: "naver-review", label: "네이버 리뷰", n: nr.total, s: 0, l: 0, brand: 0, unit: "건", cum: 1 });
+    if (nr && nr.rows) {
+      const n = nr.rows.filter((r) => inMs(ms, r[0])).length;
+      if (n) out.push({ key: "naver-review", label: "네이버 리뷰", n, s: 0, l: 0, brand: 0, unit: "건" });
+    }
     const J = window.JWEDDING, jv = J && J.stores ? (J.stores[name] || pick(J.stores, name)) : null;
-    if (jv && jv.s + jv.l) out.push({ key: "jwedding", label: "제이웨딩", n: jv.s + jv.l, s: jv.s, l: jv.l, brand: 1, unit: "건" });
-    const NB = window.NBLOG, bv = NB && NB.stores ? (NB.stores[name] || pick(NB.stores, name)) : null;
+    if (jv && jv.s + jv.l) out.push({ key: "jwedding", label: "제이웨딩", n: jv.s + jv.l, s: jv.s, l: jv.l, brand: 1, unit: "건", full: 1 });
+    const bv = blogAgg(name, ms);
     if (bv && bv.n) out.push({ key: "naver-blog", label: "네이버 블로그", n: bv.n, s: bv.s || 0, l: bv.l || 0, brand: 1, unit: "건" });
     const Y = window.YOUTUBE, yv = Y && Y.stores ? (Y.stores[name] || pick(Y.stores, name)) : null;
-    if (yv && yv.n) out.push({ key: "youtube", label: "유튜브", n: yv.n, s: yv.s || 0, l: yv.l || 0, brand: 1, unit: "편" });
+    if (yv && yv.n) out.push({ key: "youtube", label: "유튜브", n: yv.n, s: yv.s || 0, l: yv.l || 0, brand: 1, unit: "편", full: 1 });
     const G = window.INSTAGRAM, gv = G && G.stores ? (G.stores[name] || pick(G.stores, name)) : null;
-    if (gv && gv.n) out.push({ key: "instagram", label: "인스타그램", n: gv.n, s: 0, l: 0, brand: 0, unit: "건" });
+    if (gv && gv.n) out.push({ key: "instagram", label: "인스타그램", n: gv.n, s: 0, l: 0, brand: 0, unit: "건", full: 1 });
     return out;
   }
 
@@ -228,20 +250,27 @@
       if (p[0] === S.key && NR.stores[p[1]]) vs = NR.stores[p[1]];
       else if (p[1] === S.key && NR.stores[p[0]]) vs = NR.stores[p[0]];
     });
-    const book = S.rows.filter((r) => r[1] === "예약").length;
-    const rate = S.rows.length ? Math.round(book / S.rows.length * 100) : 0;
-    const tot = S.total + (vs ? vs.total : 0);
-    const w = tot ? (S.total / tot * 100).toFixed(1) : 50;
-    const win = vs && S.total > vs.total;
+    /* 기간 연동(2026-08-27): 큰 숫자는 **선택 기간의 수집 표본**으로 센다.
+       네이버 누적 총계는 기간을 못 따르므로 보조 칩으로 내린다 — 기간을 바꿔도
+       숫자가 안 변하면 연동이 아니다(네이버리뷰 목록 화면과 같은 원리). */
+    const ms = curMonths();
+    const rows = S.rows.filter((r) => inMs(ms, r[0]));
+    const vrows = vs ? (vs.rows || []).filter((r) => inMs(ms, r[0])) : [];
+    const book = rows.filter((r) => r[1] === "예약").length;
+    const rate = rows.length ? Math.round(book / rows.length * 100) : 0;
+    const tot2 = rows.length + vrows.length;
+    const w = tot2 ? (rows.length / tot2 * 100).toFixed(1) : 50;
+    const win = vs && rows.length > vrows.length;
     return `<div class="cx-card cx-live ${ch.cls}" data-nrgo="${S.key}" title="눌러서 리뷰·예약 분석 보기">` +
       `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i>${trendTag(ch.key, name)}</div>` +
       `<div class="cx-main">` +
-      `<div class="cx-big"><b>${fmtN(S.total)}</b><span>리뷰</span></div>` +
-      (vs ? `<div class="cx-vs"><span class="s">삼성 ${fmtN(S.total)}</span><span class="l">LG ${fmtN(vs.total)}</span></div>` +
+      `<div class="cx-big"><b>${fmtN(rows.length)}</b><span>기간 표본</span></div>` +
+      (vs && tot2 ? `<div class="cx-vs"><span class="s">삼성 ${fmtN(rows.length)}</span><span class="l">LG ${fmtN(vrows.length)}</span></div>` +
             `<div class="cx-bar"><i class="s" style="width:${w}%"></i><i class="l" style="width:${100 - w}%"></i></div>` +
-            `<div class="cx-sh ${win ? "s" : "l"}">${win ? "삼성 우위" : "LG 우위"}</div>`
-          : `<div class="cx-sh">비교 매장 없음</div>`) +
+            `<div class="cx-sh ${win ? "s" : "l"}">${win ? "삼성 우위" : vrows.length > rows.length ? "LG 우위" : "동률"}</div>`
+          : vs ? `<div class="cx-sh">이 기간 양사 표본 없음</div>` : `<div class="cx-sh">비교 매장 없음</div>`) +
       `</div>` +
+      `<div class="cx-sub"><span class="cx-lb">누적 총계</span><span class="cx-chip">${fmtN(S.total)}건${vs ? ` vs LG ${fmtN(vs.total)}건` : ""}</span></div>` +
       `<div class="cx-sub"><span class="cx-lb">예약경유</span>` +
       `<span class="cx-chip s">${fmtN(book)}건 · ${rate}% <em>추정</em></span></div>` +
       (S.keywords && S.keywords.length
@@ -262,7 +291,8 @@
     const Y = window.YOUTUBE;
     const v = Y && Y.stores ? (Y.stores[name] || pick(Y.stores, name)) : null;
     const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
-      `<i class="cx-live-tag">실데이터</i></div>`;
+      `<i class="cx-live-tag">실데이터</i>` +
+      `<i class="cx-fullspan" title="이 채널은 게시일 정보가 없어 기간 선택과 무관하게 전체 수집분을 보여줍니다">전체 기간</i></div>`;
     if (!v || !v.n) {
       return `<div class="cx-card ${ch.cls}">${head}` +
         `<div class="cx-empty"><em>매장 언급 없음</em>` +
@@ -292,7 +322,8 @@
     const G = window.INSTAGRAM;
     const v = G && G.stores ? (G.stores[name] || pick(G.stores, name)) : null;
     const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
-      `<i class="cx-live-tag">실데이터</i></div>`;
+      `<i class="cx-live-tag">실데이터</i>` +
+      `<i class="cx-fullspan" title="이 채널은 게시일 정보가 없어 기간 선택과 무관하게 전체 수집분을 보여줍니다">전체 기간</i></div>`;
     if (!v || !v.n) {
       return `<div class="cx-card ${ch.cls}">${head}` +
         `<div class="cx-empty"><em>이 채널에 흔적 없음</em>` +
@@ -318,7 +349,8 @@
     const J = window.JWEDDING;
     const v = J && J.stores ? (J.stores[name] || pick(J.stores, name)) : null;
     const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
-      `<i class="cx-live-tag">실데이터</i></div>`;
+      `<i class="cx-live-tag">실데이터</i>` +
+      `<i class="cx-fullspan" title="이 채널은 게시일 정보가 없어 기간 선택과 무관하게 전체 수집분을 보여줍니다">전체 기간</i></div>`;
     if (!v || !(v.s + v.l)) {
       return `<div class="cx-card ${ch.cls}">${head}` +
         `<div class="cx-empty"><em>표본 없음</em><span>이 채널에는 이 매장 글이 없습니다</span></div></div>`;
@@ -390,15 +422,38 @@
 
   /* 네이버 블로그 — 채널 화면(blog-view)과 같은 자료(NBLOG.stores)를 매장 축으로.
      체험단 표기를 함께 보여준다(마케팅 물량과 고객 글을 갈라 읽게). */
+  /* 블로그 매장 집계 — monStores(월별)를 선택 기간으로 잘라 합산한다(기간 연동) */
+  function blogAgg(name, ms) {
+    const NB = window.NBLOG;
+    if (!NB || !NB.monStores) return null;
+    const key = (NB.stores && (NB.stores[name] ? name : Object.keys(NB.stores)
+      .find((x) => name.indexOf(x) === 0 || x.indexOf(name) === 0))) || name;
+    const o = { n: 0, s: 0, l: 0, sp: 0 };
+    Object.keys(NB.monStores).forEach((ym) => {
+      if (!inMs(ms, ym)) return;
+      const v = NB.monStores[ym][key];
+      if (!v) return;
+      o.n += v.n || 0; o.s += v.s || 0; o.l += v.l || 0; o.sp += v.sp || 0;
+    });
+    return o;
+  }
   function blogCard(ch, name) {
     const NB = window.NBLOG;
-    const v = NB && NB.stores ? (NB.stores[name] || pick(NB.stores, name)) : null;
+    const full = NB && NB.stores ? (NB.stores[name] || pick(NB.stores, name)) : null;
+    const ms = curMonths();
+    const v = blogAgg(name, ms) || full;
     const head = `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span>` +
       `<i class="cx-live-tag">실데이터</i>${trendTag(ch.key, name)}</div>`;
     if (!v || !v.n) {
       return `<div class="cx-card ${ch.cls}">${head}` +
-        `<div class="cx-empty"><em>이 채널에 흔적 없음</em>` +
-        `<span>블로그 검색에 이 매장 이름이 적힌 글이 없습니다</span></div></div>`;
+        `<div class="cx-empty"><em>${full && full.n ? "이 기간 표본 없음" : "이 채널에 흔적 없음"}</em>` +
+        `<span>${full && full.n ? `전체 기간에는 ${fmtN(full.n)}건이 있습니다 — 기간을 넓히면 보입니다`
+          : "블로그 검색에 이 매장 이름이 적힌 글이 없습니다"}</span></div></div>`;
+    }
+    /* 대표 글도 선택 기간 안의 최신 글로 — 목록·수치·내용이 같은 기간을 봐야 한다 */
+    if (full && full.top) {
+      const posts = ((NB.storePosts || {})[name] || []).filter((x) => inMs(ms, (x.d || "").slice(0, 7)));
+      v.top = posts.length ? { t: posts[0].t } : null;
     }
     const tot = v.s + v.l;
     const lead = v.s > v.l ? "s" : v.l > v.s ? "l" : "even";
@@ -561,7 +616,7 @@
     const CH = chCounts(name);
     const expTot = CH.reduce((a, c) => a + c.n, 0);
     const chTop = CH.slice().sort((a, b) => b.n - a.n).slice(0, 3);
-    const hasCum = CH.some((c) => c.cum);
+    const fullCh = CH.filter((c) => c.full).map((c) => c.label);
     const bS = CH.filter((c) => c.brand).reduce((a, c) => a + c.s, 0);
     const bL = CH.filter((c) => c.brand).reduce((a, c) => a + c.l, 0);
     const bT = bS + bL, bSh = pct(bS, bL);
@@ -577,12 +632,18 @@
       `<div class="cx-body">` +
       `<div class="cx-left">` +
       `<div class="cx-sum">` +
-      `<div class="cx-sum-h"><h3>전체 노출</h3><span>노출 채널 ${CH.length}곳 합산${hasCum ? " · 리뷰는 누적" : ""}</span></div>` +
+      `<div class="cx-sum-h"><h3>전체 노출</h3><span>노출 채널 ${CH.length}곳 · 선택 기간 기준</span></div>` +
       `<div class="cx-sum-n"><b>${fmtN(expTot)}</b><i>건</i></div>` +
       (chTop.length
         ? `<div class="cx-mainch"><span class="cx-lb">주요 채널</span>` +
           chTop.map((c) => `<span class="cx-chip chgo" data-chgo="${c.key}" title="눌러서 ${c.label} 보기">${c.label} <b>${fmtN(c.n)}</b>${c.unit}</span>`).join("") + `</div>`
-        : `<p class="cx-note">이 매장이 노출된 채널이 아직 없습니다 — 후기 요청부터가 과제입니다.</p>`) +
+        : `<p class="cx-note">이 기간 이 매장이 노출된 채널이 없습니다 — 후기 요청부터가 과제입니다.</p>`) +
+      (fullCh.length ? (function () {
+        const last = fullCh[fullCh.length - 1];
+        const c = last.charCodeAt(last.length - 1);
+        const j = (c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0) ? "은" : "는";
+        return `<p class="cx-scopenote">${fullCh.join("·")}${j} 게시일 정보가 없어 전체 기간 기준입니다.</p>`;
+      })() : "") +
       (bT ? `<div class="cx-bar big"><i class="s" style="width:${(bS / bT * 100).toFixed(1)}%"></i>` +
         `<i class="l" style="width:${(bL / bT * 100).toFixed(1)}%"></i></div>` +
         `<div class="cx-vs big"><span class="s">삼성 ${bSh}%</span><span class="l">LG ${100 - bSh}%</span></div>` +
