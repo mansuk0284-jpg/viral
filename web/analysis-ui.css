@@ -1151,3 +1151,15 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
 .ca2 .ca-ic-name { font-size: var(--an-title) !important; font-weight: 900; color: #1a2333; letter-spacing: -0.01em; white-space: nowrap; line-height: 1; }
 @media (prefers-color-scheme: dark) { .ca2 .ca-ic-name { color: #e7ecf5; } }
 
+
+/* ── 블로그 전국 진단: 박스 1개씩 세로 배치(2026-08-27 사용자 지시) ──
+   .cy-sec 를 뚜렷한 개별 박스로 — 배경·테두리·간격. 단락(p)은 의미 단위로. */
+.ca2 .nb-rep .cy-sec {
+  background: rgba(31,95,208,0.035); border: 1px solid rgba(23,42,66,0.10);
+  border-radius: 14px; padding: 16px 18px 14px; margin: 0 0 14px;
+}
+.ca2 .nb-rep .cy-sec:last-child { margin-bottom: 0; }
+.ca2 .nb-rep .cy-sec h5 { margin: 0 0 10px; padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(23,42,66,0.16); }
+.ca2 .nb-rep .cy-note { margin: 0 0 10px; }
+.ca2 .nb-rep .cy-note:last-child { margin-bottom: 0; }
