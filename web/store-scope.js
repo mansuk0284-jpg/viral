@@ -48,7 +48,6 @@
     // 채널별 현황과 **같은 자료**를 매장 축으로 본 것이다(사용자 지시 2026-08-23)
     { key: "jwedding", name: "제이웨딩", sub: "칭찬 · 혼수 선택이유", cls: "cx-jwed", live: true },
     { key: "naver-blog", name: "네이버 블로그", sub: "구매 후기글", cls: "cx-blog", live: true },
-    { key: "busan-mom-cafe", name: "맘카페", sub: "지역 커뮤니티", cls: "cx-mom" },
     { key: "youtube", name: "유튜브", sub: "혼수 브이로그", cls: "cx-youtube", live: true },
     { key: "instagram", name: "인스타그램", sub: "매장 인스타 활동", cls: "cx-insta", live: true },
     { key: "ohou", name: "오늘의집", sub: "인테리어 앱", cls: "cx-ohou", live: true },
