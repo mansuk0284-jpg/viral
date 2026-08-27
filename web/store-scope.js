@@ -171,6 +171,7 @@
     } else if (key === "naver-review") {
       const s = nrFind(name);
       if (!s || !s.rows) return null;
+      if (!nrCovOk(s, [prevYM])) return null;          // 전월이 표본 밖 — 0으로 오판 금지
       cur = s.rows.filter((r) => r[0] === curYM).length;
       prev = s.rows.filter((r) => r[0] === prevYM).length;
     } else if (key === "naver-blog" || key === "jwedding" || key === "instagram" || key === "youtube") {
@@ -205,6 +206,22 @@
       `<u>${A[0]}</u><em>${A[1]}</em></i>`;
   }
 
+  /* 리뷰 수집 표본의 커버리지 — 최근 150행만 수집되므로 min 월은 잘린 달이다.
+     선택 기간 시작이 min 다음 달 이후일 때만 "그 기간 전량"이라 말할 수 있다.
+     그보다 이른 기간은 표본으로 못 세므로 누적 총계로 폴백한다(2026-08-27:
+     "합산이 되지 않거나 누락" — 센텀 LG 표본이 2026-07부터라 2025 선택 시 0으로 보였다). */
+  function nrCovOk(s, ms) {
+    if (!s || !s.rows || !s.rows.length) return false;
+    if (!ms || !ms.length) return false;               // 전체 기간 → 누적이 정답
+    let mn = "9999-99";
+    s.rows.forEach((r) => { if (r[0] && r[0] < mn) mn = r[0]; });
+    // min 월은 부분 수집 — 그 다음 달부터가 온전한 커버리지
+    let y = +mn.slice(0, 4), m = +mn.slice(5) + 1;
+    if (m > 12) { m = 1; y++; }
+    const safe = y + "-" + (m < 10 ? "0" : "") + m;
+    return ms[0] >= safe;
+  }
+
   /* 채널별 노출 집계 — 좌측 '전체 노출'과 '주요 채널'의 근거.
      카드마다 데이터 모양이 달라 여기 한 곳에서 채널→건수로 편다(2026-08-27).
      brand=1 인 채널만 삼성/LG 비중 막대에 넣는다(리뷰·인스타는 브랜드 비교가 아님). */
@@ -215,8 +232,19 @@
     const ms = curMonths();
     const nr = nrFind(name);
     if (nr && nr.rows) {
-      const n = nr.rows.filter((r) => inMs(ms, r[0])).length;
-      if (n) out.push({ key: "naver-review", label: "네이버 리뷰", n, s: 0, l: 0, brand: 0, unit: "건" });
+      /* 게이트는 카드(nrCard)와 같은 기준 — 상대 표본까지 포함해서 본다.
+         좌측 칩과 카드 큰 숫자가 다른 기준을 쓰면 같은 화면에서 숫자가 갈린다. */
+      let vs = null;
+      ((window.NAVER_REVIEW || {}).pairs || []).forEach((pr) => {
+        if (pr[0] === nr.key) vs = NAVER_REVIEW.stores[pr[1]];
+        else if (pr[1] === nr.key) vs = NAVER_REVIEW.stores[pr[0]];
+      });
+      if (nrCovOk(nr, ms) && (!vs || nrCovOk(vs, ms))) {
+        const n = nr.rows.filter((r) => inMs(ms, r[0])).length;
+        if (n) out.push({ key: "naver-review", label: "네이버 리뷰", n, s: 0, l: 0, brand: 0, unit: "건" });
+      } else if (nr.total) {
+        out.push({ key: "naver-review", label: "네이버 리뷰", n: nr.total, s: 0, l: 0, brand: 0, unit: "건", cum: 1 });
+      }
     }
     const jv = monAgg(window.JWEDDING, name, ms, ["s", "l"]);
     if (jv && jv.s + jv.l) out.push({ key: "jwedding", label: "제이웨딩", n: jv.s + jv.l, s: jv.s, l: jv.l, brand: 1, unit: "건" });
@@ -258,23 +286,30 @@
        네이버 누적 총계는 기간을 못 따르므로 보조 칩으로 내린다 — 기간을 바꿔도
        숫자가 안 변하면 연동이 아니다(네이버리뷰 목록 화면과 같은 원리). */
     const ms = curMonths();
-    const rows = S.rows.filter((r) => inMs(ms, r[0]));
-    const vrows = vs ? (vs.rows || []).filter((r) => inMs(ms, r[0])) : [];
+    /* 커버리지 게이트 — 한쪽이라도 표본이 이 기간을 못 담으면 누적 총계 기준으로
+       비교한다(표본 150행 캡 밖의 과거를 0으로 그리면 누락으로 읽힌다). */
+    const covOk = nrCovOk(S, ms) && (!vs || nrCovOk(vs, ms));
+    const rows = covOk ? S.rows.filter((r) => inMs(ms, r[0])) : S.rows;
+    const vrows = vs ? (covOk ? (vs.rows || []).filter((r) => inMs(ms, r[0])) : (vs.rows || [])) : [];
+    const meN = covOk ? rows.length : S.total;
+    const vsN = vs ? (covOk ? vrows.length : vs.total) : 0;
     const book = rows.filter((r) => r[1] === "예약").length;
     const rate = rows.length ? Math.round(book / rows.length * 100) : 0;
-    const tot2 = rows.length + vrows.length;
-    const w = tot2 ? (rows.length / tot2 * 100).toFixed(1) : 50;
-    const win = vs && rows.length > vrows.length;
+    const tot2 = meN + vsN;
+    const w = tot2 ? (meN / tot2 * 100).toFixed(1) : 50;
+    const win = vs && meN > vsN;
     return `<div class="cx-card cx-live ${ch.cls}" data-nrgo="${S.key}" title="눌러서 리뷰·예약 분석 보기">` +
       `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i>${trendTag(ch.key, name)}</div>` +
       `<div class="cx-main">` +
-      `<div class="cx-big"><b>${fmtN(rows.length)}</b><span>기간 표본</span></div>` +
-      (vs && tot2 ? `<div class="cx-vs"><span class="s">삼성 ${fmtN(rows.length)}</span><span class="l">LG ${fmtN(vrows.length)}</span></div>` +
+      `<div class="cx-big"><b>${fmtN(meN)}</b><span>${covOk ? "기간 표본" : "리뷰 누적"}</span></div>` +
+      (vs && tot2 ? `<div class="cx-vs"><span class="s">삼성 ${fmtN(meN)}</span><span class="l">LG ${fmtN(vsN)}</span></div>` +
             `<div class="cx-bar"><i class="s" style="width:${w}%"></i><i class="l" style="width:${100 - w}%"></i></div>` +
-            `<div class="cx-sh ${win ? "s" : "l"}">${win ? "삼성 우위" : vrows.length > rows.length ? "LG 우위" : "동률"}</div>`
+            `<div class="cx-sh ${win ? "s" : "l"}">${win ? "삼성 우위" : vsN > meN ? "LG 우위" : "동률"}</div>`
           : vs ? `<div class="cx-sh">이 기간 양사 표본 없음</div>` : `<div class="cx-sh">비교 매장 없음</div>`) +
       `</div>` +
-      `<div class="cx-sub"><span class="cx-lb">누적 총계</span><span class="cx-chip">${fmtN(S.total)}건${vs ? ` vs LG ${fmtN(vs.total)}건` : ""}</span></div>` +
+      (covOk
+        ? `<div class="cx-sub"><span class="cx-lb">누적 총계</span><span class="cx-chip">${fmtN(S.total)}건${vs ? ` vs LG ${fmtN(vs.total)}건` : ""}</span></div>`
+        : `<div class="cx-sub"><span class="cx-lb">기준</span><span class="cx-chip warn">수집 표본(최근 150행)이 이 기간을 못 담아 누적 기준입니다</span></div>`) +
       `<div class="cx-sub"><span class="cx-lb">예약경유</span>` +
       `<span class="cx-chip s">${fmtN(book)}건 · ${rate}% <em>추정</em></span></div>` +
       (S.keywords && S.keywords.length
@@ -618,10 +653,11 @@
         else if (pr[1] === nr.key) vs = NAVER_REVIEW.stores[pr[0]];
       });
       if (vs) {
-        const a = (nr.rows || []).filter((r) => inMs(ms, r[0])).length;
-        const b = (vs.rows || []).filter((r) => inMs(ms, r[0])).length;
+        const covOk = nrCovOk(nr, ms) && nrCovOk(vs, ms);
+        const a = covOk ? (nr.rows || []).filter((r) => inMs(ms, r[0])).length : nr.total;
+        const b = covOk ? (vs.rows || []).filter((r) => inMs(ms, r[0])).length : vs.total;
         if (a > b) win.push("네이버 리뷰");
-        else if (b > a) { lose.push(`네이버 리뷰(${fmtN(a)}:${fmtN(b)})`); nrGap = b - a; }
+        else if (b > a) { lose.push(`네이버 리뷰(${fmtN(a)}:${fmtN(b)}${covOk ? "" : "·누적"})`); nrGap = b - a; }
       }
     }
     if (win.length || lose.length) {
@@ -710,11 +746,11 @@
       `<div class="cx-body">` +
       `<div class="cx-left">` +
       `<div class="cx-sum">` +
-      `<div class="cx-sum-h"><h3>전체 노출</h3><span>노출 채널 ${CH.length}곳 · 선택 기간 기준</span></div>` +
+      `<div class="cx-sum-h"><h3>전체 노출</h3><span>노출 채널 ${CH.length}곳${CH.some((c) => c.cum) ? " · 리뷰는 누적(표본이 이 기간을 못 담음)" : " · 선택 기간 기준"}</span></div>` +
       `<div class="cx-sum-n"><b>${fmtN(expTot)}</b><i>건</i></div>` +
       (chTop.length
         ? `<div class="cx-mainch"><span class="cx-lb">주요 채널</span>` +
-          chTop.map((c) => `<span class="cx-chip chgo" data-chgo="${c.key}" title="눌러서 ${c.label} 보기">${c.label} <b>${fmtN(c.n)}</b>${c.unit}</span>`).join("") + `</div>`
+          chTop.map((c) => `<span class="cx-chip chgo" data-chgo="${c.key}" title="눌러서 ${c.label} 보기">${c.label} <b>${fmtN(c.n)}</b>${c.unit}${c.cum ? "·누적" : ""}</span>`).join("") + `</div>`
         : `<p class="cx-note">이 기간 이 매장이 노출된 채널이 없습니다 — 후기 요청부터가 과제입니다.</p>`) +
       (CH.some((c) => c.est) ? `<p class="cx-scopenote">유튜브 게시월은 상대 표기("N개월 전")를 환산한 추정입니다.</p>` : "") +
       (bT ? `<div class="cx-bar big"><i class="s" style="width:${(bS / bT * 100).toFixed(1)}%"></i>` +
