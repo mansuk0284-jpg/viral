@@ -100,28 +100,47 @@
   /* revTotal 을 주면(전국 화면) 혼인 1,000건당 후기 회수율까지 분석한다 —
      신혼부부 시장 전체에서 이 카페가 담아낸 표본의 밀도(2026-08-27 사용자 지시).
      지역·매장 화면은 분모가 전국 혼인이라 비율이 성립하지 않아 혼인 수만 표시. */
-  function marryBlock(revTotal) {
+  /* rgName 을 주면(지역·매장 화면) 그 시도의 혼인 추정치를 표시한다
+     (2026-08-27 확장: "지역까지는 해당 지역 혼인 건수 추정치를").
+     시도 비중 = 주민등록 인구 × 공식 조혼인율 보정 — 항상 추정임을 라벨로. */
+  function marryBlock(revTotal, rgName) {
+    const M = window.MARRIAGE;
     const r = curRange();
     const a = r ? r[0].slice(0, 7) : null, b = r ? r[1].slice(0, 7) : null;
     const cur = marrySum(a, b);
     if (!cur) return "";
-    const lab = cur.est === 0 ? "통계청 인구동향" : cur.est === cur.mos ? "추정" : "통계청 인구동향 · 일부 추정";
+    const share = rgName && M && M.regionShare ? M.regionShare[rgName] : null;
+    const scope = share ? rgName : "전국";
+    const shown = share ? Math.round(cur.sum * share) : cur.sum;
+    const lab = share ? "추정"
+      : cur.est === 0 ? "통계청 인구동향" : cur.est === cur.mos ? "추정" : "통계청 인구동향 · 일부 추정";
+    const tip = share ? `${M.regionNote} · 전국치 근거: ${M_SRC()}` : M_SRC();
     let ratio = "";
-    if (revTotal != null && revTotal >= 10 && cur.sum > 0 && VF) {
-      const per = Math.round(revTotal / cur.sum * 10000) / 10;      // 혼인 1,000건당 후기
-      const base = marrySum(VF.d0.slice(0, 7), VF.d1.slice(0, 7));
-      const allTot = (CD && CD.total) || 0;
+    if (revTotal != null && revTotal >= 10 && shown > 0 && VF) {
+      const per = Math.round(revTotal / shown * 10000) / 10;        // 혼인 1,000건당 후기
       let cmp = "";
-      if (base && base.sum > 0 && allTot >= 10) {
-        const bp = Math.round(allTot / base.sum * 10000) / 10;
-        cmp = per > bp * 1.1 ? ` — 전 기간 평균(${bp}건)보다 높아, 이 기간 신혼부부의 이야기가 평소보다 짙게 담긴 표본입니다.`
-          : per < bp * 0.9 ? ` — 전 기간 평균(${bp}건)보다 낮습니다. 혼인은 있는데 후기가 덜 담긴 구간이라, 표본 밖 수요가 상대적으로 큽니다.`
-          : ` — 전 기간 평균(${bp}건)과 같은 수준입니다.`;
+      const base = marrySum(VF.d0.slice(0, 7), VF.d1.slice(0, 7));
+      if (base && base.sum > 0) {
+        /* 기준선 — 같은 스코프의 전 기간 회수율과 비교(전국↔전국, 지역↔지역) */
+        let baseTot = null;
+        if (!share) baseTot = (CD && CD.total) || 0;
+        else if (hasF()) {
+          const ag = VF.agg(VF.d0, VF.d1);
+          const rg = (ag.regions || {})[rgName];
+          baseTot = rg ? rg.s + rg.l : null;
+        }
+        const baseM = share ? base.sum * share : base.sum;
+        if (baseTot != null && baseTot >= 10 && baseM > 0) {
+          const bp = Math.round(baseTot / baseM * 10000) / 10;
+          cmp = per > bp * 1.1 ? ` — 전 기간 평균(${bp}건)보다 높아, 이 기간 신혼부부의 이야기가 평소보다 짙게 담긴 표본입니다.`
+            : per < bp * 0.9 ? ` — 전 기간 평균(${bp}건)보다 낮습니다. 혼인은 있는데 후기가 덜 담긴 구간이라, 표본 밖 수요가 상대적으로 큽니다.`
+            : ` — 전 기간 평균(${bp}건)과 같은 수준입니다.`;
+        }
       }
-      ratio = `<p class="nsc-marryr">혼인 1,000건당 후기 <b>${per}건</b>${cmp}</p>`;
+      ratio = `<p class="nsc-marryr">혼인 1,000건당 후기 <b>${per}건</b>${share ? `<i class="nscm-est">추정 기준</i>` : ""}${cmp}</p>`;
     }
-    return `<div class="nsc-marry" title="${M_SRC()}">` +
-      `<span>이 기간 전국 혼인</span><b>${fmtN(cur.sum)}</b><i>건 · ${lab}</i>${ratio}</div>`;
+    return `<div class="nsc-marry" title="${tip}">` +
+      `<span>이 기간 ${scope} 혼인${share ? " 약" : ""}</span><b>${fmtN(shown)}</b><i>건 · ${lab}</i>${ratio}</div>`;
   }
   const M_SRC = () => { const M = window.MARRIAGE; return M ? `${M.src} — ${M.estNote}` : ""; };
 
@@ -938,7 +957,7 @@
     return `<div class="ca-rv">` +
       `<div class="rv-left">` +
       `<div class="rv-head">${rgArt}<h3>${c.title}</h3><span>${c.sub}</span></div>` +
-      `<div class="nsc-total"><b>${fmtN(c.s + c.l)}</b><i>건 분석</i></div>` + marryBlock() +
+      `<div class="nsc-total"><b>${fmtN(c.s + c.l)}</b><i>건 분석</i></div>` + marryBlock(c.s + c.l, c.title) +
 
       `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
       `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
@@ -1587,7 +1606,7 @@
         return `<div class="rv-head">${art}<h3>${c.title}</h3><span>${c.sub}</span></div>`;
       })() +
       `<div class="sv-verdict ${lead}">${verdict}</div>` +
-      `<div class="nsc-total"><b>${fmtN(tot)}</b><i>건 분석</i></div>` + marryBlock() +
+      `<div class="nsc-total"><b>${fmtN(tot)}</b><i>건 분석</i></div>` + marryBlock(null, st.region) +
 
       `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
       `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
