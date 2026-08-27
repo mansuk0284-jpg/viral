@@ -587,31 +587,86 @@
   }
 
 
-  /* 경쟁력 × 바이럴 — 두 축이 어긋나는 지점이 곧 할 일이다.
-     상관은 r=+0.19 로 거의 없다(실측). "바이럴 잘 되면 경쟁력도 높다"는 성립하지 않는다.
-     그래서 배수만 크게 띄우지 않고 **사분면 진단**으로 보여준다. */
-  function compBlock(name) {
-    const L = window.COMPETE_LINK, CO = window.COMPETE_OF && window.COMPETE_OF(name);
-    if (!CO) return "";
-    const p = window.COMPETE_PERIOD ? window.COMPETE_PERIOD(CO) : null;
-    const v = p ? CO.p[p] : null;
-    if (v == null) return "";
-    const row = L && L.rows.find((r) => r.store === name);
-    const g = v >= 1.3 ? ["win2", "크게 우세"] : v >= 1.0 ? ["win", "우세"]
-            : v >= 0.8 ? ["even", "접전"] : ["lose", "열세"];
-    const tip = row ? ({
-      "말은 도는데 안 팔림": "후기는 도는데 매출이 안 따라옵니다 — 상담·재고·가격 점검",
-      "잘 파는데 안 알려짐": "잘 파는데 온라인에 흔적이 적습니다 — 후기 유도가 비어 있습니다",
-      "둘 다 강함": "바이럴·경쟁력이 함께 높습니다 — 이 방식을 다른 매장으로",
-      "둘 다 약함": "두 축 모두 낮습니다 — 기본기부터",
-    })[row.quad] : "";
-    return `<div class="cx-comp ${g[0]}">` +
-      `<span class="cxc-lb">경쟁력</span>` +
-      `<b class="cxc-v">${window.CMP_PCT ? CMP_PCT(v) : Math.round(v * 100) + "%"}</b>` +
-      `<i class="cxc-g">${g[1]}</i>` +
-      (row ? `<span class="cxc-q">${row.quad}</span>` : "") +
-      (tip ? `<span class="cxc-tip">${tip}</span>` : "") +
-      `<span class="cxc-p">${p}</span></div>`;
+  /* 받침 조사(이/가) — 채널명 뒤에 붙는다 */
+  function josa(w, a, b) {
+    const c = (w || "").charCodeAt((w || "").length - 1);
+    if (c < 0xac00 || c > 0xd7a3) return b;
+    return (c - 0xac00) % 28 ? a : b;
+  }
+
+  /* 채널 요약 진단 — 우측 채널 카드 전체를 좌측에서 한눈에(2026-08-27 사용자:
+     "경쟁력 삭제, 대신 우측 채널별 바이럴 현황 분석을 요약"). 문장은 전부
+     이 매장의 실데이터에서 나온다 — 채널 실명·건수·방향만 말한다. */
+  function chSummary(name) {
+    const ms = curMonths();
+    const CH = chCounts(name);
+    const li = [];
+
+    // ① 채널별 브랜드 구도 — 우위/열세 채널을 실명으로
+    const win = [], lose = [];
+    CH.forEach((c) => {
+      if (!c.brand || !(c.s + c.l)) return;
+      if (c.s > c.l) win.push(c.label);
+      else if (c.l > c.s) lose.push(`${c.label}(${fmtN(c.s)}:${fmtN(c.l)})`);
+    });
+    let nrGap = 0;
+    const nr = nrFind(name);
+    if (nr) {
+      let vs = null;
+      ((window.NAVER_REVIEW || {}).pairs || []).forEach((pr) => {
+        if (pr[0] === nr.key) vs = NAVER_REVIEW.stores[pr[1]];
+        else if (pr[1] === nr.key) vs = NAVER_REVIEW.stores[pr[0]];
+      });
+      if (vs) {
+        const a = (nr.rows || []).filter((r) => inMs(ms, r[0])).length;
+        const b = (vs.rows || []).filter((r) => inMs(ms, r[0])).length;
+        if (a > b) win.push("네이버 리뷰");
+        else if (b > a) { lose.push(`네이버 리뷰(${fmtN(a)}:${fmtN(b)})`); nrGap = b - a; }
+      }
+    }
+    if (win.length || lose.length) {
+      li.push(lose.length
+        ? `<li class="warn-li">채널 구도 — 우위 <b>${win.length}곳</b>${win.length ? `(${win.join("·")})` : ""}, ` +
+          `열세 <b class="warn">${lose.length}곳</b>: ${lose.join(" · ")}. 열세 채널이 이 매장의 노출 공백입니다.</li>`
+        : `<li>브랜드가 갈리는 채널 <b>${win.length}곳 모두 우위</b>(${win.join("·")})입니다 — 채널 구도는 안정적입니다.</li>`);
+    }
+
+    // ② 전월비 흐름 — 화살표(페이스 판정)를 채널 실명으로 집계
+    const up = [], dn = [];
+    CH.forEach((c) => {
+      const tr = moTrend(c.key, name);
+      if (!tr) return;
+      if (tr.dir === "up") up.push(c.label);
+      else if (tr.dir === "down") dn.push(c.label);
+    });
+    if (up.length || dn.length) {
+      let s = "전월비 흐름 — ";
+      if (up.length) s += `<b>${up.join("·")}</b>${josa(up[up.length - 1], "이", "가")} 상승세`;
+      if (up.length && dn.length) s += ", ";
+      if (dn.length) s += `<b class="warn">${dn.join("·")}</b>${josa(dn[dn.length - 1], "이", "가")} 하락세`;
+      s += `입니다.` + (dn.length ? ` 하락 채널의 후기 요청부터 점검할 시점입니다.` : ` 흐름이 좋을 때 후기 요청을 이어가야 우위가 굳습니다.`);
+      li.push(`<li>${s}</li>`);
+    } else if (CH.length) {
+      li.push(`<li>전월비 흐름은 전 채널 보합권입니다 — 급한 불은 없지만, 새로 쌓이는 속도가 곧 순위를 가릅니다.</li>`);
+    }
+
+    // ③ 최대 격차 채널 — 다음 한 수
+    let worst = null;
+    CH.forEach((c) => {
+      if (!c.brand) return;
+      const gap = c.l - c.s;
+      if (gap > 0 && (!worst || gap > worst.gap)) worst = { label: c.label, gap };
+    });
+    if (nrGap > 0 && (!worst || nrGap > worst.gap)) worst = { label: "네이버 리뷰", gap: nrGap };
+    if (worst) {
+      li.push(`<li class="warn-li">격차 최대는 <b class="warn">${worst.label}</b>(${fmtN(worst.gap)}건 차)입니다 — ` +
+        `이 채널 카드를 눌러 품목·상대 동향을 확인하고 대응을 시작하십시오.</li>`);
+    } else if (CH.length) {
+      li.push(`<li>건수로 밀리는 채널이 없습니다 — 카드를 눌러 채널별 세부 흐름을 유지 점검하십시오.</li>`);
+    }
+
+    if (!li.length) return "";
+    return `<div class="cx-chsum"><h4>채널 요약 진단</h4><ul class="yt-act cx-act">${li.join("")}</ul></div>`;
   }
 
   /* ── 대시보드 렌더 ── */
@@ -666,7 +721,7 @@
       `<div><b>${sib.length}<i>곳</i></b><span>${rg} 매장</span></div>` +
       `</div>` +
       `<p class="cx-scopenote">순위·지역평균 대비는 웨딩카페(다이렉트웨딩) 표본 기준입니다.</p>` +
-      compBlock(name) +
+      chSummary(name) +
       /* 순위·편차를 뽑아만 두고 해석이 없었다(2026-08-24 점검).
          숫자 옆에 "그래서 무엇"이 없으면 매니저는 읽고 지나간다. */
       `<ul class="yt-act cx-act">${insightLi(name, row, rank, diff, sib, rg).join("")}</ul>` +
