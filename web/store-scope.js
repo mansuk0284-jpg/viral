@@ -633,12 +633,14 @@
 
     // ② 전월비 흐름 — 화살표(페이스 판정)를 채널 실명으로 집계
     const up = [], dn = [];
-    CH.forEach((c) => {
-      const tr = moTrend(c.key, name);
-      if (!tr) return;
-      if (tr.dir === "up") up.push(c.label);
-      else if (tr.dir === "down") dn.push(c.label);
-    });
+    [["dagyeolun", "다이렉트웨딩"], ["naver-review", "네이버 리뷰"], ["jwedding", "제이웨딩"],
+     ["naver-blog", "네이버 블로그"], ["youtube", "유튜브"], ["instagram", "인스타그램"]]
+      .forEach(([key, label]) => {
+        const tr = moTrend(key, name);
+        if (!tr) return;
+        if (tr.dir === "up") up.push(label);
+        else if (tr.dir === "down") dn.push(label);
+      });
     if (up.length || dn.length) {
       let s = "전월비 흐름 — ";
       if (up.length) s += `<b>${up.join("·")}</b>${josa(up[up.length - 1], "이", "가")} 상승세`;
@@ -665,7 +667,11 @@
       li.push(`<li>건수로 밀리는 채널이 없습니다 — 카드를 눌러 채널별 세부 흐름을 유지 점검하십시오.</li>`);
     }
 
-    if (!li.length) return "";
+    if (!li.length) {
+      return `<div class="cx-chsum"><h4>채널 요약 진단</h4>` +
+        `<ul class="yt-act cx-act"><li class="warn-li">이 기간 이 매장이 노출된 채널이 없습니다 — ` +
+        `구매 고객 후기 요청부터가 과제입니다. 기간을 넓히면 과거 노출을 볼 수 있습니다.</li></ul></div>`;
+    }
     return `<div class="cx-chsum"><h4>채널 요약 진단</h4><ul class="yt-act cx-act">${li.join("")}</ul></div>`;
   }
 
