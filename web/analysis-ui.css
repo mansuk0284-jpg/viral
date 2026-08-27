@@ -1224,3 +1224,11 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
 .nr-legend { display: flex; gap: 12px; font-size: 11px; font-weight: 700; margin: 4px 0 0; }
 .nr-legend .s { color: #1f5fd0; } .nr-legend .l { color: #d23b54; }
 .nrt-note { margin-top: 6px; }
+/* 기간 내 전국 혼인 건수 — 수집 총량 아래 참조 줄(2026-08-27) */
+.ca2 .nsc-marry { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+  margin: -2px 0 10px; padding: 7px 10px; border-radius: 10px;
+  background: rgba(23,42,66,0.045); cursor: help; }
+.ca2 .nsc-marry span { font-size: 12.5px; font-weight: 700; color: #5b6678; }
+.ca2 .nsc-marry b { font-size: 17px; font-weight: 900; color: #1a2333;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.ca2 .nsc-marry i { font-style: normal; font-size: 11.5px; font-weight: 600; color: #8a94a6; }

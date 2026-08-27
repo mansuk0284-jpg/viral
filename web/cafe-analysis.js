@@ -83,6 +83,26 @@
   /* 기간 키 → 날짜 구간. 버튼(전체·연도·월)도 직접 입력과 똑같이 구간으로 바꿔
      전부 팩트 테이블 한 경로로 계산한다. 경로가 둘이면 어느 한쪽만 기간에
      연동되는 사고가 난다(실제로 유통·후기스타·성수기가 그랬다). */
+  /* 기간 내 전국 혼인 건수 — 시장 규모의 눈금(2026-08-27 사용자 지시:
+     "수집된 건수 하단에 참조"). 통계청 인구동향 공식치 + 미발표 월 추정(각주). */
+  function marryBlock() {
+    const M = window.MARRIAGE;
+    if (!M || !M.months) return "";
+    const r = curRange();
+    const a = r ? r[0].slice(0, 7) : null, b = r ? r[1].slice(0, 7) : null;
+    let sum = 0, est = 0, mos = 0;
+    Object.keys(M.months).forEach((ym) => {
+      if (a && (ym < a || ym > b)) return;
+      sum += M.months[ym].n;
+      mos++;
+      if (M.months[ym].e) est++;
+    });
+    if (!mos) return "";
+    const lab = est === 0 ? "통계청 인구동향" : est === mos ? "추정" : "통계청 인구동향 · 일부 추정";
+    return `<div class="nsc-marry" title="${M.src} — ${M.estNote}">` +
+      `<span>이 기간 전국 혼인</span><b>${fmtN(sum)}</b><i>건 · ${lab}</i></div>`;
+  }
+
   function curRange() {
     if (!VF) return null;
     const p = st.period;
@@ -896,7 +916,7 @@
     return `<div class="ca-rv">` +
       `<div class="rv-left">` +
       `<div class="rv-head">${rgArt}<h3>${c.title}</h3><span>${c.sub}</span></div>` +
-      `<div class="nsc-total"><b>${fmtN(c.s + c.l)}</b><i>건 분석</i></div>` +
+      `<div class="nsc-total"><b>${fmtN(c.s + c.l)}</b><i>건 분석</i></div>` + marryBlock() +
 
       `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
       `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
@@ -1545,7 +1565,7 @@
         return `<div class="rv-head">${art}<h3>${c.title}</h3><span>${c.sub}</span></div>`;
       })() +
       `<div class="sv-verdict ${lead}">${verdict}</div>` +
-      `<div class="nsc-total"><b>${fmtN(tot)}</b><i>건 분석</i></div>` +
+      `<div class="nsc-total"><b>${fmtN(tot)}</b><i>건 분석</i></div>` + marryBlock() +
 
       `<div class="nsc-sec"><h4 class="nsc-st">후기 건수</h4>` +
       `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
@@ -1929,7 +1949,7 @@
       // 좌측 — 심플한 전국 요약(큰 숫자 + 삼성vsLG 한 줄 + 우위/열세 칩)
       const sumCol = `<div class="ca-nsumcol">` +
         `<div class="nsc-h"><h3>전국</h3><span>${perLab(st.period)}</span></div>` +
-        `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` +
+        `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` + marryBlock() +
         // 무슨 수치인지 밝힌다 — 숫자만 크게 띄우면 무엇을 센 것인지 알 수 없다
         `<p class="nsc-what"><b>다이렉트결혼준비</b> 카페 혼수가전 구매후기를 삼성·LG로 나눈 값입니다.</p>` +
         /* 매장 비교를 읽는 데 꼭 필요한 편향 고지(2026-08-24 실측). 지우면 "삼성이 많다 = 바이럴 우위"로
