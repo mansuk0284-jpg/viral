@@ -85,11 +85,9 @@
      연동되는 사고가 난다(실제로 유통·후기스타·성수기가 그랬다). */
   /* 기간 내 전국 혼인 건수 — 시장 규모의 눈금(2026-08-27 사용자 지시:
      "수집된 건수 하단에 참조"). 통계청 인구동향 공식치 + 미발표 월 추정(각주). */
-  function marryBlock() {
+  function marrySum(a, b) {
     const M = window.MARRIAGE;
-    if (!M || !M.months) return "";
-    const r = curRange();
-    const a = r ? r[0].slice(0, 7) : null, b = r ? r[1].slice(0, 7) : null;
+    if (!M || !M.months) return null;
     let sum = 0, est = 0, mos = 0;
     Object.keys(M.months).forEach((ym) => {
       if (a && (ym < a || ym > b)) return;
@@ -97,11 +95,35 @@
       mos++;
       if (M.months[ym].e) est++;
     });
-    if (!mos) return "";
-    const lab = est === 0 ? "통계청 인구동향" : est === mos ? "추정" : "통계청 인구동향 · 일부 추정";
-    return `<div class="nsc-marry" title="${M.src} — ${M.estNote}">` +
-      `<span>이 기간 전국 혼인</span><b>${fmtN(sum)}</b><i>건 · ${lab}</i></div>`;
+    return mos ? { sum, est, mos } : null;
   }
+  /* revTotal 을 주면(전국 화면) 혼인 1,000건당 후기 회수율까지 분석한다 —
+     신혼부부 시장 전체에서 이 카페가 담아낸 표본의 밀도(2026-08-27 사용자 지시).
+     지역·매장 화면은 분모가 전국 혼인이라 비율이 성립하지 않아 혼인 수만 표시. */
+  function marryBlock(revTotal) {
+    const r = curRange();
+    const a = r ? r[0].slice(0, 7) : null, b = r ? r[1].slice(0, 7) : null;
+    const cur = marrySum(a, b);
+    if (!cur) return "";
+    const lab = cur.est === 0 ? "통계청 인구동향" : cur.est === cur.mos ? "추정" : "통계청 인구동향 · 일부 추정";
+    let ratio = "";
+    if (revTotal != null && revTotal >= 10 && cur.sum > 0 && VF) {
+      const per = Math.round(revTotal / cur.sum * 10000) / 10;      // 혼인 1,000건당 후기
+      const base = marrySum(VF.d0.slice(0, 7), VF.d1.slice(0, 7));
+      const allTot = (CD && CD.total) || 0;
+      let cmp = "";
+      if (base && base.sum > 0 && allTot >= 10) {
+        const bp = Math.round(allTot / base.sum * 10000) / 10;
+        cmp = per > bp * 1.1 ? ` — 전 기간 평균(${bp}건)보다 높아, 이 기간 신혼부부의 이야기가 평소보다 짙게 담긴 표본입니다.`
+          : per < bp * 0.9 ? ` — 전 기간 평균(${bp}건)보다 낮습니다. 혼인은 있는데 후기가 덜 담긴 구간이라, 표본 밖 수요가 상대적으로 큽니다.`
+          : ` — 전 기간 평균(${bp}건)과 같은 수준입니다.`;
+      }
+      ratio = `<p class="nsc-marryr">혼인 1,000건당 후기 <b>${per}건</b>${cmp}</p>`;
+    }
+    return `<div class="nsc-marry" title="${M_SRC()}">` +
+      `<span>이 기간 전국 혼인</span><b>${fmtN(cur.sum)}</b><i>건 · ${lab}</i>${ratio}</div>`;
+  }
+  const M_SRC = () => { const M = window.MARRIAGE; return M ? `${M.src} — ${M.estNote}` : ""; };
 
   function curRange() {
     if (!VF) return null;
@@ -1949,7 +1971,7 @@
       // 좌측 — 심플한 전국 요약(큰 숫자 + 삼성vsLG 한 줄 + 우위/열세 칩)
       const sumCol = `<div class="ca-nsumcol">` +
         `<div class="nsc-h"><h3>전국</h3><span>${perLab(st.period)}</span></div>` +
-        `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` + marryBlock() +
+        `<div class="nsc-total"><b>${fmtN(c.total)}</b><i>건 분석</i></div>` + marryBlock(c.total) +
         // 무슨 수치인지 밝힌다 — 숫자만 크게 띄우면 무엇을 센 것인지 알 수 없다
         `<p class="nsc-what"><b>다이렉트결혼준비</b> 카페 혼수가전 구매후기를 삼성·LG로 나눈 값입니다.</p>` +
         /* 매장 비교를 읽는 데 꼭 필요한 편향 고지(2026-08-24 실측). 지우면 "삼성이 많다 = 바이럴 우위"로
