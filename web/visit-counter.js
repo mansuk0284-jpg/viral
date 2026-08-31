@@ -21,14 +21,13 @@
     chip = document.createElement("div");
     chip.id = "visitChip";
     chip.setAttribute("title", "브라우저 세션 기준 누적 접속 — 새로고침은 다시 세지 않습니다 (45초마다 자동 갱신, 2026-08-27 집계 시작)");
-    /* 표기는 영어로 간단히(2026-08-28 사용자 지시) — 툴팁은 한글 상세 유지 */
-    chip.innerHTML = '<i aria-hidden="true"></i><b>—</b><span>visits</span>' +
-      '<u class="vi-since">since 26.08.27</u>';
-    /* 자리 = 메인 좌측 큰 영상 바로 아래(2026-08-28). 영상 '안' 오버레이는
-       제목("가전 구매후기 '26")이 하단을 차지해 어느 구석이든 겹쳤다(실측) —
-       영상 아래 흰 여백에 어두운 배지로 두는 것이 가장 잘 보인다. */
+    /* 버튼/배지가 아니라 **그냥 텍스트**(2026-08-28 사용자 지시) */
+    chip.innerHTML = '<b>—</b> visits <u class="vi-since">· since 26.08.27</u>';
+    /* 자리 = 영상(figure) 안 absolute(top:100%) — 흐름에 넣으면 좌측 칼럼이
+       그만큼 길어져 좌·우 하단 라인이 어긋난다(정렬 원칙 위반, 사용자 지적).
+       absolute 는 높이에 영향이 없어 원래 정렬이 유지된다. */
     var film = document.querySelector(".hero-lead .hero-film");
-    if (film) film.insertAdjacentElement("afterend", chip);
+    if (film) { chip.classList.add("plain"); film.appendChild(chip); }
     else { chip.classList.add("float"); document.body.appendChild(chip); }
     return chip;
   }
