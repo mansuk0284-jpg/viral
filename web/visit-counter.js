@@ -21,10 +21,12 @@
     chip = document.createElement("div");
     chip.id = "visitChip";
     chip.setAttribute("title", "브라우저 세션 기준 누적 접속 — 새로고침은 다시 세지 않습니다 (45초마다 자동 갱신, 2026-08-27 집계 시작)");
-    chip.innerHTML = '<i aria-hidden="true"></i><span>누적 접속</span><b>—</b><em>회</em>' +
-      '<u class="vi-since">2026.08.27부터</u>';
-    /* 자리 = 메인 좌측 큰 영상(.hero-film) 바로 아래(2026-08-28 사용자 지시).
-       그 구조가 없으면(예외적) 좌측 하단 떠 있는 칩으로 폴백한다. */
+    /* 표기는 영어로 간단히(2026-08-28 사용자 지시) — 툴팁은 한글 상세 유지 */
+    chip.innerHTML = '<i aria-hidden="true"></i><b>—</b><span>visits</span>' +
+      '<u class="vi-since">since 26.08.27</u>';
+    /* 자리 = 메인 좌측 큰 영상 바로 아래(2026-08-28). 영상 '안' 오버레이는
+       제목("가전 구매후기 '26")이 하단을 차지해 어느 구석이든 겹쳤다(실측) —
+       영상 아래 흰 여백에 어두운 배지로 두는 것이 가장 잘 보인다. */
     var film = document.querySelector(".hero-lead .hero-film");
     if (film) film.insertAdjacentElement("afterend", chip);
     else { chip.classList.add("float"); document.body.appendChild(chip); }
