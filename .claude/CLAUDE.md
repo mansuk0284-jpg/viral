@@ -926,7 +926,9 @@ blog-view 가 다결처럼 **전국(지도)→지역→매장**으로 드릴한�
 
 ## 접속자 카운터 — 메인 좌측 하단 (2026-08-27 신설)
 
-`web/visit-counter.js` + `#visitChip`(analysis-ui.css). 정적 사이트라 서버가
+`web/visit-counter.js` + `#visitChip`(analysis-ui.css). **자리 = 메인 좌측
+큰 영상(.hero-film) 바로 아래 인라인**(2026-08-28 이동), "2026.08.27부터"
+집계 시작일 병기. 구조가 없으면 좌측 하단 float 폴백. 정적 사이트라 서버가
 없어 집계는 **Abacus**(abacus.jasoncameron.dev, 계정·키 불필요, CORS 허용)에
 둔다 — 네임스페이스 `mansuk0284viral` / 키 `visits`.
 

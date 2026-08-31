@@ -1247,8 +1247,8 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
   padding-bottom: 6px; border-bottom: 1px dashed rgba(23,42,66,0.14); }
 
 /* ── 접속자 카운터 칩 — 메인 좌측 하단(2026-08-27) ── */
-#visitChip { position: fixed; left: 18px; bottom: 16px; z-index: 60;
-  display: none; align-items: baseline; gap: 7px;
+#visitChip { display: none; align-items: baseline; gap: 7px;
+  margin: 10px 2px 0; width: fit-content;
   padding: 9px 15px 9px 12px; border-radius: 999px;
   background: rgba(255,255,255,0.82); backdrop-filter: blur(10px);
   border: 1px solid rgba(23,42,66,0.12);
@@ -1264,6 +1264,10 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
   transition: transform .25s ease; }
 #visitChip em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #8a94a6; }
 #visitChip.tick b { transform: translateY(-2px); color: #1f5fd0; }
+#visitChip .vi-since { text-decoration: none; font-style: normal; font-size: 11px;
+  font-weight: 600; color: #8a94a6; margin-left: 3px; padding-left: 9px;
+  border-left: 1px solid rgba(23,42,66,0.14); }
+#visitChip.float { position: fixed; left: 18px; bottom: 16px; z-index: 60; margin: 0; }
 @keyframes viPulse { 0%,100% { box-shadow: 0 0 0 3px rgba(31,95,208,0.18); }
   50% { box-shadow: 0 0 0 6px rgba(31,95,208,0.08); } }
 /* 분석 화면에서는 숨긴다 — 메인 전용(좌측 칼럼과 겹친다) */
