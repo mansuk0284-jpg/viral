@@ -35,13 +35,13 @@
 
   function render(v) {
     if (v == null) return;
+    try { localStorage.setItem("vi-last", String(v)); } catch (e) {}
     var el = ensureChip().querySelector("b");
     if (el && el.textContent !== fmt(v)) {
       el.textContent = fmt(v);
       ensureChip().classList.add("tick");
       setTimeout(function () { chip && chip.classList.remove("tick"); }, 600);
     }
-    ensureChip().classList.add("on");
   }
 
   function call(path) {
@@ -55,6 +55,15 @@
   }
 
   function start() {
+    /* 배지는 **항상 즉시** 그린다(2026-08-28). 집계 서버 응답을 기다렸다가
+       그리면, 광고차단기·사내망이 요청을 막는 환경에서는 배지 자체가 안 보인다
+       — 실제로 "안 나온다"는 제보의 원인. 숫자는 응답이 오면 채우고,
+       못 받으면 마지막 확인값(localStorage) 또는 "—"를 보여준다. */
+    ensureChip().classList.add("on");
+    try {
+      var last = localStorage.getItem("vi-last");
+      if (last) ensureChip().querySelector("b").textContent = fmt(+last);
+    } catch (e) {}
     var seen = false;
     try { seen = !!sessionStorage.getItem("vi-visit"); } catch (e) {}
     var first = seen ? call("/get/" + NS + "/" + KEY)
