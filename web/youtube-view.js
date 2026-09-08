@@ -301,7 +301,7 @@
     if (hot.length) bullets.push(`재생수 기준 관심 품목은 <b>${hot.join(" · ")}</b> 순입니다.`);
     const trendBlock = bullets.length
       ? `<div class="yt-trend"><h4>이 기간 유튜브 트렌드</h4>` +
-        `<ul>${bullets.slice(0, 4).map((b) => `<li>${b}</li>`).join("")}</ul></div>`
+        `<ul>${bullets.slice(0, 3).map((b) => `<li>${b}</li>`).join("")}</ul></div>`
       : "";
 
     /* ── 좌측: 바이럴 대비 — 우리는 이렇게, 경쟁사는 이렇게(한눈 비교) */

@@ -232,7 +232,7 @@
     if (hot.length) bullets.push(`언급 상위 품목은 <b>${hot.join(" · ")}</b> 순입니다.`);
     const trendBlock = bullets.length
       ? `<div class="yt-trend"><h4>이 기간 인스타 트렌드</h4>` +
-        `<ul>${bullets.slice(0, 4).map((b) => `<li>${b}</li>`).join("")}</ul></div>`
+        `<ul>${bullets.slice(0, 3).map((b) => `<li>${b}</li>`).join("")}</ul></div>`
       : "";
 
     return `<div class="ca2 yt-wrap">` +

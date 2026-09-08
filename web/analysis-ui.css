@@ -1261,3 +1261,40 @@ body.view-nr .af-sub, body.view-nr .af-cap { font-size: 13.5px !important; }
   gap: 6px; padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,0.9);
   border: 1px solid rgba(23,42,66,0.12); font-size: 12.5px; color: #4a566b; }
 body.mode-results #visitChip { display: none; }
+
+/* ── 좌측 요약 칼럼 압축(2026-09-08 사용자: "좌측 요약이 너무 길어 페이지가
+   너무 내려간다") — 내용은 유지, 행간·여백 밀도만 줄인다. ── */
+.rv-left, .cx-sum, .nb-left, .ca-nsumcol, .yt-left, .oh-lead, .ig-left { --lh-tight: 1.45; }
+/* 트렌드 불릿(최대 비만 343px): 행간·항목 간격 */
+.ca2 .yt-trend li { line-height: var(--lh-tight, 1.45) !important; margin: 0 0 7px !important; }
+.ca2 .yt-trend { padding-top: 2px !important; }
+.ca2.yt-wrap .yt-trend, .ca2.yt-wrap .yt-cmp { padding: 12px 14px 10px !important; }
+/* 방법론 각주(jw-note 95~157px): 행간·마진 */
+.ca2 .jw-note { line-height: var(--lh-tight, 1.45) !important; margin: 8px 0 0 !important; }
+/* 좌측 섹션 박스·제목 여백 */
+.ca2 .rv-left .nsc-sec, .ca2 .cx-sum .nsc-sec, .ca2 .nb-left .nsc-sec,
+.ca2 .oh-lead .nsc-sec { padding: 11px 13px 9px !important; margin-bottom: 9px !important; }
+.ca2 .nsc-st { margin-bottom: 7px !important; padding-bottom: 5px !important; }
+.ca2 .cx-sum-h { margin-bottom: 6px !important; }
+.ca2 .cx-sum-h h3 { margin-bottom: 2px !important; }
+/* 혼인 참조(150px): 패딩·행간 */
+.ca2 .nsc-marry { padding: 6px 9px !important; gap: 2px !important; margin-bottom: 8px !important; }
+.ca2 .nsc-marry .nsc-marryr { line-height: var(--lh-tight, 1.45) !important; }
+/* 채널 요약 진단·액션 불릿(cx-chsum 308 / cx-act 230) */
+.ca2 .cx-chsum { padding: 10px 12px 8px !important; margin-top: 9px !important; }
+.ca2 .cx-chsum h4 { margin-bottom: 6px !important; padding-bottom: 5px !important; }
+.ca2 .yt-act li, .ca2 .cx-act li { line-height: var(--lh-tight, 1.45) !important; margin: 0 0 6px !important; }
+/* 유튜브 대비 블록 내부 행 */
+.ca2 .yt-cmp .af-row, .ca2 .yt-cmp > div { margin-bottom: 5px !important; }
+/* 좌측 각주류 공통 */
+.ca2 .nsc-foot, .ca2 .cx-scopenote, .ca2 .yt-note { line-height: var(--lh-tight, 1.45) !important; margin-top: 6px !important; }
+/* 좌측 요약 보조 활자 — 공식 계단에 '좌측 요약 14.5px' 단계 추가(2026-09-08).
+   좌측은 요약이 목적이라 본문(15.5)보다 한 단 아래 밀도로 줄인다. */
+.ca2 .cx-left .yt-trend li, .ca2 .cx-left .jw-note, .ca2 .cx-left .yt-note,
+.ca2 .rv-left .nsc-foot, .ca2 .rv-left .jw-note, .ca2 .nb-left .jw-note,
+.ca2 .nb-left .nsc-foot, .ca2 .oh-lead .jw-note, .ca2 .cx-sum .cx-scopenote,
+.ca2 .cx-sum .yt-act li, .ca2 .cx-sum .cx-act li, .ca2 .rv-left .nsc-marry span,
+.ca2 .rv-left .nsc-marryr { font-size: 14px !important; line-height: 1.42 !important; }
+/* 좌측 대비 블록(yt-cmp)·칩류 내부도 같은 밀도 */
+.ca2 .cx-left .yt-cmp { font-size: 14px; }
+
