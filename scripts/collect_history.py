@@ -100,6 +100,8 @@ def main():
     print(f"재개: master {len(seen)}건 · 완료월 {len(done)}개", flush=True)
 
     with sync_playwright() as p:
+        # board(게시판 정주행)가 먼저 돈 뒤라면 키워드 경로는 신규 0건이 정상이다
+        # (2026-09-08 실측: '+0'을 실패로 오판했었다 — census 8월 1,960건 이미 존재).
         ctx = launch(p, headless=True)
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         safe_goto(page, f"https://cafe.naver.com/f-e/cafes/{CLUBID}/menus/{MENU}")

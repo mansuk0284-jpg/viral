@@ -2,7 +2,7 @@
 """네이버 카페 범용 전구간 수집 엔진 — clubId/menuId를 인자화한 collect_history.py.
    search/v2 + writeTime 월 윈도우 × 광역쿼리 union(articleId 중복제거)으로 census 근접.
    브랜드는 보강된 SAMSUNG/LG 별칭(라틴경계 \\bLG\\b 수정 포함)으로 분류 — 전 카페 동일 기준.
-   공개 검색·로그인 없음(로그인 세션이 .browser-profile에 있으면 자동 사용).
+   공개 검색·로그인 없음(로그인 세션이 .browser-profile2에 있으면 자동 사용).
    사용: python collect_cafe.py --clubid 12345678 --menu 42 --start 2021-01 --end 2026-06 \
          --out ../artifacts/cafe-momsholic-hist.json
 """

@@ -35,7 +35,7 @@ except Exception:
     pass
 
 ROOT = Path(__file__).resolve().parent.parent
-PROFILE_DIR = ROOT / ".browser-profile"
+PROFILE_DIR = ROOT / ".browser-profile2"
 ARTIFACTS = ROOT / "artifacts"
 CAFE_URL = os.environ.get("VIRAL_CAFE_URL", "https://cafe.naver.com/directwedding")
 # 기본은 다이렉트결혼준비(probe로 확인). 다른 카페는 VIRAL_CLUBID 환경변수로 교체.

@@ -9,7 +9,7 @@ og:image 의 CDN 주소는 **서명이 붙어 며칠이면 만료**되므로 화
 만든다 — 배포본(GitHub Pages)에 같이 실려 영구히 산다.
 
 전량이 아니라 **화면에 오를 가능성이 있는 글만** 받는다(좋아요 상위 + 최신).
-로그인 세션 필요(.browser-profile 공유 — 한 번에 하나만).
+로그인 세션 필요(.browser-profile2 공유 — 한 번에 하나만).
 
 사용:
     python scripts/fetch_ig_thumbs.py --top 120

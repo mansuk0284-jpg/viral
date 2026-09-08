@@ -8,11 +8,11 @@
 
 핵심 원칙(보안):
   - 비밀번호는 코드가 절대 입력/저장하지 않는다. 사용자가 열린 크롬 창에서 직접 로그인한다.
-  - 로그인 결과(쿠키/세션)는 로컬 공유 프로필(.browser-profile)에만 남는다.
+  - 로그인 결과(쿠키/세션)는 로컬 공유 프로필(.browser-profile2)에만 남는다.
   - 개인 모니터링 용도의 소규모·완만한 속도. 각 채널 약관·레이트리밋을 존중한다.
 
 이 스크립트는 사장님 PC에서 직접 실행된다(로컬 Chrome 구동, 샌드박스 차단과 무관).
-naver_cafe_scraper.py 와 동일한 .browser-profile 을 공유하므로 네이버 로그인은 호환된다.
+naver_cafe_scraper.py 와 동일한 .browser-profile2 을 공유하므로 네이버 로그인은 호환된다.
 
 서브커맨드
   login   : 채널 로그인 창을 띄우고 대기. 사용자가 직접 로그인하면 세션이 프로필에 저장된다.
@@ -42,7 +42,7 @@ except Exception:
     pass
 
 ROOT = Path(__file__).resolve().parent.parent
-PROFILE_DIR = ROOT / ".browser-profile"   # naver_cafe_scraper.py 와 공유
+PROFILE_DIR = ROOT / ".browser-profile2"   # naver_cafe_scraper.py 와 공유
 ARTIFACTS = ROOT / "artifacts"
 
 # 채널 정의. login_url=로그인/홈, check_url=로그인 점검 페이지,
@@ -156,7 +156,7 @@ def cmd_login(args):
             safe_goto(page, cfg["login_url"])
             print(f"\n[login] === {ch} · {cfg['label']} ===")
             print(f"[login] 크롬 창에서 {args.seconds}초 안에 직접 로그인하세요. (비번은 코드가 만지지 않음)")
-            print("[login] 로그인하면 세션이 .browser-profile 에 저장됩니다.")
+            print("[login] 로그인하면 세션이 .browser-profile2 에 저장됩니다.")
             for remaining in range(args.seconds, 0, -10):
                 print(f"[login] {ch} 남은 시간 {remaining}s ...", flush=True)
                 time.sleep(10)

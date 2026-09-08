@@ -97,7 +97,7 @@ def main():
 
         io.open(os.path.join(ROOT, "artifacts", "insta-login.json"), "w",
                 encoding="utf-8").write(json.dumps(result, ensure_ascii=False, indent=1))
-        print("[insta] 창을 닫습니다. 세션은 .browser-profile 에 남습니다.", flush=True)
+        print("[insta] 창을 닫습니다. 세션은 .browser-profile2 에 남습니다.", flush=True)
         ctx.close()
 
 

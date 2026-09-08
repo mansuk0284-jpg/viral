@@ -11,7 +11,7 @@
      리뷰의 '인증 수단 = 예약' 비율로 **간접 추정**만 하고 추정임을 표기한다.
 
 일반 HTTP 는 403 이라 로컬 Chrome(Playwright)으로 간다.
-프로필은 .browser-profile 공유 → 다른 스크래퍼와 동시 실행 금지.
+프로필은 .browser-profile2 공유 → 다른 스크래퍼와 동시 실행 금지.
 
 사용:
   python scripts/naver_place_collect.py --region 부울경 --max-reviews 120
@@ -307,7 +307,7 @@ def main():
     ok = fail = 0
     with sync_playwright() as p:
         ctx = p.chromium.launch_persistent_context(
-            user_data_dir=str(ROOT / ".browser-profile"), channel="chrome",
+            user_data_dir=str(ROOT / ".browser-profile2"), channel="chrome",
             headless=a.headless, viewport={"width": 460, "height": 1000},
             args=["--disable-blink-features=AutomationControlled"])
         pg = ctx.pages[0] if ctx.pages else ctx.new_page()

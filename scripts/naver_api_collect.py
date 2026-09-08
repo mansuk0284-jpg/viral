@@ -89,7 +89,7 @@ DEFAULT_QUERIES = [
 CHANNEL_LABEL = {"naver-blog": "네이버 블로그", "busan-mom-cafe": "맘카페"}
 PREFIX = {"naver-blog": "B", "busan-mom-cafe": "M"}
 
-PROFILE_DIR = ROOT / ".browser-profile"
+PROFILE_DIR = ROOT / ".browser-profile2"
 
 
 def run_search(query, search_type, display, sort):
@@ -182,7 +182,7 @@ def collect(source_id, search_type, queries, display, sort, out_date):
 def read_bodies(rows, headless, max_body):
     """캡처된 link 본문을 Playwright 공유 프로파일로 열어 품목·톤·매장을 재추출한다.
        게시판 --read-body와 동일한 '본문 정독' 정밀도를 검색 채널에도 부여.
-       주의: .browser-profile은 스크래퍼/세션관리기와 공유 → 동시 실행 금지(TargetClosedError)."""
+       주의: .browser-profile2은 스크래퍼/세션관리기와 공유 → 동시 실행 금지(TargetClosedError)."""
     try:
         from playwright.sync_api import sync_playwright
     except Exception:
