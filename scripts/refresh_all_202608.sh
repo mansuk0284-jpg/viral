@@ -11,6 +11,9 @@ step "① 다결 board 증분(당월+전월, 본문 포함)"
 python scripts/naver_cafe_scraper.py board --menu-id 280 --cumulative --window-months 2 --read-body \
   || echo "!! 다결 board 실패"
 
+step "①-b board 누적본 → census 병합(이게 없으면 화면에 안 나온다)"
+python scripts/merge_board_into_census.py || echo "!! 병합 실패"
+
 step "② census 2026-08 재훑기(.done 정리 후)"
 python - <<'PY'
 import io
