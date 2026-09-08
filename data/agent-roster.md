@@ -8,10 +8,10 @@
 | 에이전트 | 스킬 | 담당 채널 | 수집 방식 | 경계(딱 이것만) |
 |---|---|---|---|---|
 | dagyeolun-collector | collect-dagyeolun | 다이렉트결혼준비 | 카페 스크래퍼(board menuId 280, 정본) | 실데이터 정본. 키워드검색은 보조 |
-| blog-collector | collect-blog | 네이버 블로그 | 검색 API(`naver_api_collect.py`) | 장문 후기·매장단서. 체험단 필터 |
-| momcafe-collector | collect-momcafe | 부울경 맘카페 | 카페 검색 API + 권역필터 | 권역 밀착. 비공개글 한계 명시 |
-| youtube-collector | collect-youtube | 유튜브 | Data API v3(영상+댓글) | 신제품 반응. 매장단서 약함 |
-| ohou-collector | collect-ohou | 오늘의집 | 세션캡처(공개 API 없음) | 디자인가전 트렌드 신호 |
+| blog-collector | collect-blog | 네이버 블로그 | 스크래퍼 `collect_blog.py`(통합검색, 월 윈도×36쿼리, .done 재개) | 장문 후기·매장단서. 체험단 별도 집계 |
+| momcafe-collector | collect-momcafe | 부울경 맘카페 | (보류) 표본 4건 — 히어로 타일·매장 카드에서 제외(2026-08-27) | 재개 시 표본 확보가 선결 |
+| youtube-collector | collect-youtube | 유튜브 | 스크래퍼 `collect_youtube.py`(검색 26종+성능 20종) | 게시월은 상대표기 환산 추정. 매장단서 약함 |
+| ohou-collector | collect-ohou | 오늘의집 | 헤디드 실프로필 `collect_ohou.py`+`enrich_ohou.py`(게시일 추정) | 매장 축 없음(단서 3/182) — 모델·공간 트렌드 전담 |
 | insta-collector | collect-insta | 인스타그램 | 세션캡처(로그인월) | 트렌드 신호용(협찬 필터) |
 
 ## 1-B. 제휴카페 계층 (혼수 채널과 잣대가 다름 — 합산 금지)
@@ -29,7 +29,7 @@
 
 | 에이전트 | 담당 | 해석 축 | 경계(딱 이것만) |
 |---|---|---|---|
-| naver-review-analyst | 네이버 플레이스 매장 리뷰 14곳 | 리뷰 규모·추이 / 칭찬(네이버 집계) / 아쉬움 원문 / 방문사유 / 매니저 실명 / 예약 경유(추정) | 예약 **건수 단정 금지**(관리자 전용). 혼수 후기와 **합산 금지** — 방문 평가와 구매 후기는 다른 표본 |
+| naver-review-analyst | 네이버 플레이스 매장 리뷰 — 명부 71곳(전국, 수집 67·매장 131) | 리뷰 규모·추이 / 칭찬(네이버 집계) / 아쉬움 원문 / 방문사유 / 매니저 실명 / 예약 경유(추정) | 예약 **건수 단정 금지**(관리자 전용). 혼수 후기와 **합산 금지** — 방문 평가와 구매 후기는 다른 표본 |
 
 **왜 분리하나:** 구매 후기는 '무엇을 샀나', 방문 리뷰는 '어떻게 응대받았나'를 말한다.
 전자는 품목·브랜드 경쟁을, 후자는 **매장 운영 품질과 온라인 노출량**을 드러낸다.
@@ -93,3 +93,32 @@
 - **UI 계층은 데이터 계층을 수정하지 않는다**: geo-viz-designer는 표현만, 집계 수치는 분석 계층 산출물 사용.
 - **검수는 별도**: instruction-steward는 만들지 않고 확인·보고만 한다(객관성).
 - **정직성 공통**: 표본 추정치 표기, 매장 미상 보존, 없는 데이터 임의 생성 금지, 한 화면 원칙([[ui-one-screen-principle]]).
+
+
+## 2026-09-08 재정립 — 정기 갱신 파이프라인(정본)
+
+월/주 단위 갱신은 **`scripts/refresh_all_202608.sh` 한 벌**이 정본이다(순차 실행,
+프로필 `.browser-profile2` 공유 — 동시 실행 금지):
+
+```
+① 다결 board 증분(당월+전월, 본문 포함)
+①-b merge_board_into_census.py     ← 이 다리가 없으면 화면에 안 나온다(9월 사고)
+② census 키워드 재훑기(당월 .done 제거 후 — board 선행 시 +0이 정상)
+③ 블로그 당월 재훑기(.done 에서 `쿼리|YYYYMM01` 제거 후, --out 기존 파일)
+④~⑦ 제이웨딩 · 유튜브 · 오늘의집(+enrich) · 인스타(세션 필요 — 만료 시 0건 산출은 격리)
+⑧ 플레이스 리뷰 전국(TARGETS 71곳, --max-reviews 150)
+⑨ 빌드 7종(build_web_data → blog → jwedding → youtube → instagram → ohou → naver_review)
+```
+
+- 인스타 재수집 산출은 회차 스냅샷 — 직전 산출과 **id union 병합 후 빌드**.
+- 배포 = 캐시버스터(`?v=2026rNNN`) 증가 → commit → push → 빈 커밋 재트리거 →
+  라이브 버전 폴링. 자동 주간 실행은 `scripts/auto_refresh.sh`(작업 스케줄러 등록).
+- 기간 칩·월 목록은 전부 **데이터 파생** — 수집이 그 달을 담으면 화면은 자동.
+
+### 검증 계층(빌드 뒤 반드시)
+
+| 역할 | 무엇 |
+|---|---|
+| insight-validator | 집계 감사(부풀림·편향·산술) — 리포트/배포 직전 |
+| instruction-steward | 다항목 지시 체크리스트 검수 — 큰 개편 마무리 |
+| (자동 스모크) | auto_refresh 가 주요 화면 pageerror·가로스크롤·핵심 수치 존재를 확인, 실패 시 푸시 중단 |

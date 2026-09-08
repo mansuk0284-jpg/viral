@@ -974,3 +974,16 @@ blog-view 가 다결처럼 **전국(지도)→지역→매장**으로 드릴한�
 인스타 재수집 산출은 **회차 스냅샷**이라 이전 산출과 id union 병합 후 빌드한다
 (650∪504→989건). 세션 만료면 전 태그 0건의 2바이트 산출이 나온다 — 빈 산출은
 빌드 전에 격리(확장자 변경)하고 이전 정상본으로 빌드한다.
+
+## 자동 갱신 체계 (2026-09-08 구축)
+
+- **주간 자동 실행**: Windows 작업 스케줄러 `ViralMonitor-WeeklyRefresh`
+  (매주 월 07:30, 대화형 로그온 세션 필요 — 헤디드 브라우저).
+  `scripts/viral_auto.cmd` → `scripts/auto_refresh.sh`.
+- auto_refresh 흐름: refresh_all(수집+merge 다리+빌드) → **스모크 검증**
+  (4화면 pageerror·가로스크롤·핵심 수치 — 실패 시 배포 중단) → 캐시버스터
+  자동 증가 → commit·push·재트리거 → 라이브 버전 폴링. 로그 = artifacts/logs/auto-*.log.
+- 수동 개입이 필요한 예외: 인스타 세션 만료(0건 산출 격리 후 insta_login 재로그인),
+  플레이스 신규 매장 추가(TARGETS), 혼인 통계 새 발표(build_marriage_web OFFICIAL).
+- 에이전트 역할 SSOT = `data/agent-roster.md`(2026-09-08 재정립 — 정기 갱신
+  파이프라인 절 참조). 로그는 artifacts/logs/, 일회성 잔재는 artifacts/attic/.
