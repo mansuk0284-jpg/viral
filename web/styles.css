@@ -175,12 +175,16 @@ h1, h2, h3, h4, p, span, label, button, li, td, th {
     radial-gradient(140% 95% at 85% -10%, #e9f0ff 0%, #ffffff 42%, #f3f4f7 100%);
 }
 
-/* ===== 비정형 에디토리얼 히어로 (한 화면 고정) ===== */
+/* ===== 비정형 에디토리얼 히어로 =====
+   높이는 '한 화면을 기본'으로 하되 고정하지 않는다(min-height).
+   height:100vh 로 못박으면 낮은 창(노트북 1366×630 실측)에서 우측 카드가
+   overflow:hidden 에 잘려 매장 선택 상자가 통째로 사라진다 —
+   잘리느니 세로 스크롤(2026-08-26 전환 원칙과 동일). */
 .hero-editorial {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  min-height: 600px;
+  height: auto;
+  min-height: max(100vh, 600px);
 }
 
 /* 대형 워터마크 (배경 타이포) — 과감하게 화면을 가로지름 */
@@ -1909,7 +1913,10 @@ body.portal-open .portal-cue { opacity: 0; transition: opacity .3s ease; }
   height: 100%; min-height: 0; flex: 1 1 auto; }
 body.portal-open .ap-cards { display: none; }
 .ap-card {
-  flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+  /* min-height:0 이면 낮은 창에서 카드가 내용보다 작아져 본문 끝(매장 선택
+     상자)이 overflow:hidden 에 잘린다(1366×630 실측: 61px 통째 실종).
+     max-content = 카드는 절대 자기 내용보다 작아질 수 없다. */
+  flex: 1; min-height: max-content; display: flex; flex-direction: column; overflow: hidden;
   background: #fbfbfd;                       /* 애플 라이트 그레이 */
   border: 1px solid rgba(23,42,66,0.07);
   border-radius: clamp(18px, 1.8vw, 26px);
@@ -2174,7 +2181,11 @@ body.portal-open .hero-art > .hero-stage { display: block; }
 /* 좁은 화면에선 다시 세로로 — 가로로 두면 설명이 두세 글자씩 끊긴다 */
 @media (max-width: 900px) {
   .ap-card { flex-direction: column; }
-  .ap-card > .ap-media { flex: 1 1 auto; align-self: auto; }
+  /* 영상 박스(.ap-film-box)가 절대배치라 미디어의 내용 높이가 0 이다 —
+     세로 배치에서 flex:1 1 auto 만 주면 본문에 밀려 1~7px 로 접힌다
+     (880px 폭 실측: 매장 카드 영상 7px). 최소 높이를 못박는다. */
+  .ap-card > .ap-media { flex: 1 1 auto; align-self: auto;
+    min-height: clamp(150px, 24vw, 220px); }
 }
 
 /* 제목을 짧게 줄였으니(2026-08-24 사용자 지시) 그만큼 크게 키운다.
