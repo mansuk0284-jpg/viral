@@ -2106,3 +2106,8 @@ body.view-cx .cx-top > .ca-ic { width: 44px; height: 44px; border-radius: 13px; 
   clip: rect(0 0 0 0); white-space: nowrap; }
 .ca2 .cy-sec > h5 > i { font-style: normal; font-size: .78em; font-weight: 700;
   color: var(--muted); margin-left: auto; }
+
+/* 카드 앞면 리드 문장(2026-09-26 사용자 지시: "실제 사용하는 말처럼 자연스럽게") —
+   칩과 큰 수치 사이 빈 공간에, 상세를 안 열어도 상황이 읽히는 한두 문장을 둔다. */
+.ca-fcard .fc-lede { margin: 10px 2px 0; font-size: var(--an-body, 15.5px); line-height: 1.58;
+  color: #4a5a74; font-weight: 600; word-break: keep-all; }

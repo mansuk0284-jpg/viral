@@ -1720,7 +1720,13 @@
       `약점 품목(<b class="warn">${lose.map((x) => x.n).join("·")}</b>)에서 패키지가 깨집니다 — 이 품목들에서만 LG가 <b class="warn">${fmtN(leak)}건</b> 앞섭니다.</p>` +
       `<p>약점 품목 상담에서는 <b>비스포크 대안 모델과 묶음 할인</b>을 먼저 제시해 이탈을 막으세요.</p></div>`,
       [win[0] ? { t: win[0].n + " " + win[0].sh + "% 강세", neg: false } : null,
-       lose[0] ? { t: lose[0].n + " " + lose[0].sh + "% 열세", neg: true } : null].filter(Boolean));
+       lose[0] ? { t: lose[0].n + " " + lose[0].sh + "% 열세", neg: true } : null].filter(Boolean),
+      false,
+      (win[0] && lose[0] && lose[0].sh < 50
+        ? `${win[0].n}${josa2(win[0].n)} ${win[0].sh}%로 확실하게 앞서는 반면 ${lose[0].n}${josa2(lose[0].n)} ${lose[0].sh}%까지 밀립니다. 품목마다 승부처가 달라서, 상담을 여는 품목과 방어할 품목을 나눠 잡는 것이 맞습니다.`
+        : win[0]
+          ? `조사된 품목 대부분에서 삼성이 앞서고 있습니다 — ${win[0].n}${hasJong(win[0].n) ? "이" : "가"} ${win[0].sh}%로 가장 강합니다.`
+          : ""));
   }
 
   /* ── 승부처 카드 — 비교 상담·혜택·성수기 ── */
@@ -1795,7 +1801,14 @@
       `</ul></div>`,
       [{ t: "비교 상담 승률 " + cShare + "%", neg: !winsCompare },
        peak && peak !== low ? { t: "후기 최다 " + (+peak) + "월", neg: false } : null].filter(Boolean),
-      !winsCompare);
+      !winsCompare,
+      (CP.s + CP.l >= 20
+        ? (gap > 0
+          ? `여러 매장을 견주어 본 고객일수록 삼성을 고릅니다 — 비교 후 선택이 ${cShare}%로, 전체 비중보다 ${gap}p 높습니다. 비교 견적을 두려워할 이유가 없는 구간입니다.`
+          : gap < 0
+            ? `비교까지 간 고객이 LG로 기웁니다 — 비교 후 선택이 ${cShare}%로 전체보다 ${Math.abs(gap)}p 낮습니다. 상담에서 견주는 순간의 논리를 손봐야 합니다.`
+            : `비교해 본 고객의 선택(${cShare}%)이 전체 흐름과 같습니다 — 비교 자체가 유불리를 가르지는 않는 구간입니다.`)
+        : ""));
   }
 
   // 애플식 분석 카드 — 앞면(라벨·제목·미니수치·＋) + 상세(영역 전체 덮음)
@@ -1876,9 +1889,18 @@
     return fcard("mgr", "실명 언급 분석", "매니저 실명 언급 현황",
       `${win.length}<u>/${rows.length}</u>`, "삼성 우위 매장",
       detail,
+      /* 기간 표본이 1곳(또는 전 매장 같은 값)이면 "100~100% 편차" 같은 모순이
+         나온다 — 비교가 성립하지 않는 경계에서는 편차를 말하지 않는다(±0 원칙). */
       [natOn !== null ? { t: "실명 후기 삼성 " + natOn + "%", neg: natOn < 50 } : null,
-       { t: "매장 간 편차 " + rows[rows.length - 1].sh + "~" + rows[0].sh + "%", neg: false }].filter(Boolean),
-      win.length < rows.length / 2);
+       rows.length >= 2 && rows[rows.length - 1].sh !== rows[0].sh
+         ? { t: "매장 간 편차 " + rows[rows.length - 1].sh + "~" + rows[0].sh + "%", neg: false }
+         : { t: "표본 20건 이상 " + rows.length + "곳", neg: false }].filter(Boolean),
+      win.length < rows.length / 2,
+      (natOn !== null
+        ? (rows.length >= 2 && rows[rows.length - 1].sh !== rows[0].sh
+          ? `고객이 담당자 이름까지 적어 준 후기에서 삼성은 ${natOn}%입니다. 매장별로는 ${rows[rows.length - 1].sh}%부터 ${rows[0].sh}%까지 크게 갈려서, 이름이 남게 요청하는 습관이 있는 매장과 없는 매장이 뚜렷이 나뉩니다.`
+          : `고객이 담당자 이름까지 적어 준 후기에서 삼성은 ${natOn}%입니다. 이 기간 표본 20건을 넘긴 매장은 ${rows.length}곳이라, 매장 간 비교는 기간을 넓혀 보는 것이 정확합니다.`)
+        : ""));
   }
 
   /* 사용자 지시(2026-08-25): "카드 위 텍스트나 상세로 진입한 내용에서 부정적이거나
@@ -1887,7 +1909,7 @@
      "열세 61%"·"LG 우위 격차 1,360건"도 파랗게 보였다. miniNeg 와 keys 의
      {t,neg} 로 앞면도 같은 원칙을 따르게 한다. keys 는 문자열(중립·파랑)과
      {t,neg} 객체(neg=true 면 빨강)를 섞어 쓸 수 있다. */
-  function fcard(key, label, title, mini, miniLab, detail, keys, miniNeg) {
+  function fcard(key, label, title, mini, miniLab, detail, keys, miniNeg, lede) {
     const chips = (keys || []).length
       ? `<div class="fc-keys">` + keys.map((k) => {
           const o = (k && typeof k === "object") ? k : { t: k, neg: false };
@@ -1899,6 +1921,9 @@
       `<span class="fc-label">${label}</span>` +
       `<h4 class="fc-title">${title}</h4>` +
       chips +
+      /* 카드 앞면 리드 문장(2026-09-26 사용자 지시: "실제 사용하는 말처럼 자연스럽게") —
+         칩과 큰 수치 사이의 빈 공간에, 상세를 안 열어도 상황이 읽히는 말 한두 문장을 둔다. */
+      (lede ? `<p class="fc-lede">${lede}</p>` : "") +
       `<div class="fc-mini${miniNeg ? " warn" : ""}"><b>${mini}</b><span>${miniLab}</span></div>` +
       `</div>` +
       `<button type="button" class="fc-open" aria-label="${title} 자세히 보기">+</button>` +
@@ -1970,7 +1995,7 @@
          문어체 용어로 바꾼다. */
       if (itLose.length) REASONS_M.push(["열세 품목",
         itLose.map((x) => `<b class="warn">${x.n} ${x.sh}%</b>`).join(" · ") +
-        ` — 합산 LG <b class="warn">+${fmtN(loseGap)}건</b>, 이 구간 손실의 핵심`, "ev"]);
+        ` — 이 품목들에서만 LG가 <b class="warn">+${fmtN(loseGap)}건</b> 앞서, 격차의 대부분이 여기서 생깁니다`, "ev"]);
       if (cpP.s + cpP.l >= 20) REASONS_M.push(["비교 상담 결과",
         `발품·비교 언급 ${fmtN(cpP.s + cpP.l)}건 중 삼성 <b>${cpSh}%</b>` +
         (cpSh > share0 ? ` — 전체(${share0}%)보다 <b>${cpSh - share0}p 높아</b> 비교될수록 유리`
@@ -2046,7 +2071,20 @@
            dSh !== null ? (dSh === 0 ? { t: "직전 기간과 동일", neg: false }
              : { t: "직전 기간보다 " + Math.abs(dSh) + "p " + (dSh > 0 ? "상승" : "하락"), neg: dSh < 0 }) : null]
             .filter(Boolean),
-          lead0 === "lose") +
+          lead0 === "lose",
+          (function () {
+            const head = lead0 === "win"
+              ? `이 기간 후기 열 건 중 ${Math.round(share0 / 10)}건 정도가 삼성 이야기입니다.`
+              : lead0 === "lose"
+                ? `이 기간은 삼성 ${share0}%로 LG에 밀리는 구간입니다.`
+                : `${share0}% 대 ${100 - share0}% — 어느 쪽도 확실히 앞서지 못한 접전입니다.`;
+            const tail = lead0 !== "lose" && itWin.length
+              ? ` ${itWin.slice(0, 2).map((x) => x.n).join("·")}${josa2(itWin[Math.min(1, itWin.length - 1)].n)} 흐름을 끌고 있습니다.`
+              : lead0 === "lose" && itLose.length
+                ? ` 격차의 대부분은 ${itLose[0].n}에서 나옵니다.`
+                : "";
+            return head + tail;
+          })()) +
         itemCard() +
         mgrCard() +
         winCard() +
@@ -2084,7 +2122,10 @@
             `계약 시 <b>담당자 이름을 넣은 후기</b>를 요청해 실명 후기 열세를 좁히세요.</p></div>`,
             [its.length ? { t: its[0].n + " 이탈 최다", neg: true } : { t: "이탈 품목 없음", neg: false },
              rg.length ? { t: rg[0].rg + " 열세 " + rg[0].sh + "%", neg: true } : null].filter(Boolean),
-            its.length > 0);
+            its.length > 0,
+            (its.length
+              ? `LG에 내주고 있는 품목이 ${its.length}개 있고, 그중 ${its[0].n}${hasJong(its[0].n) ? "이" : "가"} ${fmtN(its[0].gap)}건으로 가장 큽니다. 이 품목 하나만 따라잡아도 격차가 눈에 띄게 줄어듭니다.`
+              : `이 기간에는 LG가 앞선 품목이 없습니다 — 전 품목에서 앞서거나 동률이라, 지금 구성을 지키는 것이 곧 전략입니다.`));
         })() +
 
         `</div>`;

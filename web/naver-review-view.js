@@ -126,6 +126,52 @@
         `(롯데분당만 실적이 있으나 네이버에서 검색되지 않습니다)` : "") + `.</span>`;
   }
 
+  /* ── 전국 한눈에 층(2026-09-26 사용자 지시: "한눈에 상태가 어떤지 알기 어려워") ──
+     다결 전국의 문법(좌측 요약 박스 + 상태 카드 + 자연어 진단)을 이 화면에 입힌다. */
+
+  /* 전 매장 월별 신규 리뷰 합산 — 집계 완료 월 기준 최근 6개월.
+     당월은 진행 중이라 뺀다(절대 건수로 당월을 견주면 항상 하락으로 오독 — moTrend 원칙). */
+  function natTrend() {
+    const mo = { s: {}, l: {} };
+    let mx = "";
+    Object.keys(NR.stores).forEach((k) => {
+      const v = NR.stores[k], side = v.brand === "삼성" ? "s" : "l";
+      (v.rows || []).forEach((r) => {
+        const ym = r[R_YM]; if (!ym) return;
+        mo[side][ym] = (mo[side][ym] || 0) + 1;
+        if (ym > mx) mx = ym;
+      });
+    });
+    if (!mx) return null;
+    let end = mx;
+    if (end === (NR.now || "").slice(0, 7)) {
+      let y = +end.slice(0, 4), m = +end.slice(5) - 1;
+      if (m <= 0) { m = 12; y--; }
+      end = y + "-" + (m < 10 ? "0" : "") + m;
+    }
+    const ms = last6(end);
+    return { ms, s: ms.map((m) => mo.s[m] || 0), l: ms.map((m) => mo.l[m] || 0) };
+  }
+
+  /* 표본 행 전수 순회 — 예약 경유율·칭찬 키워드(기간 선택 시 그 구간만) */
+  function natRows() {
+    const inR = (ym) => !st.range ||
+      (ym && ym >= st.range[0].slice(0, 7) && ym <= st.range[1].slice(0, 7));
+    const o = { s: { n: 0, book: 0, praise: {} }, l: { n: 0, book: 0, praise: {} } };
+    Object.keys(NR.stores).forEach((k) => {
+      const v = NR.stores[k], t = o[v.brand === "삼성" ? "s" : "l"];
+      (v.rows || []).forEach((r) => {
+        if (!inR(r[R_YM])) return;
+        t.n++;
+        if (r[R_VIA] === "예약") t.book++;
+        NR.praise.forEach((kk, i) => { if ((r[R_P] >> i) & 1) t.praise[kk] = (t.praise[kk] || 0) + 1; });
+      });
+    });
+    const rate = (t) => t.n ? Math.round(t.book / t.n * 1000) / 10 : null;
+    const top = (t) => Object.keys(t.praise).sort((a, b) => t.praise[b] - t.praise[a]);
+    return { s: o.s, l: o.l, sRate: rate(o.s), lRate: rate(o.l), sTop: top(o.s), lTop: top(o.l) };
+  }
+
   function renderList() {
     const G = byDept();
     const both = G.filter((g) => g.both);
@@ -151,17 +197,122 @@
         `<span class="nrl-sh">${g.share}<u>%</u></span></button>`;
     };
 
+    const lose = both.length - win;
+    const NV = natRows();
+
+    /* ── 좌측 요약 칼럼 — 다결 전국과 같은 옷(.ca-nsumcol / .nsc-sec) ── */
+    const perLabel = st.range
+      ? `${st.range[0]} ~ ${st.range[1]}` : "누적 총계";
+    const segV = (v, cls) => v > 0
+      ? `<div class="db-seg ${cls}" style="width:${(v / ((S + L) || 1) * 100).toFixed(1)}%"></div>` : "";
+    const ss = (S + L) ? Math.round(S / (S + L) * 100) : 0;
+    const sumCol = `<div class="ca-nsumcol nrl-sum">` +
+      `<div class="nsc-h"><h3>전국</h3><span>${perLabel}</span></div>` +
+      `<div class="nsc-total"><b>${fmtN(S + L)}</b><i>건 리뷰</i></div>` +
+      `<p class="nsc-what"><b>네이버 플레이스 방문자 리뷰</b>입니다 — 혼수 후기가 아니라 ` +
+      `매장을 다녀간 고객이 남긴 평가라서, 다음 고객이 매장을 고를 때 가장 먼저 보는 숫자입니다.</p>` +
+      `<div class="nsc-sec"><h4 class="nsc-st">리뷰 건수</h4>` +
+      `<div class="nsc-ends"><span class="s">삼성</span><span class="l">LG</span></div>` +
+      `<div class="ca-distbar">${segV(S, "s")}${segV(L, "l")}</div>` +
+      `<div class="nsc-nums"><span class="s"><b>${fmtN(S)}건</b><i>(${ss}%)</i></span>` +
+      `<span class="l"><b>${fmtN(L)}건</b><i>(${100 - ss}%)</i></span></div></div>` +
+      `<div class="nsc-sec"><h4 class="nsc-st">매장 우위·열세 <i>양사 입점 ${both.length}개점</i></h4>` +
+      `<div class="nrs-win"><span class="s"><b>${win}</b><i>개점 우위</i></span>` +
+      `<span class="l"><i>개점 열세</i><b>${lose}</b></span></div></div>` +
+      (NV.sRate !== null && NV.lRate !== null
+        ? `<div class="nsc-sec"><h4 class="nsc-st">예약 경유 <i>표본 기준 추정</i></h4>` +
+          `<div class="nrs-win nrs-book"><span class="s"><b>${NV.sRate}<u>%</u></b><i>삼성</i></span>` +
+          `<span class="l"><i>LG</i><b>${NV.lRate}<u>%</u></b></span></div>` +
+          `<p class="nrs-note">수집 표본 리뷰 중 ‘예약 후 방문’ 표시 비율 — 예약 건수 자체는 외부에서 볼 수 없습니다.</p></div>`
+        : "") +
+      (NV.sTop.length && NV.lTop.length
+        ? `<div class="nsc-sec"><h4 class="nsc-st">칭찬 키워드 <i>표본 상위</i></h4>` +
+          `<p class="nrs-note nrs-kw">삼성 <b>${NV.sTop.slice(0, 2).join(", ")}</b><br>LG <b class="warn">${NV.lTop.slice(0, 2).join(", ")}</b>` +
+          (NV.lTop[0] && NV.sTop.slice(0, 3).indexOf(NV.lTop[0]) < 0
+            ? `<br>상대 1위 ‘${NV.lTop[0]}’${josaGa(NV.lTop[0])} 우리 상위에는 없습니다 — 상담에서 그 대목이 비어 있다는 신호입니다.`
+            : "") + `</p></div>`
+        : "") +
+      `</div>`;
+
+    /* ── 상태 카드 3장 — 경쟁 구도 · 최근 추세 · 격차 상위 매장 ── */
+    const ratio = S ? Math.round(L / S * 10) / 10 : null;
+    const cmpCard = (function () {
+      if (!S && !L) return "";
+      let big, cls, t;
+      if (L > S * 1.05) {
+        big = "×" + ratio; cls = "warn";
+        t = `전국 ${both.length}개 백화점의 방문자 리뷰는 <b class="warn">LG가 삼성의 ${ratio}배</b>입니다. ` +
+          `우리가 앞선 곳은 <b>${win}곳</b>뿐이고 <b class="warn">${lose}곳</b>은 리뷰 수에서 밀리고 있어, ` +
+          `매장을 검색한 고객 눈에는 LG 쪽 경험담이 먼저 쌓여 보이는 상태입니다.`;
+      } else if (S > L * 1.05) {
+        big = "×" + (L ? Math.round(S / L * 10) / 10 : "—"); cls = "";
+        t = `전국 ${both.length}개 백화점의 방문자 리뷰는 <b>삼성이 LG의 ${L ? Math.round(S / L * 10) / 10 : "—"}배</b>입니다. ` +
+          `${win}곳이 우위를 지키고 있습니다 — 지금의 리뷰 요청 방식이 통하고 있다는 뜻이라, 유지가 곧 과제입니다.`;
+      } else {
+        big = ss + "%"; cls = "";
+        t = `삼성 ${fmtN(S)}건, LG ${fmtN(L)}건으로 전국 합계는 비슷한 수준입니다. ` +
+          `다만 우위 ${win}곳 · 열세 ${lose}곳으로 매장마다 사정이 갈려 있어, 매장 단위로 봐야 정확합니다.`;
+      }
+      return `<div class="nrc"><h5>리뷰 경쟁 구도</h5>` +
+        `<div class="nrc-big ${cls}">${big}<span>${cls ? "LG 대 삼성" : "삼성 비중"}</span></div>` +
+        `<p>${t}</p></div>`;
+    })();
+    const trendCard = (function () {
+      const T = natTrend();
+      if (!T) return "";
+      const mxV = Math.max(1, ...T.s, ...T.l);
+      const chart = `<div class="nrc-chart">` + T.ms.map((m, i) =>
+        `<div class="nrc-mo" title="${m} — 삼성 ${fmtN(T.s[i])}건 · LG ${fmtN(T.l[i])}건">` +
+        `<span class="bars"><i class="bs" style="height:${Math.max(3, Math.round(T.s[i] / mxV * 100))}%"></i>` +
+        `<i class="bl" style="height:${Math.max(3, Math.round(T.l[i] / mxV * 100))}%"></i></span>` +
+        `<em>${+m.slice(5)}월</em></div>`).join("") + `</div>`;
+      const sum3 = (a, from) => a.slice(from, from + 3).reduce((x, y) => x + y, 0);
+      const sE = sum3(T.s, 0), sH = sum3(T.s, 3), lE = sum3(T.l, 0), lH = sum3(T.l, 3);
+      const word = (a, b) => !a ? null : (b > a * 1.1 ? "늘었" : b < a * 0.9 ? "줄었" : "비슷했");
+      const sw = word(sE, sH), lw = word(lE, lH);
+      let t = `최근 석 달 신규 리뷰는 월평균 <b>삼성 ${fmtN(Math.round(sH / 3))}건</b> · ` +
+        `<b class="warn">LG ${fmtN(Math.round(lH / 3))}건</b>입니다.`;
+      if (sw && lw) {
+        t += (sw === "비슷했" && lw === "비슷했")
+          ? ` 앞선 석 달과 견줘 양사 모두 큰 변화는 없습니다.`
+          : ` 앞선 석 달과 견줘 삼성은 ${sw}고, LG는 ${lw}습니다.`;
+        const gE = lE - sE, gH = lH - sH;
+        if (gE > 0 && gH > 0) {
+          if (gH < gE * 0.9) t += ` 격차는 조금씩 <b>좁혀지는</b> 흐름입니다.`;
+          else if (gH > gE * 1.1) t += ` 격차가 <b class="warn">더 벌어지는</b> 흐름이라 요청 실행부터 점검이 필요합니다.`;
+        }
+      }
+      return `<div class="nrc"><h5>최근 6개월 추세</h5>${chart}<p>${t}</p>` +
+        `<em class="nrc-note">집계가 끝난 달 기준(진행 중인 이번 달 제외) · 매장당 최근 표본 합산</em></div>`;
+    })();
+    const gapCard = (function () {
+      const loseArr = both.filter((g) => g.share !== null && g.share < 50)
+        .sort((a, b) => (b.lv - b.sv) - (a.lv - a.sv)).slice(0, 3);
+      /* 우위 예시는 양쪽 다 표본이 서야 뜻이 있다 — 상대가 1건뿐인 짝(신규
+         플레이스 등)을 '배울 매장'으로 올리면 비교가 아니라 착시가 된다. */
+      const winArr = both.filter((g) => g.share !== null && g.share >= 50 && g.sv >= 10 && g.lv >= 10)
+        .sort((a, b) => (b.sv - b.lv) - (a.sv - a.lv)).slice(0, 3);
+      if (!loseArr.length && !winArr.length) return "";
+      const row = (g, cls, tag) => `<button type="button" class="nrc-row ${cls}" data-nrdept="${g.dept}">` +
+        `<i>${tag}</i><b>${deptFull(g.dept)}</b><em>${fmtN(g.sv)} vs ${fmtN(g.lv)}</em></button>`;
+      return `<div class="nrc"><h5>격차 상위 매장</h5>` +
+        `<div class="nrc-rows">` +
+        loseArr.map((g) => row(g, "x", "열세")).join("") +
+        winArr.map((g) => row(g, "w", "우위")).join("") +
+        `</div>` +
+        `<p>격차가 가장 큰 매장부터 들여다보는 것이 빠릅니다 — 누르면 그 매장의 리뷰 상세로 들어갑니다.</p></div>`;
+    })();
+
     return `<div class="ca2 af-wrap nr-wrap nrl">` +
       `<div class="af-top">` +
       `<div class="af-title"><h2>네이버 리뷰 · 백화점별</h2>` +
       `<span>전국 백화점 ${G.length}곳 · 삼성·LG 모두 입점 ${both.length}곳 — 누르면 매장 하나를 자세히</span></div>` +
-      `<div class="af-hero">` +
-      `<div class="af-hk"><b>${fmtN(S)}</b><span>삼성 리뷰</span></div>` +
-      `<div class="af-hvs">vs</div>` +
-      `<div class="af-hk zero"><b>${fmtN(L)}</b><span>LG 리뷰</span></div>` +
-      `<div class="af-hk"><b>${win}<u>/${both.length}</u></b><span>삼성 우세 백화점</span></div>` +
-      `</div></div>` +
+      `</div>` +
       (function () { const P = nrPer(nrMonths()); return P ? `<div class="nr-perrow">${P.bar()}</div>` : ""; })() +
+      `<div class="nrl-main">` +
+      sumCol +
+      `<div class="nrl-right">` +
+      `<div class="nrl-cards">${cmpCard}${trendCard}${gapCard}</div>` +
       `<div class="nrl-body">` +
       // 서울·경기처럼 매장이 몰린 지역은 두 칸을 차지하게 해 세로를 반으로 줄인다.
       // (한 지역이 길어지면 그 줄 전체가 그만큼 높아져 한 화면을 깨뜨린다)
@@ -169,6 +320,7 @@
         `<h3>${r}<i>${byRg[r].length}</i></h3>` +
         `<div class="nrl-grid">` + byRg[r].map(cell).join("") + `</div></section>`).join("") +
       `</div>` +
+      `</div></div>` +
       /* 목록 화면의 표준 마무리 — 전국 리뷰 판세를 역할별 행동으로 옮긴다(2026-08-27) */
       (function () {
         const lose = both.filter((g) => g.share < 50);
@@ -588,6 +740,11 @@
   function numRo(n) {
     const last = String(n).replace(/,/g, "").slice(-1);
     return { "0": "으로", "3": "으로", "6": "으로" }[last] || "로";
+  }
+  function josaGa(w) {                       // 이/가 — 받침 유무로 고른다
+    const c = (w || "").charCodeAt((w || "").length - 1);
+    if (c < 0xac00 || c > 0xd7a3) return "가";
+    return (c - 0xac00) % 28 ? "이" : "가";
   }
   function josaRo(w) {
     const c = (w || "").charCodeAt((w || "").length - 1);

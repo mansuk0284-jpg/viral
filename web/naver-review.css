@@ -308,3 +308,59 @@ body.view-nr #channel .container { padding: 0 18px; max-width: min(1560px, 96vw)
 /* 진단 불릿 — 경고성 항목은 붉게(2026-08-24) */
 .nr-why li.warn-li { color: #b02a41; }
 .nr-why li.warn-li b { color: #8f1f33; }
+
+/* ══ 전국 목록 재구성(2026-09-26) — 좌측 요약 + 상태 카드 3장 ══
+   "한눈에 상태가 어떤지 알기 어렵다" — 다결 전국의 문법(좌측 .nsc-sec 박스)을
+   그대로 입히고, 우측 상단에 경쟁 구도·최근 추세·격차 상위 매장 카드를 둔다. */
+.nrl-main { display: grid; grid-template-columns: clamp(230px, 20vw, 288px) minmax(0, 1fr);
+  gap: 22px; align-items: start; margin-top: 8px; }
+.nrl-sum { justify-content: flex-start; }
+.nrl-sum .nsc-h h3 { font-size: clamp(26px, 3vw, 38px); }
+.nrs-note { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: #7d89a6; font-weight: 600; word-break: keep-all; }
+.nrs-kw { font-size: 13.5px; color: #3a4a63; }
+.nrs-kw b { color: #1f5fd0; } .nrs-kw b.warn { color: #d23b54; }
+.nrs-win { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.nrs-win span { display: flex; align-items: baseline; gap: 6px; line-height: 1; }
+.nrs-win b { font-size: 30px; font-weight: 900; letter-spacing: -0.02em; }
+.nrs-win b u { text-decoration: none; font-size: 0.5em; font-weight: 800; }
+.nrs-win i { font-style: normal; font-size: 12.5px; font-weight: 800; }
+.nrs-win .s b, .nrs-win .s i { color: #1f5fd0; }
+.nrs-win .l b, .nrs-win .l i { color: #d23b54; }
+
+.nrl-right { min-width: 0; }
+.nrl-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0 0 16px; }
+.nrc { background: #fff; border: 1px solid rgba(23,42,66,0.08); border-radius: 14px;
+  padding: 14px 16px 15px; box-shadow: 0 6px 18px rgba(23,42,66,0.05);
+  display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.nrc h5 { margin: 0; font-size: var(--an-sect, 16.5px); font-weight: 800; color: #172a42;
+  padding-bottom: 6px; border-bottom: 1px dashed rgba(23,42,66,0.14); }
+.nrc p { margin: 0; font-size: var(--an-body, 15.5px); line-height: 1.55; color: #3a4a63; word-break: keep-all; }
+.nrc p b { color: #1f5fd0; } .nrc p b.warn { color: #d23b54; }
+.nrc .nrc-big { display: flex; align-items: baseline; gap: 8px;
+  font-size: 36px; font-weight: 900; letter-spacing: -0.02em; color: #1f5fd0; line-height: 1; }
+.nrc .nrc-big.warn { color: #d23b54; }
+.nrc .nrc-big span { font-size: 12.5px; font-weight: 800; color: #8a94a6; letter-spacing: 0; }
+.nrc-note { font-style: normal; font-size: 11.5px; font-weight: 600; color: #9aa7bd; }
+/* 6개월 듀얼 미니 막대 */
+.nrc-chart { display: flex; align-items: flex-end; gap: 7px; height: 76px; }
+.nrc-mo { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.nrc-mo .bars { display: flex; align-items: flex-end; justify-content: center; gap: 2px; height: 58px; width: 100%; }
+.nrc-mo .bars i { display: block; width: 9px; border-radius: 3px 3px 0 0; }
+.nrc-mo .bars .bs { background: linear-gradient(180deg, #4f86e6, #1f5fd0); }
+.nrc-mo .bars .bl { background: linear-gradient(180deg, #e87186, #d23b54); }
+.nrc-mo em { font-style: normal; font-size: 11px; font-weight: 700; color: #8a94a6; }
+/* 격차 상위 매장 행(클릭 → 매장 상세) */
+.nrc-rows { display: flex; flex-direction: column; gap: 5px; }
+.nrc-row { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(23,42,66,0.08);
+  background: #f8fafc; border-radius: 9px; padding: 6px 9px; font: inherit;
+  font-size: 13.5px; font-weight: 700; color: #172a42; cursor: pointer; text-align: left; }
+.nrc-row:hover { border-color: #3e6ae1; background: #f2f6ff; }
+.nrc-row i { font-style: normal; flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 6px; }
+.nrc-row.w i { background: #e8f0ff; color: #1f5fd0; }
+.nrc-row.x i { background: #fdeaee; color: #d23b54; }
+.nrc-row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nrc-row em { font-style: normal; margin-left: auto; flex: 0 0 auto; font-size: 12px; font-weight: 800; color: #5d6b80; font-variant-numeric: tabular-nums; }
+@media (max-width: 1180px) {
+  .nrl-main { grid-template-columns: 1fr; }
+  .nrl-cards { grid-template-columns: 1fr 1fr; }
+}
