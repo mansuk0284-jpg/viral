@@ -60,10 +60,24 @@ QUERIES = [
 ]
 
 # 2026년 월별 윈도우 (수집 범위 = 2026년, CLAUDE.md 2026-08-24)
-WINDOWS = [("20260101", "20260131"), ("20260201", "20260228"),
-           ("20260301", "20260331"), ("20260401", "20260430"),
-           ("20260501", "20260531"), ("20260601", "20260630"),
-           ("20260701", "20260731"), ("20260801", "20260826")]
+# 하드코딩 목록이 20260826 에서 끝나 9월이 통째로 빠졌다(2026-09-26 실사고 —
+# 배치가 17초 만에 '전부 완료'로 끝남). 당월까지 실행 시점에 생성한다.
+# 당월 윈도의 .done 키는 시작일(YYYYMM01)이라, 당월 재훑기는 refresh_all.sh 가
+# 그 키를 지워서 연다(끝일이 늘어도 키는 같아 스스로는 다시 안 훑는다).
+def month_windows():
+    import datetime as _dt
+    today = _dt.date.today()
+    last_m = today.month if today.year == 2026 else 12
+    out = []
+    for m in range(1, last_m + 1):
+        a = _dt.date(2026, m, 1)
+        if today.year == 2026 and m == today.month:
+            b = today
+        else:
+            b = (_dt.date(2026 + (m == 12), m % 12 + 1, 1) - _dt.timedelta(days=1))
+        out.append((a.strftime("%Y%m%d"), b.strftime("%Y%m%d")))
+    return out
+WINDOWS = month_windows()
 
 # ── 판정 어휘 (naver_cafe_scraper 와 같은 계열) ──
 APPLIANCE = re.compile(
