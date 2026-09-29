@@ -193,9 +193,9 @@
         `LG <b class="warn">${R.lgOff.length}편(${man(R.lgOffV)}회)</b>입니다. `;
       if (R.samOff.length && !R.lgOff.length) {
         line += `혼수가전 검색에서 LG 공식 영상은 잡히지 않아, 브랜드가 직접 내보내는 노출은 삼성이 앞서 있습니다. ` +
-          `상담에서 해당 영상 시청 여부를 물어 대화를 여는 활용이 가능합니다.`;
+          `상담에서 “이 영상 보셨어요?”로 대화를 열기 좋습니다.`;
       } else if (R.lgOff.length && !R.samOff.length) {
-        line += `삼성 공식 영상은 잡히지 않았습니다 — 고객이 브랜드 설명을 상대 쪽에서 먼저 접하고 있습니다.`;
+        line += `이 기간 혼수가전 검색에는 삼성 공식 영상이 걸리지 않았습니다 — 브랜드가 직접 하는 설명을 고객이 상대 쪽에서 먼저 듣고 있는 셈입니다.`;
       } else if (R.samOffV !== R.lgOffV) {
         const w = R.samOffV > R.lgOffV;
         line += `조회수 기준으로는 ${w ? "삼성" : "LG"} 공식 채널의 도달이 더 큽니다.`;
@@ -215,7 +215,7 @@
           (R.lv > R.sv
             ? `<b class="warn">시청자가 자발적으로 다루는 이야기는 LG 쪽이 많습니다</b>. 고객은 삼성을 광고로, LG를 후기로 만나는 구조입니다.`
             : R.sv > R.lv
-            ? `<b>자발적 이야기에서도 삼성이 앞서 있습니다</b> — 상담에서 해당 영상을 근거 자료로 쓸 수 있습니다.`
+            ? `<b>자발적 이야기에서도 삼성이 앞서 있습니다</b> — 상담에서 이 영상들을 근거로 보여줄 수 있습니다.`
             : `양쪽이 같은 수준입니다.`);
       } else {
         line += `브랜드가 특정되는 영상은 ${brandN}편으로 표본이 작아 비율 대신 편수로만 적습니다` +
@@ -291,7 +291,7 @@
     if (byViews.length) {
       const t0 = byViews[0];
       const who = t0.own === "sam" ? "삼성전자 공식 채널" : t0.own === "lg" ? "LG전자 공식 채널" : `유튜버 ${t0.c}`;
-      bullets.push(`${who}의 ‘${t0.t.slice(0, 22)}…’ 영상이 <b>${man(t0.v)}회</b>로 최다 조회입니다.`);
+      bullets.push(`${who}의 ‘${t0.t.slice(0, 22)}…’ 영상이 <b>${man(t0.v)}회</b>로 가장 많이 재생됐습니다.`);
       const c0 = byViews.find((x) => !x.own);
       if (c0 && t0.own) bullets.push(`유튜버 중에서는 <b>${c0.c}</b>의 영상(${man(c0.v)}회)이 조회수 1위입니다.`);
     }
@@ -325,7 +325,7 @@
     const rankCard = (title, list, fullList, tag) => {
       const use = list.length ? list : fullList;
       const note = list.length ? ""
-        : `<p class="ca-splx">이 기간에는 해당 영상이 수집되지 않아 <b>전체 기간 상위</b>를 보여줍니다.</p>`;
+        : `<p class="ca-splx">이 기간에는 이 축의 영상이 없어, <b>전체 기간의 상위 영상</b>을 대신 보여줍니다.</p>`;
       return `<div class="ca-ncard">` +
         `<h4 class="ca-ch">${title} <i class="ca-tag">${tag}</i></h4>` + note +
         (use.length ? `<div class="yt-podium">${podium(use)}</div>`
@@ -348,7 +348,7 @@
       `<div class="cx-sum-n"><b>${man(R.views)}</b><i>회 재생</i></div>` +
       `<p class="yt-note">삼성 공식 <b>${R.samOff.length}편(${man(R.samOffV)}회)</b> · LG 공식 <b>${R.lgOff.length}편(${man(R.lgOffV)}회)</b> · ` +
       `유튜버 <b>${R.creator.length}편(${man(R.creatorV)}회)</b>` +
-      (offPct ? ` — 재생수의 <b>${offPct}%</b>가 공식 채널 발생분입니다.` : `입니다.`) + `</p>` +
+      (offPct ? ` — 재생수의 <b>${offPct}%</b>가 공식 채널에서 나왔습니다.` : `입니다.`) + `</p>` +
 
       trendBlock +
       cmpBlock +

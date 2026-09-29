@@ -135,9 +135,9 @@
       : pv < 10 ? ""
       : (function () {
           const d = Math.round((total - pv) / pv * 100);
-          return d === 0 ? `직전 같은 길이 구간과 <b>같은 수준</b>입니다.`
-            : d > 0 ? `직전 같은 길이 구간보다 <b>${d}% 늘었습니다</b>.`
-            : `직전 같은 길이 구간보다 <b class="warn">${-d}% 줄었습니다</b>.`;
+          return d === 0 ? `바로 앞 같은 길이의 구간과 <b>같은 수준</b>입니다.`
+            : d > 0 ? `바로 앞 같은 길이의 구간보다 <b>${d}% 늘었습니다</b>.`
+            : `바로 앞 같은 길이의 구간보다 <b class="warn">${-d}% 줄었습니다</b>.`;
         })();
 
     /* 우측 진단 — 전체 진단 / 당사 특이사항 / 경쟁사 특이사항 / 실행 제안
@@ -154,7 +154,7 @@
         (spCnt
           ? `내돈내산 <b>${fmtN(ownCnt)}건</b>, 체험단·협찬 <b class="warn">${fmtN(spCnt)}건</b>${total >= 10 ? `(${spPct}%)` : ""}은 별도 집계했습니다.`
           : `전량 내돈내산 글이며 체험단·협찬 표기 글은 없습니다.`) +
-        (momLine ? ` 게시량은 ${momLine}` : ``));
+        (momLine ? ` 글 수는 ${momLine}` : ``));
       ps.push(oS + oL >= 10
         ? `브랜드 구도는 내돈내산 기준 삼성 <b>${fmtN(oS)}건</b> 대 LG <b class="warn">${fmtN(oL)}건</b>(삼성 ${sh}%)입니다. ` +
           (sh >= 50 ? `고객이 자발적으로 남긴 글에서 당사가 우위라는 뜻입니다.`
@@ -170,7 +170,7 @@
             : `입니다. `);
       }
       if (hot.length) p3 += `품목은 <b>${hot.join(" · ")}</b> 순으로 다뤄졌습니다. `;
-      p3 += `조회수가 비공개인 채널이라 수치는 게시 건수 기준이며, 검색 노출이 오래 지속되는 채널 특성상 건수가 곧 노출 점유의 근사치입니다.`;
+      p3 += `블로그는 조회수를 공개하지 않아 모든 수치가 글 건수 기준입니다. 대신 글이 검색에 오래 남는 채널이라, 건수가 많을수록 검색에서 그만큼 자주 보인다고 읽으면 됩니다.`;
       ps.push(p3);
       overallSec = `<div class="cy-sec"><h5>전체 진단</h5>` +
         ps.map((x) => `<p class="cy-note">${x}</p>`).join("") + `</div>`;
@@ -195,7 +195,7 @@
         const up = Object.keys(RG).filter((k) => RG[k].s + RG[k].l >= 20)
           .map((k) => ({ n: k, s: RG[k].s, l: RG[k].l, sh: pct(RG[k].s, RG[k].l) }))
           .filter((x) => x.sh > natAll).sort((a, b) => b.sh - a.sh)[0];
-        if (up) ps.push(`지역으로는 <b>${up.n}</b>${josa(up.n, "이", "가")} 삼성 ${fmtN(up.s)}건 vs LG ${fmtN(up.l)}건(삼성 ${up.sh}%)으로 전국(${natAll}%)보다 <b>${up.sh - natAll}p 높은</b> 강세 지역입니다 — 이 지역의 성과 요인을 정리하면 타 지역에 적용할 모범 사례가 됩니다.`);
+        if (up) ps.push(`지역으로는 <b>${up.n}</b>${josa(up.n, "이", "가")} 삼성 ${fmtN(up.s)}건 vs LG ${fmtN(up.l)}건(삼성 ${up.sh}%)으로 전국(${natAll}%)보다 <b>${up.sh - natAll}p 높은</b> 강세 지역입니다 — 이 지역에서 통한 방식을 정리하면 다른 지역에 적용할 모범 사례가 됩니다.`);
       }
       if (!ps.length) ps.push(`이 기간 당사 매장이 특정된 글이 없습니다 — 매장명이 남는 후기 요청부터가 과제입니다.`);
       secs.push(`<div class="cy-sec"><h5>당사 특이사항</h5>` +
@@ -218,7 +218,7 @@
         if (stL && ST[stL].l) p1 += (rgL ? `, 매장으로는 ` : `LG 게시물이 가장 집중된 매장은 `) + `<b class="warn">${stL}</b>(${fmtN(ST[stL].l)}건)입니다.`;
         else p1 += `입니다.`;
         p1 += loseSt.length
-          ? ` 경쟁사가 앞선 매장은 <b class="warn">${loseSt.length}곳</b>이며, 격차가 가장 큰 곳은 ${loseSt[0]}(<b class="warn">${fmtN(ST[loseSt[0]].l - ST[loseSt[0]].s)}건</b> 차)입니다.`
+          ? ` 경쟁사가 앞선 매장은 <b class="warn">${loseSt.length}곳</b>이고, 격차가 가장 큰 곳은 ${loseSt[0]}(<b class="warn">${fmtN(ST[loseSt[0]].l - ST[loseSt[0]].s)}건</b> 차)입니다.`
           : ` 건수 기준으로 경쟁사가 앞선 매장은 없습니다.`;
         ps.push(p1);
         const lgItem = Object.keys(IT).filter((k) => IT[k].l > IT[k].s && IT[k].s + IT[k].l >= 10)
@@ -272,9 +272,9 @@
       /* 조회수 — 네이버가 공개하지 않는다. 지어내지 않고 그 사실을 명시한다
          (2026-08-26 사용자: "조회수에 대한 언급도 빠져있고"). */
       `<div class="nsc-sec"><h4 class="nsc-st">조회수</h4>` +
-      `<p class="nsc-foot">네이버 블로그는 <b>조회수를 외부에 공개하지 않아</b> 싣지 않습니다 — ` +
-      `이 화면의 모든 수치는 <b>게시 건수</b> 기준입니다. 검색 노출이 오래가는 채널 특성상 ` +
-      `건수가 곧 검색 점유의 근사치입니다.</p></div>` +
+      `<p class="nsc-foot">네이버 블로그는 <b>조회수를 공개하지 않아</b> 싣지 않습니다 — ` +
+      `이 화면의 모든 수치는 <b>글 건수</b> 기준입니다. 글이 검색에 오래 남는 채널이라, ` +
+      `건수가 많을수록 검색에서 그만큼 자주 보인다고 읽으면 됩니다.</p></div>` +
       /* 트렌드 불릿은 좌측이 아니라 우측 진단 첫 섹션으로 — 좌측에 두면
          칼럼이 화면(900px)을 넘겨 하단이 잘렸다(실측). 대비 블록은 게시 건수
          박스와 정보가 겹쳐 걷었다(협찬 포함 수치는 브랜드 반응 단락에 있다). */
