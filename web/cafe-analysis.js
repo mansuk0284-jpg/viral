@@ -842,7 +842,7 @@
       const hs = x.hs || 0, hl = x.hl || 0, ht = hs + hl;
       const hsh = ht ? Math.round(hs / ht * 100) : 0;
       const hTip = ht ? ` · 조회수 ${fmtN(ht)}회(삼성 ${fmtN(hs)} : LG ${fmtN(hl)})` : "";
-      return `<button type="button" class="rv-row ${lead}" ${attr}="${x.n}" title="${x.n} · 삼성 ${x.s} vs LG ${x.l}${hTip}">` +
+      return `<button type="button" class="rv-row ${lead}" ${attr}="${x.n}" title="${x.n} · 삼성 ${x.s} vs LG ${x.l} · 격차 ${gap >= 0 ? "+" : ""}${fmtN(gap)}건(맨 오른쪽 수치)${hTip}">` +
         `<span class="rv-rank">${i}</span>` +
         `<span class="rv-name">${x.n}</span>` +
         `<span class="rv-cnt"><i class="s">${fmtN(x.s)}</i><em>:</em><i class="l">${fmtN(x.l)}</i></span>` +
@@ -883,22 +883,32 @@
     /* "전국 안에서의 위치"는 좌측 박스에서 진단 문장으로 옮겼다(2026-08-26 사용자 지시
        — 좌측 칼럼 하단이 화면 밖으로 나가던 원인이기도 하다). 첫 줄에 붙여
        진단이 몇 줄로 잘려도 반드시 보이게 한다. */
+    /* 자연어 원칙(2026-09-30 사용자 지시 "실제 사용하는 말처럼") — 괄호·기호를
+       줄이고 말하듯 잇는다. 강세/약세/동률 삼지선다는 그대로 유지. */
     const posLine = (rank && natShareOf !== null)
-      ? ` 표본 규모는 전국 ${nRg}개 지역 중 <b>${rank}위</b>(전국 점유 ${natShareOf}%)입니다.`
+      ? ` 후기량으로는 전국 ${nRg}개 지역 중 <b>${rank}번째</b>로 큰 시장입니다(전국의 ${natShareOf}%).`
       : "";
     diag.push((diff === 0
-      ? `${josa(c.title, "은", "는")} 삼성 비중 <b>${share}%</b>로 전국(${nat}%)과 <b>같은 수준</b>입니다.`
-      : `${josa(c.title, "은", "는")} 삼성 비중 <b>${share}%</b>로 전국(${nat}%) 대비 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : ""}${diff}p ${diff > 0 ? "강세" : "약세"}</b>입니다.`) + posLine);
+      ? `${josa(c.title, "은", "는")} 후기의 ${share}%가 삼성 이야기로, 전국 평균(${nat}%)과 같은 수준입니다.`
+      : diff > 0
+        ? `${josa(c.title, "은", "는")} 후기의 <b>${share}%</b>가 삼성 이야기입니다 — 전국 평균(${nat}%)보다 <b class="up">${diff}p 높은 강세 지역</b>입니다.`
+        : `${josa(c.title, "은", "는")} 삼성 비중이 <b>${share}%</b>로 전국 평균(${nat}%)보다 <b class="down">${-diff}p 낮습니다</b> — 전국 흐름을 밑도는 지역입니다.`) + posLine);
     /* 명부 기준으로 말한다 — "부산 5개점 중 …" 이 "표본 잡힌 4곳 중 …" 보다
        현장이 아는 사실과 맞다. 후기 0건 매장은 이름까지 불러 후기 요청 액션으로 잇는다. */
     if (rosterRg.length) diag.push(
       `백화점 ${rosterRg.length}개점 중 <b>${winR}곳 우위</b>, <b class="down">${loseR}곳 열세</b>` +
       /* 이름은 3곳까지만 부른다 — 서울처럼 10곳이면 한 문장이 세 줄을 먹는다(실측) */
-      (ghosts.length ? ` — <b class="down">${ghosts.slice(0, 3).join("·")}</b>${ghosts.length > 3 ? " 등 " + ghosts.length + "곳" : ghosts.length > 1 ? " " + ghosts.length + "곳" : ""}은 이 기간 후기가 <b class="down">한 건도 없습니다</b>.` : `.`));
+      (ghosts.length ? (function () {
+        /* "센텀시티은" 조사 오류(2026-09-30 실측) — 꼬리가 "N곳"이면 '은'이 맞지만,
+           매장 이름으로 끝나면 받침을 봐야 한다. */
+        const suf = ghosts.length > 3 ? " 등 " + ghosts.length + "곳" : ghosts.length > 1 ? " " + ghosts.length + "곳" : "";
+        const j = suf ? "은" : (hasJong(ghosts[0]) ? "은" : "는");
+        return ` — <b class="down">${ghosts.slice(0, 3).join("·")}</b>${suf}${j} 이 기간 후기가 <b class="down">한 건도 없습니다</b>.`;
+      })() : `.`));
     else if (list.length) diag.push(`${unit} ${list.length}곳 중 <b>${win.length}곳 우위</b>, <b class="down">${lose.length}곳 열세</b>.`);
-    if (headShare >= 40 && list[0]) diag.push(`표본이 <b>${list[0].n}</b>에 ${headShare}% 집중돼 있어 이 ${unit}의 성적이 지역 전체를 좌우합니다.`);
-    if (opps.length) diag.push(`열세 ${unit}에서 LG가 누적 <b class="down">${fmtN(oppGap)}건</b> 앞서며, 이 격차가 지역 순위의 실질 손실분입니다.`);
-    else if (list.length) diag.push(`열세 ${josa(unit, "이", "가")} 없어 <b>방어 국면</b> — 현 우위를 유지하며 <b>고객 후기 요청</b>을 꾸준히 이어가는 것이 과제입니다.`);
+    if (headShare >= 40 && list[0]) diag.push(`후기의 ${headShare}%가 <b>${list[0].n}</b> 한 곳에서 나옵니다 — 이 ${unit} 성적이 곧 지역 성적입니다.`);
+    if (opps.length) diag.push(`열세 ${unit}에서는 LG가 모두 <b class="down">${fmtN(oppGap)}건</b> 앞서 있습니다 — 지역 격차의 대부분이 여기서 생깁니다.`);
+    else if (list.length) diag.push(`열세 ${josa(unit, "이", "가")} 없어 <b>방어 국면</b>입니다 — 우위를 지키면서 구매 고객에게 후기 작성을 꾸준히 요청하는 것이 지금 할 일입니다.`);
 
     const oppCards = opps.slice(0, 3).map((x) => {
       const gap = x.l - x.s;
@@ -1221,8 +1231,9 @@
                 : sh > natSh ? ` — 전국(${natSh}%)보다 <b>${sh - natSh}p 높아</b>, 견주게 만들수록 유리한 도시입니다.`
                 : ` — 전국(${natSh}%)보다 <b class="warn">${natSh - sh}p 낮습니다</b>. 비교 질문에 답할 준비가 상담의 승부처입니다.`)
               : `.`)
-          : `양사를 나란히 견준 후기가 <b>${fmtN(tot)}건</b>이라 비중을 말하기엔 표본이 작습니다(삼성 ${fmtN(cp.s)} : LG ${fmtN(cp.l)}).`;
-        return `<div class="cy-sec cy-sub"><p class="cy-note">${line}</p></div>`;
+          : `양사를 나란히 견주고 결정한 후기가 이 기간 <b>${fmtN(tot)}건</b>뿐입니다(삼성 ${fmtN(cp.s)} : LG ${fmtN(cp.l)}) — 비중을 말하기엔 적어, 기간을 넓혀 보는 것이 정확합니다.`;
+        /* 제목 없는 박스로 떠 있던 블록(2026-09-30 실측) — 다른 절과 같은 제목 문법을 준다 */
+        return `<div class="cy-sec"><h5>비교 상담 <i>양사 견준 후기</i></h5><p class="cy-note">${line}</p></div>`;
       })() +
 
       // 지역 특이점 — 후기 내용에서 드러나는 이 지역만의 성격(혜택 언급 + 품목 편차)
@@ -1585,7 +1596,7 @@
           : diff === 0
           ? `삼성 ${shareLab} 우위 — 지역평균과 같은 수준입니다.${winLine}${loseLine}` +
             ` 우위를 굳히려면 <b>담당자 이름이 남는 후기 요청</b>을 이어가세요.`
-          : `삼성 ${shareLab} 우위지만 지역평균(${rShare}%)보다 <b class="warn">${-diff}p 낮습니다</b> — 우위에 가려진 상대 열세입니다.` +
+          : `삼성 ${shareLab} 우위지만 지역 평균(${rShare}%)보다는 <b class="warn">${-diff}p 낮습니다</b> — 이기고는 있어도 이웃 매장들만큼은 아니라는 뜻입니다.` +
             (sLose.length ? loseLine + ` 이 품목부터 대안 모델을 준비하세요.`
               : `${winLine} 이웃 매장이 더 잘하고 있는 이유를 아래 지역 내 비교에서 확인하세요.`))
       : lead === "l"
@@ -1645,8 +1656,9 @@
       `<div class="cy-k"><b>${rank || "-"}<u>위</u></b><span>${st.region || ""} 내 표본</span></div>` +
       `<div class="cy-k"><b class="${diff > 0 ? "" : diff < 0 ? "wn" : ""}">${diff > 0 ? "+" : ""}${diff}<u>p</u></b><span>지역평균 대비</span></div>` +
       `</div>` +
+      /* "-5p 낮습니다"는 이중 부정으로 읽힌다(2026-09-30 실측) — 문장에는 절댓값만 */
       `<p class="nsc-foot">` + (diff === 0 ? `지역평균(${rShare}%)과 같은 수준입니다.`
-        : `지역평균(${rShare}%)보다 <b class="${diff > 0 ? "" : "warn"}">${diff > 0 ? "+" : ""}${diff}p ${diff > 0 ? "높습니다" : "낮습니다"}</b>.`) + `</p>` +
+        : `지역평균(${rShare}%)보다 <b class="${diff > 0 ? "" : "warn"}">${Math.abs(diff)}p ${diff > 0 ? "높습니다" : "낮습니다"}</b>.`) + `</p>` +
       `</div>` +
 
       (c.geoNote ? `<p class="ca-note">⚠ ${c.geoNote}</p>` : "") +
