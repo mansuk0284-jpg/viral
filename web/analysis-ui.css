@@ -1298,3 +1298,22 @@ body.mode-results #visitChip { display: none; }
 /* 좌측 대비 블록(yt-cmp)·칩류 내부도 같은 밀도 */
 .ca2 .cx-left .yt-cmp { font-size: 14px; }
 
+
+/* ══ 매장 허브 리뷰 카드 2층(2026-09-30) — 선택 기간/누적을 섞지 않는다 ══ */
+.cx-card .cx-nrsec { margin-top: 9px; padding-top: 8px; border-top: 1px dashed rgba(23,42,66,0.16); }
+.cx-card .cx-nrsec:first-of-type { margin-top: 4px; padding-top: 0; border-top: 0; }
+.cx-card .cx-nrsec h6 { margin: 0 0 5px; font-size: 12.5px; font-weight: 800; color: #1f5fd0;
+  display: flex; align-items: baseline; gap: 6px; }
+.cx-card .cx-nrsec h6 i { font-style: normal; font-weight: 700; font-size: 11px; color: #8a94a6; }
+.cx-card .cx-nrsec.cum h6 { color: #5d6b80; }
+.cx-card .cx-nrsec .cx-main { margin-bottom: 3px; }
+.cx-vs2 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  font-size: 12.5px; font-weight: 800; margin: 2px 0 3px; }
+.cx-vs2 .s { color: #1f5fd0; } .cx-vs2 .l { color: #d23b54; }
+.cx-vs2 b { font-size: 15px; font-variant-numeric: tabular-nums; }
+.cx-vs2 em { font-style: normal; font-size: 11px; font-weight: 800; color: #8a94a6; flex: 0 0 auto; }
+.cx-vs2 em.s { color: #1f5fd0; } .cx-vs2 em.l { color: #d23b54; }
+.cx-nrnote { margin: 2px 0 3px; font-size: 12.5px; font-weight: 600; color: #7d89a6;
+  line-height: 1.5; word-break: keep-all; }
+.cx-nrnote b { color: #45527a; }
+.cx-card .cx-chip.dim { background: none; border: 0; color: #9aa7bd; font-weight: 600; padding-left: 0; }

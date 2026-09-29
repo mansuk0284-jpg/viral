@@ -282,40 +282,68 @@
       if (p[0] === S.key && NR.stores[p[1]]) vs = NR.stores[p[1]];
       else if (p[1] === S.key && NR.stores[p[0]]) vs = NR.stores[p[0]];
     });
-    /* 기간 연동(2026-08-27): 큰 숫자는 **선택 기간의 수집 표본**으로 센다.
-       네이버 누적 총계는 기간을 못 따르므로 보조 칩으로 내린다 — 기간을 바꿔도
-       숫자가 안 변하면 연동이 아니다(네이버리뷰 목록 화면과 같은 원리). */
+    /* ── 2층 구성(2026-09-30 사용자 지시: "해당월과 누적이 혼재되지 않도록") ──
+       예전에는 한 카드에 ①선택 기간 표본 ②누적 총계 ③150행 표본(예약)
+       ④네이버 누적(칭찬)이 라벨 없이 섞여 있었다. 이제 「선택 기간」과
+       「누적 전체」 두 층으로 갈라, 층마다 삼성 vs LG 를 나란히 비교한다. */
     const ms = curMonths();
-    /* 커버리지 게이트 — 한쪽이라도 표본이 이 기간을 못 담으면 누적 총계 기준으로
-       비교한다(표본 150행 캡 밖의 과거를 0으로 그리면 누락으로 읽힌다). */
+    /* 커버리지 게이트 — 한쪽이라도 표본(최근 150행)이 이 기간을 못 담으면
+       기간 비교를 만들지 않는다(캡 밖 과거를 0으로 그리면 누락으로 읽힌다). */
     const covOk = nrCovOk(S, ms) && (!vs || nrCovOk(vs, ms));
-    const rows = covOk ? S.rows.filter((r) => inMs(ms, r[0])) : S.rows;
-    const vrows = vs ? (covOk ? (vs.rows || []).filter((r) => inMs(ms, r[0])) : (vs.rows || [])) : [];
-    const meN = covOk ? rows.length : S.total;
-    const vsN = vs ? (covOk ? vrows.length : vs.total) : 0;
-    const book = rows.filter((r) => r[1] === "예약").length;
-    const rate = rows.length ? Math.round(book / rows.length * 100) : 0;
-    const tot2 = meN + vsN;
-    const w = tot2 ? (meN / tot2 * 100).toFixed(1) : 50;
-    const win = vs && meN > vsN;
-    return `<div class="cx-card cx-live ${ch.cls}" data-nrgo="${S.key}" title="눌러서 리뷰·예약 분석 보기">` +
-      `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i>${trendTag(ch.key, name)}</div>` +
-      `<div class="cx-main">` +
-      `<div class="cx-big"><b>${fmtN(meN)}</b><span>${covOk ? "기간 표본" : "리뷰 누적"}</span></div>` +
-      (vs && tot2 ? `<div class="cx-vs"><span class="s">삼성 ${fmtN(meN)}</span><span class="l">LG ${fmtN(vsN)}</span></div>` +
-            `<div class="cx-bar"><i class="s" style="width:${w}%"></i><i class="l" style="width:${100 - w}%"></i></div>` +
-            `<div class="cx-sh ${win ? "s" : "l"}">${win ? "삼성 우위" : vsN > meN ? "LG 우위" : "동률"}</div>`
-          : vs ? `<div class="cx-sh">이 기간 양사 표본 없음</div>` : `<div class="cx-sh">비교 매장 없음</div>`) +
-      `</div>` +
-      (covOk
-        ? `<div class="cx-sub"><span class="cx-lb">누적 총계</span><span class="cx-chip">${fmtN(S.total)}건${vs ? ` vs LG ${fmtN(vs.total)}건` : ""}</span></div>`
-        : `<div class="cx-sub"><span class="cx-lb">기준</span><span class="cx-chip warn">수집 표본(최근 150행)이 이 기간을 못 담아 누적 기준입니다</span></div>`) +
-      `<div class="cx-sub"><span class="cx-lb">예약경유</span>` +
-      `<span class="cx-chip s">${fmtN(book)}건 · ${rate}% <em>추정</em></span></div>` +
+    const rowsP = (S.rows || []).filter((r) => inMs(ms, r[0]));
+    const vrowsP = vs ? (vs.rows || []).filter((r) => inMs(ms, r[0])) : [];
+    const perLabel = ms && ms.length
+      ? (ms.length === 1 ? ms[0] : `${ms[0]} ~ ${ms[ms.length - 1]}`) : "전체";
+
+    /* 삼성(좌·파랑) vs LG(우·빨강) 한 줄 + 막대 + 판정 — 층마다 같은 문법.
+       짝(같은 상권 LG)이 없으면 삼성 수치만 적고 '비교 매장 없음'을 짧게 밝힌다 —
+       노트만 반환하면 누적 숫자가 통째로 사라진다(현대 울산 실측). */
+    const duo = (a, b) => {
+      if (!vs) return `<div class="cx-vs2"><span class="s">삼성 <b>${fmtN(a)}</b></span><em>같은 상권 LG 없음</em></div>`;
+      const t = a + b;
+      if (!t) return `<div class="cx-nrnote">이 기간에는 양사 모두 수집 표본에 리뷰가 없습니다.</div>`;
+      const w = (a / t * 100).toFixed(1);
+      const verdict = a > b ? `<em class="s">삼성 우위</em>` : b > a ? `<em class="l">LG 우위</em>` : `<em>동률</em>`;
+      return `<div class="cx-vs2"><span class="s">삼성 <b>${fmtN(a)}</b></span>${verdict}<span class="l">LG <b>${fmtN(b)}</b></span></div>` +
+        `<div class="cx-bar"><i class="s" style="width:${w}%"></i><i class="l" style="width:${100 - w}%"></i></div>`;
+    };
+    /* 예약 경유 — 리뷰마다 붙는 '예약 후 방문' 인증 표기를 표본 안에서 센 추정치.
+       예약 '건수'는 스마트플레이스 관리자 전용이라 외부에서 볼 수 없다.
+       표본 10건 미만이면 퍼센트를 적지 않는다(소표본 원칙). */
+    const bookChip = (rows, base) => {
+      if (!rows.length) return "";
+      const bk = rows.filter((r) => r[1] === "예약").length;
+      const v = rows.length >= 10
+        ? `${Math.round(bk / rows.length * 100)}% <em>(${fmtN(bk)}/${fmtN(rows.length)}건 · 추정)</em>`
+        : `${fmtN(bk)}건/표본 ${fmtN(rows.length)}건 <em>추정</em>`;
+      return `<div class="cx-sub"><span class="cx-lb">예약경유</span><span class="cx-chip s">${v}</span>` +
+        `<span class="cx-chip dim">${base}</span></div>`;
+    };
+
+    // ① 선택 기간 층
+    const perSec = covOk
+      ? `<div class="cx-nrsec"><h6>선택 기간 <i>${perLabel} · 수집 표본</i></h6>` +
+        `<div class="cx-main"><div class="cx-big"><b>${fmtN(rowsP.length)}</b><span>기간 리뷰</span></div></div>` +
+        duo(rowsP.length, vrowsP.length) +
+        bookChip(rowsP, "이 기간 표본 기준") + `</div>`
+      : `<div class="cx-nrsec"><h6>선택 기간 <i>${perLabel}</i></h6>` +
+        `<p class="cx-nrnote">수집 표본(매장당 최근 150행)이 이 기간을 담지 못합니다 — ` +
+        `기간 비교 없이 아래 <b>누적 전체</b>만 비교합니다.</p></div>`;
+
+    // ② 누적 전체 층 — 네이버가 매장 페이지에 표시하는 총계(기간과 무관)
+    const cumSec = `<div class="cx-nrsec cum"><h6>누적 전체 <i>개점 이래 · 네이버 총계</i></h6>` +
+      (covOk ? "" : `<div class="cx-main"><div class="cx-big"><b>${fmtN(S.total)}</b><span>리뷰 누적</span></div></div>`) +
+      duo(S.total, vs ? vs.total : 0) +
+      (covOk ? "" : bookChip(S.rows || [], "최근 150행 표본 기준")) +
       (S.keywords && S.keywords.length
         ? `<div class="cx-sub"><span class="cx-lb">칭찬</span>` +
-          S.keywords.slice(0, 2).map((k) => `<span class="cx-chip">${k.k} ${fmtN(k.n)}</span>`).join("") + `</div>`
-        : "") +
+          S.keywords.slice(0, 2).map((k) => `<span class="cx-chip">${k.k} ${fmtN(k.n)}</span>`).join("") +
+          `<span class="cx-chip dim">누적·네이버 집계</span></div>`
+        : "") + `</div>`;
+
+    return `<div class="cx-card cx-live ${ch.cls}" data-nrgo="${S.key}" title="눌러서 리뷰·예약 분석 보기">` +
+      `<div class="cx-head"><b>${ch.name}</b><span>${ch.sub}</span><i class="cx-live-tag">실데이터</i>${trendTag(ch.key, name)}</div>` +
+      perSec + cumSec +
       `</div>`;
   }
 
