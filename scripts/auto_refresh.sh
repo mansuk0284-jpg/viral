@@ -10,9 +10,19 @@ LOG="artifacts/logs/auto-$STAMP.log"
 exec > >(tee -a "$LOG") 2>&1
 echo "===== auto_refresh 시작 $(date) ====="
 
+# ⓪-0 배포 계정·주소 설정 — scripts/deploy.conf 한 곳에서 읽는다(계정 전환 대비)
+source scripts/deploy.conf
+
+# ⓪-a 네트워크 사전 점검 — 미연결이면 수집을 시작하지 않는다
+#     (2026-10-12 실사고: 네트워크 단절 상태로 전 채널이 헛돌며 0건 산출을 만들었다)
+if ! curl -s --max-time 10 -o /dev/null https://www.naver.com; then
+  echo "!! 네트워크 미연결 — 수집을 시작하지 않고 종료합니다."
+  exit 1
+fi
+
 # ⓪ 푸시 계정 고정 — 2026-09-21 실사고: gh 에 두 계정이 저장돼 있어 자동 실행이
 #    권한 없는 계정(mansuk7077-bro)으로 푸시를 시도, 403 으로 배포가 통째로 빠졌다.
-gh auth switch --hostname github.com --user mansuk0284-jpg 2>/dev/null || true
+gh auth switch --hostname github.com --user "$GH_USER" 2>/dev/null || true
 
 # ① 수집+빌드 전체(범용 월 배치 — merge 다리·인스타 union 가드 포함)
 bash scripts/refresh_all.sh
@@ -96,10 +106,14 @@ git add -A
 git commit -q -m "data: 자동 주간 갱신 $(date +%Y-%m-%d) — auto_refresh
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
-# 푸시 실패를 성공처럼 지나치지 않는다(2026-09-21: 403 인데 '푸시 완료'가 찍혔다)
+# 푸시 실패를 성공처럼 지나치지 않는다(2026-09-21: 403 인데 '푸시 완료'가 찍혔다).
+# 403 이면 계정을 바로잡고 1회 재시도(2026-10-07: 초입 switch 가 무시된 채 403 유실).
 if ! git push -q origin main; then
-  echo "!! git push 실패 — 자격증명/계정 확인 필요(커밋은 로컬에 남음). 배포 미완."
-  exit 1
+  gh auth switch --hostname github.com --user "$GH_USER" || true
+  if ! git push -q origin main; then
+    echo "!! git push 실패 — 자격증명/계정 확인 필요(커밋은 로컬에 남음). 배포 미완."
+    exit 1
+  fi
 fi
 sleep 8
 git commit -q --allow-empty -m "chore: Pages 빌드 재트리거(auto)
@@ -109,13 +123,13 @@ if ! git push -q origin main; then
   echo "!! 재트리거 push 실패 — 라이브 반영이 늦을 수 있음"
 fi
 echo "푸시 완료 — 라이브 반영 확인"
-python - <<'PY'
-import io, re, time, urllib.request, sys
+PAGES_URL="$PAGES_URL" python - <<'PY'
+import io, os, re, time, urllib.request, sys
 sys.stdout.reconfigure(encoding='utf-8')
 want = re.search(r"\?v=(2026r\d+)", io.open("web/index.html", encoding="utf-8").read()).group(1)
 for i in range(20):
     try:
-        h = urllib.request.urlopen("https://mansuk0284-jpg.github.io/viral/?a=%d" % i, timeout=20).read().decode("utf-8", "ignore")
+        h = urllib.request.urlopen(os.environ.get("PAGES_URL", "https://mansuk0284-jpg.github.io/viral/") + "?a=%d" % i, timeout=20).read().decode("utf-8", "ignore")
         m = re.search(r"\?v=(2026r\d+)", h)
         if m and m.group(1) == want:
             print("LIVE", want); break

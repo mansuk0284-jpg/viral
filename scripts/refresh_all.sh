@@ -75,6 +75,9 @@ fi
 step "⑦-b 인스타 스냅샷 위생 + union 병합(0건 산출이 화면을 덮지 않게)"
 python scripts/merge_instagram_snapshots.py || echo "!! 인스타 병합 실패"
 
+step "⑦-c 스냅샷 빈 산출 격리(유튜브·오늘의집·제이웨딩 — 2026-10-12 실사고 가드)"
+python scripts/snapshot_guard.py youtube ohou jwedding || echo "!! 스냅샷 가드 실패"
+
 if [ "$DO_PLACE" = "1" ]; then
 step "⑧ 네이버 플레이스 전 매장(전국) 리뷰 재수집"
 python scripts/naver_place_collect.py --max-reviews 150 || echo "!! 플레이스 실패"
