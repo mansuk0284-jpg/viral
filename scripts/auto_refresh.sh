@@ -10,6 +10,13 @@ LOG="artifacts/logs/auto-$STAMP.log"
 exec > >(tee -a "$LOG") 2>&1
 echo "===== auto_refresh 시작 $(date) ====="
 
+# ⓪-00 스케줄 세션 환경 보정 — 작업 스케줄러에서 띄운 bash 는 HOME/GH 설정
+#      경로가 비어 gh 가 "not logged in to any hosts"가 된다(2026-10-26 실측 —
+#      9/21·10/7·10/26 자동 배포 403 유실의 공통 뿌리). 명시로 못박는다.
+export HOME="${HOME:-/c/Users/admin}"
+export GH_CONFIG_DIR="${GH_CONFIG_DIR:-/c/Users/admin/AppData/Roaming/GitHub CLI}"
+echo "gh 상태: $(gh auth status --hostname github.com 2>&1 | head -2 | tail -1)"
+
 # ⓪-0 배포 계정·주소 설정 — scripts/deploy.conf 한 곳에서 읽는다(계정 전환 대비)
 source scripts/deploy.conf
 
