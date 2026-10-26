@@ -289,6 +289,11 @@ Abacus(keyless, ns `mansuk0284viral`/`visits`), 세션당 1회·45초 폴링,
 (LG 우세 역전책·부정후기 대응·진열/상담 포인트, 스킬 `sales-growth-insight`).
 
 #### affiliate-cafe-analyst — 제휴카페 (잣대 ②)
+- **갱신 경로**: 주간 배치 대상이 아니다 — `python scripts/refresh_affiliate.py
+  2026-08 2026-10` 처럼 윈도를 주면 artifacts/affiliate/*.json 14곳을 재수집해
+  articleId 합집합으로 병합(기존 본문 분석 필드 보존) 후 빌드 2종까지 돌린다.
+  clubId는 기존 행의 url에서, menuId는 `menu` 필드에서 복원한다(2026-10-27 신설
+  — 8/12 이후 두 달 공백 실측).
 - **임무**: 제휴카페 84곳을 **지역 생활 커뮤니티**로 해석 — 혼수 후기 건수가
   아니라 ①교체·이사 수요 ②경쟁 유통 지역 마케팅 노출 ③구매·추천 상담
   ④우리 제휴 활동 ⑤중고 거래 ⑥구독·렌탈 ⑦사후서비스 ⑧온라인구매 8축.
